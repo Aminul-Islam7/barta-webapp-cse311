@@ -1,0 +1,3 @@
+<?php
+// Send friend request
+?>
