@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Parent Sign Up</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+    <h2>Parent Sign Up</h2>
+
+    <form action="register.php" method="POST">
+
+        <label>Full Name</label>
+        <input type="text" name="full_name" required>
+        <br><br>
+
+        <label>Email</label>
+        <input type="email" name="email" required>
+        <br><br>
+
+        <label>Password</label>
+        <input type="password" name="password" required>
+        <br><br>
+
+        <label>Date of Birth</label>
+        <input type="date" name="dob">
+        <br><br>
+
+        <label>Personal ID Type</label>
+        <select name="id_type" required>
+            <option value="">Select ID Type</option>
+            <option value="passport">Passport</option>
+            <option value="nid">NID</option>
+            <option value="drivers_license">Driver's License</option>
+        </select>
+        <br><br>
+
+        <label>Personal ID Number</label>
+        <input type="text" name="Id_Number" required>
+        <br><br>
+
+        <button type="submit">Sign Up</button>
+
+    </form>
+
+</div>
+
+</body>
+</html>
+
