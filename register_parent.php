@@ -5,6 +5,17 @@
 require "db.php";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    
+    //Sanitizing name format
+    if (!filter_input(INPUT_POST, 'full_name', FILTER_SANITIZE_SPECIAL_CHARS)) {
+        header("Location: parentSignUp.php?error=invalid_name");
+        exit;
+    }
+    //Validating email format
+    if (!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
+        header("Location: parentSignUp.php?error=invalid_email");
+        exit;
+    }
 
     //Collecting data from the HTML form
     $full_name   = $_POST['full_name'];
@@ -36,6 +47,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         if ($conn->query($sqlParent) === TRUE) {
             echo "<h2>Parent Registration Successful!</h2>";
+            //header("Location: parent_success.php");
+            //exit;
         } else {
             echo "Error inserting into parent_user table: " . $conn->error;
         }
