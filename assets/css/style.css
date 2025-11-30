@@ -1,6 +1,140 @@
-/* Single CSS file for entire project */
-* {
+/* =========================================
+   RESET & BASE
+   ========================================= */
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
 	margin: 0;
 	padding: 0;
-	box-sizing: border-box;
+}
+
+html {
+	scroll-behavior: smooth;
+}
+
+body {
+	background-color: var(--bg-body);
+	color: var(--text-main);
+	font-family: var(--font-sans);
+	line-height: 1.5;
+	-webkit-font-smoothing: antialiased;
+}
+
+/* =========================================
+   VARIABLES
+   ========================================= */
+:root {
+	/* --- Brand Colors --- */
+	--brand-100: #edfffe;
+	--brand-200: #b6faf8;
+	--brand-300: #7df0ec;
+	--brand-400: #4be9e4;
+	--brand-500: #1be0d9; /* Main Brand Color */
+	--brand-600: #0eb5af;
+	--brand-700: #088985;
+	--brand-800: #035e5b;
+	--brand-900: #003331;
+
+	/* --- Supporting: Success --- */
+	--success-100: #edfff8;
+	--success-200: #b6fade;
+	--success-300: #7df0c0;
+	--success-400: #4be9a7;
+	--success-500: #1be08e;
+	--success-600: #0eb570;
+	--success-700: #088953;
+	--success-800: #035e38;
+	--success-900: #00331e;
+
+	/* --- Supporting: Warning --- */
+	--warning-100: #fffded;
+	--warning-200: #faf3b6;
+	--warning-300: #f0e47d;
+	--warning-400: #e9d94b;
+	--warning-500: #e0cc1b;
+	--warning-600: #b5a40e;
+	--warning-700: #897c08;
+	--warning-800: #5e5503;
+	--warning-900: #332e00;
+
+	/* --- Supporting: Error --- */
+	--error-100: #ffeded;
+	--error-200: #fab6b6;
+	--error-300: #f07d7d;
+	--error-400: #e94b4b;
+	--error-500: #e01b1b;
+	--error-600: #b50e0e;
+	--error-700: #890808;
+	--error-800: #5e0303;
+	--error-900: #330000;
+
+	/* --- Neutrals --- */
+	--neutral-100: #ffffff;
+	--neutral-200: #c3d9d8;
+	--neutral-300: #8fb2b1;
+	--neutral-400: #628c8b;
+	--neutral-500: #3d6564;
+	--neutral-600: #224d4b;
+	--neutral-700: #0f3332;
+	--neutral-800: #041a19;
+	--neutral-900: #000000;
+
+	/* --- Shadows --- */
+	--shadow-color: 15 51 50; /* Based on neutral-700 hue */
+	--shadow-sm: 0 1px 2px rgb(var(--shadow-color) / 0.1);
+	--shadow-md: 0 4px 6px -1px rgb(var(--shadow-color) / 0.1), 0 2px 4px -1px rgb(var(--shadow-color) / 0.06);
+	--shadow-lg: 0 10px 15px -3px rgb(var(--shadow-color) / 0.1), 0 4px 6px -2px rgb(var(--shadow-color) / 0.05);
+
+	/* --- Fonts --- */
+	--font-sans: 'Inter', sans-serif;
+}
+
+/* =========================================
+   THEME TOKENS (LIGHT MODE DEFAULT)
+   ========================================= */
+:root {
+	/* Backgrounds */
+	--bg-body: var(--neutral-100);
+	--bg-surface: var(--neutral-100);
+	--bg-subtle: var(--neutral-200);
+
+	/* Text */
+	--text-main: var(--neutral-900);
+	--text-muted: var(--neutral-500);
+	--text-inverted: var(--neutral-100);
+
+	/* Borders */
+	--border-color: var(--neutral-300);
+
+	/* Brand Semantic Map */
+	--primary: var(--brand-600);
+	--primary-hover: var(--brand-700);
+	--on-primary: var(--neutral-100);
+}
+
+/* =========================================
+   DARK MODE OVERRIDES
+   ========================================= */
+[data-theme='dark'] {
+	/* Remapping semantics to Dark Neutrals */
+	--bg-body: var(--neutral-900);
+	--bg-surface: var(--neutral-800);
+	--bg-subtle: var(--neutral-700);
+
+	/* Remapping text */
+	--text-main: var(--neutral-100);
+	--text-muted: var(--neutral-300);
+	--text-inverted: var(--neutral-900);
+
+	/* Dark mode borders should be subtle */
+	--border-color: var(--neutral-700);
+
+	/* Brand adjustments for Dark Mode */
+	--primary: var(--brand-500); /* Lighter to pop against dark bg */
+	--primary-hover: var(--brand-400);
+	--on-primary: var(--neutral-900);
+
+	/* Shadow adjustment */
+	--shadow-color: 0 0 0; /* Pure black shadows in dark mode */
 }
