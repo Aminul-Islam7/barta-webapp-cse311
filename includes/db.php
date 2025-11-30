@@ -1,0 +1,3 @@
+<?php
+// MySQL connection
+?>

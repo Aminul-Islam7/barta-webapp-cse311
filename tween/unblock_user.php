@@ -1,0 +1,3 @@
+<?php
+// Unblock a user
+?>

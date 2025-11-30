@@ -1,0 +1,3 @@
+<?php
+// Decline friend request
+?>

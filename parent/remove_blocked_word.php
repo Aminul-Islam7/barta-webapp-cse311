@@ -1,0 +1,3 @@
+<?php
+// Remove forbidden word
+?>
