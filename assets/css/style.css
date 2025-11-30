@@ -1,3 +1,6 @@
+/* Load Inter from Google Fonts for consistent global typography */
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap');
+
 /* =========================================
    RESET & BASE
    ========================================= */
@@ -13,12 +16,122 @@ html {
 	scroll-behavior: smooth;
 }
 
-body {
-	background-color: var(--bg-body);
+html,
+body,
+input,
+textarea,
+select,
+button {
+	background-color: var(--bg-subtle);
 	color: var(--text-main);
-	font-family: var(--font-sans);
+	font-family: 'Nunito', sans-serif;
 	line-height: 1.5;
 	-webkit-font-smoothing: antialiased;
+}
+
+a {
+	text-decoration: none;
+	color: inherit;
+}
+
+/* =========================================
+   6. UTILITIES (Helpers)
+   ========================================= */
+.container {
+	width: 100%;
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 0 1rem;
+}
+
+/* Text Colors */
+.text-brand {
+	color: var(--brand-600);
+}
+.text-success {
+	color: var(--success-600);
+}
+.text-error {
+	color: var(--error-600);
+}
+
+/* Spacing Helpers */
+.mb-1 {
+	margin-bottom: 0.5rem;
+}
+.mb-2 {
+	margin-bottom: 1rem;
+}
+.mt-1 {
+	margin-top: 0.5rem;
+}
+.mt-2 {
+	margin-top: 1rem;
+}
+
+/* =========================================
+   7. COMPONENTS
+   ========================================= */
+
+/* Button Component */
+.btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0.5rem 1.5rem;
+	border-radius: 0.5rem;
+	font-weight: 600;
+	font-size: 1rem;
+	border: none;
+	cursor: pointer;
+	border: 1px solid var(--primary);
+	transition: 0.15s ease;
+}
+
+.btn-primary {
+	background-color: var(--primary);
+	color: var(--on-primary);
+}
+
+.btn-primary:hover {
+	background-color: var(--primary-hover);
+	border-color: var(--primary-hover);
+}
+.btn-secondary {
+	background: var(--bg-body);
+	color: var(--brand-700);
+}
+.btn-secondary:hover {
+	background: var(--bg-surface);
+	border-color: var(--primary-hover);
+}
+
+/* Card Component */
+.card {
+	background-color: var(--bg-body);
+	border-radius: 16px;
+	overflow: hidden;
+	box-shadow: var(--shadow-lg);
+	color: var(--text-main);
+	border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+/* Form Input */
+
+.form-label {
+	font-size: 1rem;
+	color: var(--text-muted);
+}
+.form-input {
+	padding: 0.5rem 0.75rem;
+	background: var(--bg-body);
+	border: 1px solid var(--border-color);
+	border-radius: 10px;
+	font-size: 0.9rem;
+}
+.form-input:focus {
+	outline: 2px solid rgba(27, 224, 217, 0.18);
+	border-color: var(--primary);
 }
 
 /* =========================================
@@ -70,7 +183,8 @@ body {
 	--error-900: #330000;
 
 	/* --- Neutrals --- */
-	--neutral-100: #ffffff;
+	--neutral-000: #ffffff;
+	--neutral-100: #ebf5f5;
 	--neutral-200: #c3d9d8;
 	--neutral-300: #8fb2b1;
 	--neutral-400: #628c8b;
@@ -85,9 +199,6 @@ body {
 	--shadow-sm: 0 1px 2px rgb(var(--shadow-color) / 0.1);
 	--shadow-md: 0 4px 6px -1px rgb(var(--shadow-color) / 0.1), 0 2px 4px -1px rgb(var(--shadow-color) / 0.06);
 	--shadow-lg: 0 10px 15px -3px rgb(var(--shadow-color) / 0.1), 0 4px 6px -2px rgb(var(--shadow-color) / 0.05);
-
-	/* --- Fonts --- */
-	--font-sans: 'Inter', sans-serif;
 }
 
 /* =========================================
@@ -95,7 +206,7 @@ body {
    ========================================= */
 :root {
 	/* Backgrounds */
-	--bg-body: var(--neutral-100);
+	--bg-body: var(--neutral-000);
 	--bg-surface: var(--neutral-100);
 	--bg-subtle: var(--neutral-200);
 
@@ -137,4 +248,92 @@ body {
 
 	/* Shadow adjustment */
 	--shadow-color: 0 0 0; /* Pure black shadows in dark mode */
+}
+
+/* =========================================
+   Page: Login (.p-login)
+   ========================================= */
+.p-login {
+	min-height: 100vh;
+	width: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0.5rem;
+}
+.p-login__card {
+	display: flex;
+	width: 100%;
+	max-width: 750px;
+}
+.p-login__left,
+.p-login__right {
+	padding: 2.25rem;
+}
+.p-login__left {
+	flex: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: var(--bg-surface);
+}
+.p-login__brand {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	align-items: center;
+}
+.p-login__logo {
+	max-width: 200px;
+}
+.p-login__title {
+	max-width: 100px;
+}
+.p-login__tagline {
+	color: var(--text-muted);
+	font-size: 1.2rem;
+}
+.p-login__right {
+	flex: 50%;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+.p-login__actions {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+}
+.p-login__headline {
+	font-weight: 700;
+	font-size: 1rem;
+	text-transform: uppercase;
+	color: var(--brand-700);
+	text-align: center;
+	background-color: var(--bg-surface);
+	padding: 0.5rem;
+	border-radius: 8px;
+}
+.p-login__toggle {
+	display: flex;
+	gap: 0.5rem;
+}
+.p-login__user-type-btn {
+	flex: 1;
+}
+.p-login__form {
+	display: flex;
+	flex-direction: column;
+	gap: 0.3rem;
+	margin-top: 0.75rem;
+}
+.p-login__form--hidden {
+	display: none;
+}
+.p-login__form--visible {
+	display: flex;
+}
+.p-login__register-btn {
+	margin-top: 0.5rem;
+	width: 100%;
 }
