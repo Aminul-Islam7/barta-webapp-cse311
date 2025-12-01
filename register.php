@@ -1,7 +1,6 @@
 <?php
-// Define error messages
 $errors = [
-	'invalid_name' => 'Invalid full name',
+	'invalid_name' => 'Invalid name',
 	'invalid_date' => 'Invalid birth date',
 	'invalid_email' => 'Invalid email address',
 	'password_too_short' => 'Password must be at least 8 characters',
@@ -10,6 +9,8 @@ $errors = [
 	'email_exists' => 'Email already exists',
 	'invalid_id_type' => 'Invalid ID type',
 	'invalid_id_number' => 'Invalid ID number',
+	'tween_age_invalid' => 'Only ages 8 – 12 can use this app',
+	'parent_age_invalid' => 'You must be 21 or older to register as a parent',
 	'db_error' => 'Database error. Please try again'
 ];
 ?>
@@ -53,7 +54,7 @@ $errors = [
 						<textarea class="form-textarea" name="bio" rows="2"></textarea>
 						<?php if (isset($_GET['error'])): ?>
 							<div class="form-error-message">
-								<?php echo $errors[$_GET['error']] ?? 'An error occurred.'; ?>
+								<?php echo $errors[$_GET['error']] ?? 'An error occurred'; ?>
 							</div>
 						<?php endif; ?>
 						<button class="btn btn-primary mt-1" type="submit">Register as Tween</button>
@@ -77,14 +78,13 @@ $errors = [
 						<input class="form-input" type="text" name="personal_id_number" required>
 						<?php if (isset($_GET['error'])): ?>
 							<div class="form-error-message">
-								<?php echo $errors[$_GET['error']] ?? 'An error occurred.'; ?>
+								<?php echo $errors[$_GET['error']] ?? 'An error occurred'; ?>
 							</div>
 						<?php endif; ?>
 						<button class="btn btn-primary mt-1" type="submit">Register as Parent</button>
 
 					</form>
 				</div>
-
 				<a class="btn btn-secondary p-register__login-btn " href="login.php">Login instead</a>
 			</div>
 			<div class="p-register__right">
@@ -125,6 +125,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['username'])) {
 		exit;
 	}
 
+	$age = date_diff(date_create($birth_date), date_create('today'))->y;
+	if ($age < 8 || $age > 12) {
+		header("Location: register.php?error=tween_age_invalid");
+		exit;
+	}
+
 	$email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
 	if (!$email) {
 		header("Location: register.php?error=invalid_email");
@@ -161,20 +167,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['username'])) {
 		exit;
 	}
 
-	// Insert into bartauser
-	$parent_id = NULL;
-	$password_hash = password_hash($password, PASSWORD_DEFAULT);
-	$role = 'tween';
-	$query = "INSERT INTO bartauser (email, password_hash, full_name, birth_date, role) VALUES ('$email', '$password_hash', '$full_name', '$birth_date', '$role')";
+	// Start transaction to rollback changes if error occurs on any of the inserts
+	mysqli_begin_transaction($conn);
 
-	if (mysqli_query($conn, $query)) {
-		// Insert into tween_user
+	try {
+		// Insert into bartauser
+		$password_hash = password_hash($password, PASSWORD_DEFAULT);
+		$role = 'tween';
+		$query = "INSERT INTO bartauser (email, password_hash, full_name, birth_date, role) VALUES ('$email', '$password_hash', '$full_name', '$birth_date', '$role')";
+
+		if (!mysqli_query($conn, $query)) {
+			throw new Exception('Failed to insert into bartauser');
+		}
+
 		$user_id = mysqli_insert_id($conn);
+
+		// Insert into tween_user
 		$query = "INSERT INTO tween_user (user_id, username, parent_id, bio, is_active, daily_msg_limit) VALUES ($user_id, '$username', NULL, '$bio', 1, 100)";
-		mysqli_query($conn, $query);
+
+		if (!mysqli_query($conn, $query)) {
+			throw new Exception('Failed to insert into tween_user');
+		}
+
+		// Commit transaction
+		mysqli_commit($conn);
 		header("Location: login.php?success=registered");
 		exit;
-	} else {
+	} catch (Exception $e) {
+		// Rollback on error
+		mysqli_rollback($conn);
 		header("Location: register.php?error=db_error");
 		exit;
 	}
@@ -193,6 +214,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['personal_id_type'])) {
 	$birth_date = $_POST['birth_date'];
 	if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $birth_date) || !strtotime($birth_date)) {
 		header("Location: register.php?error=invalid_date");
+		exit;
+	}
+
+	$age = date_diff(date_create($birth_date), date_create('today'))->y;
+	if ($age <= 21) {
+		header("Location: register.php?error=parent_age_invalid");
 		exit;
 	}
 
@@ -228,19 +255,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['personal_id_type'])) {
 		exit;
 	}
 
-	// Insert into bartauser
-	$password_hash = password_hash($password, PASSWORD_DEFAULT);
-	$role = 'parent';
-	$query = "INSERT INTO bartauser (email, password_hash, full_name, birth_date, role) VALUES ('$email', '$password_hash', '$full_name', '$birth_date', '$role')";
+	// Start transaction
+	mysqli_begin_transaction($conn);
 
-	if (mysqli_query($conn, $query)) {
-		// Insert into parent_user
+	try {
+		// Insert into bartauser
+		$password_hash = password_hash($password, PASSWORD_DEFAULT);
+		$role = 'parent';
+		$query = "INSERT INTO bartauser (email, password_hash, full_name, birth_date, role) VALUES ('$email', '$password_hash', '$full_name', '$birth_date', '$role')";
+
+		if (!mysqli_query($conn, $query)) {
+			throw new Exception('Failed to insert into bartauser');
+		}
+
 		$user_id = mysqli_insert_id($conn);
+
+		// Insert into parent_user
 		$query = "INSERT INTO parent_user (user_id, personal_id_type, personal_id_number) VALUES ($user_id, '$personal_id_type', '$personal_id_number')";
-		mysqli_query($conn, $query);
+
+		if (!mysqli_query($conn, $query)) {
+			throw new Exception('Failed to insert into parent_user');
+		}
+
+		// Commit transaction
+		mysqli_commit($conn);
 		header("Location: login.php?success=registered");
 		exit;
-	} else {
+	} catch (Exception $e) {
+		// Rollback on error
+		mysqli_rollback($conn);
 		header("Location: register.php?error=db_error");
 		exit;
 	}

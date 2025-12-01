@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 23, 2025 at 11:32 AM
+-- Generation Time: Dec 01, 2025 at 02:56 PM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.0.30
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -36,6 +36,13 @@ CREATE TABLE `bartauser` (
   `role` enum('tween','parent') NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `bartauser`
+--
+
+INSERT INTO `bartauser` (`id`, `email`, `password_hash`, `full_name`, `birth_date`, `role`, `created_at`) VALUES
+(1, 'aminulfardin7@gmail.com', '$2y$10$k0qXSjrxLOaUwYrwbxjElObMAX2xngNr6OgVBYsrlQm9aea25hwn6', 'Aminul', '2002-09-18', 'tween', '2025-12-01 12:28:02');
 
 -- --------------------------------------------------------
 
@@ -168,7 +175,7 @@ CREATE TABLE `tween_user` (
   `id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
   `username` varchar(255) NOT NULL,
-  `parent_id` int(11) NOT NULL,
+  `parent_id` int(11) DEFAULT NULL,
   `bio` varchar(255) DEFAULT NULL,
   `is_active` tinyint(1) NOT NULL DEFAULT 0,
   `daily_msg_limit` int(11) NOT NULL DEFAULT 100,
@@ -289,7 +296,7 @@ ALTER TABLE `user_group`
 -- AUTO_INCREMENT for table `bartauser`
 --
 ALTER TABLE `bartauser`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `blocked_word`
