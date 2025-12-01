@@ -97,7 +97,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['username'])) {
 	$password = $_POST['password'];
 
 	// Check if username exists and get password hash
-	$query = "SELECT tu.user_id, bu.password_hash, tu.tween_id FROM tween_user tu JOIN bartauser bu ON tu.user_id = bu.id WHERE tu.username = '$username'";
+	$query = "SELECT tu.user_id, bu.password_hash, tu.id AS tween_id FROM tween_user tu JOIN bartauser bu ON tu.user_id = bu.id WHERE tu.username = '$username'";
 	$result = mysqli_query($conn, $query);
 	if (mysqli_num_rows($result) == 0) {
 		header("Location: login.php?error=invalid_credentials");

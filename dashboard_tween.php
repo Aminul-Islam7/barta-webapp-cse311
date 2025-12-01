@@ -2,7 +2,6 @@
 // Main 3-panel tween messaging interface
 session_start();
 echo "Welcome, " . htmlspecialchars($_SESSION['username']) . "!" . "<br>";
-echo $_SESSION['tween_id'];
 if (!isset($_SESSION['logged_in']) || $_SESSION['role'] != 'tween') {
 	header("Location: login.php");
 	exit;
