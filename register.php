@@ -1,3 +1,19 @@
+<?php
+// Define error messages
+$errors = [
+	'invalid_name' => 'Invalid full name',
+	'invalid_date' => 'Invalid birth date',
+	'invalid_email' => 'Invalid email address',
+	'password_too_short' => 'Password must be at least 8 characters',
+	'invalid_username' => 'Invalid username',
+	'username_exists' => 'Username already exists',
+	'email_exists' => 'Email already exists',
+	'invalid_id_type' => 'Invalid ID type',
+	'invalid_id_number' => 'Invalid ID number',
+	'db_error' => 'Database error. Please try again'
+];
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -8,10 +24,6 @@
 	<link rel="icon" href="assets/img/logo.png" type="image/png">
 	<link rel="stylesheet" href="assets/css/style.css">
 </head>
-
-<?php
-// The body class reveals which page is active to make page-specific CSS easier
-?>
 
 <body class="p-<?php echo basename($_SERVER['PHP_SELF'], '.php'); ?>">
 
@@ -39,8 +51,12 @@
 						<input class="form-input" type="text" name="username" required>
 						<label class="form-label" for="bio">Bio (optional)</label>
 						<textarea class="form-textarea" name="bio" rows="2"></textarea>
+						<?php if (isset($_GET['error'])): ?>
+							<div class="form-error-message">
+								<?php echo $errors[$_GET['error']] ?? 'An error occurred.'; ?>
+							</div>
+						<?php endif; ?>
 						<button class="btn btn-primary mt-1" type="submit">Register as Tween</button>
-						<a class="btn btn-secondary mt-1" href="login.php">Login instead</a>
 					</form>
 					<form id="parent" class="form form--hidden" action="#" method="post">
 						<label class="form-label" for="full_name">Full Name</label>
@@ -53,16 +69,23 @@
 						<input class="form-input" type="password" name="password" required>
 						<label class="form-label" for="personal_id_type">ID Type</label>
 						<select class="form-select" name="personal_id_type" required>
-							<option value="passport">Passport</option>
 							<option value="nid">NID</option>
+							<option value="passport">Passport</option>
 							<option value="drivers license">Driver's License</option>
 						</select>
 						<label class="form-label mt-1" for="personal_id_number">ID Number</label>
 						<input class="form-input" type="text" name="personal_id_number" required>
+						<?php if (isset($_GET['error'])): ?>
+							<div class="form-error-message">
+								<?php echo $errors[$_GET['error']] ?? 'An error occurred.'; ?>
+							</div>
+						<?php endif; ?>
 						<button class="btn btn-primary mt-1" type="submit">Register as Parent</button>
-						<a class="btn btn-secondary mt-1" href="login.php">Login instead</a>
+
 					</form>
 				</div>
+
+				<a class="btn btn-secondary p-register__login-btn " href="login.php">Login instead</a>
 			</div>
 			<div class="p-register__right">
 				<div class="p-register__brand">
@@ -81,3 +104,146 @@
 </body>
 
 </html>
+
+<?php
+
+require "db.php";
+
+// Tween registration
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['username'])) {
+
+	// Sanitize and validate inputs
+	$full_name = filter_input(INPUT_POST, 'full_name', FILTER_SANITIZE_SPECIAL_CHARS);
+	if (!$full_name || strlen($full_name) < 2) {
+		header("Location: register.php?error=invalid_name");
+		exit;
+	}
+
+	$birth_date = $_POST['birth_date'];
+	if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $birth_date) || !strtotime($birth_date)) {
+		header("Location: register.php?error=invalid_date");
+		exit;
+	}
+
+	$email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
+	if (!$email) {
+		header("Location: register.php?error=invalid_email");
+		exit;
+	}
+
+	$password = $_POST['password'];
+	if (strlen($password) < 8) {
+		header("Location: register.php?error=password_too_short");
+		exit;
+	}
+
+	$username = filter_input(INPUT_POST, 'username', FILTER_SANITIZE_SPECIAL_CHARS);
+	if (!$username || strlen($username) < 3) {
+		header("Location: register.php?error=invalid_username");
+		exit;
+	}
+
+	$bio = filter_input(INPUT_POST, 'bio', FILTER_SANITIZE_SPECIAL_CHARS) ?: '';
+
+	// Check if email already exists
+	$query = "SELECT id FROM bartauser WHERE email = '$email'";
+	$result = mysqli_query($conn, $query);
+	if (mysqli_num_rows($result) > 0) {
+		header("Location: register.php?error=email_exists");
+		exit;
+	}
+
+	// Check if username already exists
+	$query = "SELECT id FROM tween_user WHERE username = '$username'";
+	$result = mysqli_query($conn, $query);
+	if (mysqli_num_rows($result) > 0) {
+		header("Location: register.php?error=username_exists");
+		exit;
+	}
+
+	// Insert into bartauser
+	$parent_id = NULL;
+	$password_hash = password_hash($password, PASSWORD_DEFAULT);
+	$role = 'tween';
+	$query = "INSERT INTO bartauser (email, password_hash, full_name, birth_date, role) VALUES ('$email', '$password_hash', '$full_name', '$birth_date', '$role')";
+
+	if (mysqli_query($conn, $query)) {
+		// Insert into tween_user
+		$user_id = mysqli_insert_id($conn);
+		$query = "INSERT INTO tween_user (user_id, username, parent_id, bio, is_active, daily_msg_limit) VALUES ($user_id, '$username', NULL, '$bio', 1, 100)";
+		mysqli_query($conn, $query);
+		header("Location: login.php?success=registered");
+		exit;
+	} else {
+		header("Location: register.php?error=db_error");
+		exit;
+	}
+}
+
+// Parent registration
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['personal_id_type'])) {
+
+	// Sanitize and validate inputs
+	$full_name = filter_input(INPUT_POST, 'full_name', FILTER_SANITIZE_SPECIAL_CHARS);
+	if (!$full_name || strlen($full_name) < 2) {
+		header("Location: register.php?error=invalid_name");
+		exit;
+	}
+
+	$birth_date = $_POST['birth_date'];
+	if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $birth_date) || !strtotime($birth_date)) {
+		header("Location: register.php?error=invalid_date");
+		exit;
+	}
+
+	$email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
+	if (!$email) {
+		header("Location: register.php?error=invalid_email");
+		exit;
+	}
+
+	$password = $_POST['password'];
+	if (strlen($password) < 8) {
+		header("Location: register.php?error=password_too_short");
+		exit;
+	}
+
+	$personal_id_type = $_POST['personal_id_type'];
+	if (!in_array($personal_id_type, ['nid', 'passport', 'drivers license'])) {
+		header("Location: register.php?error=invalid_id_type");
+		exit;
+	}
+
+	$personal_id_number = filter_input(INPUT_POST, 'personal_id_number', FILTER_SANITIZE_SPECIAL_CHARS);
+	if (!$personal_id_number || strlen($personal_id_number) < 5) {
+		header("Location: register.php?error=invalid_id_number");
+		exit;
+	}
+
+	// Check if email already exists
+	$query = "SELECT id FROM bartauser WHERE email = '$email'";
+	$result = mysqli_query($conn, $query);
+	if (mysqli_num_rows($result) > 0) {
+		header("Location: register.php?error=email_exists");
+		exit;
+	}
+
+	// Insert into bartauser
+	$password_hash = password_hash($password, PASSWORD_DEFAULT);
+	$role = 'parent';
+	$query = "INSERT INTO bartauser (email, password_hash, full_name, birth_date, role) VALUES ('$email', '$password_hash', '$full_name', '$birth_date', '$role')";
+
+	if (mysqli_query($conn, $query)) {
+		// Insert into parent_user
+		$user_id = mysqli_insert_id($conn);
+		$query = "INSERT INTO parent_user (user_id, personal_id_type, personal_id_number) VALUES ($user_id, '$personal_id_type', '$personal_id_number')";
+		mysqli_query($conn, $query);
+		header("Location: login.php?success=registered");
+		exit;
+	} else {
+		header("Location: register.php?error=db_error");
+		exit;
+	}
+}
+
+?>

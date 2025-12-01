@@ -9,10 +9,6 @@
 	<link rel="stylesheet" href="assets/css/style.css">
 </head>
 
-<?php
-// The body class reveals which page is active to make page-specific CSS easier
-?>
-
 <body class="p-<?php echo basename($_SERVER['PHP_SELF'], '.php'); ?>">
 
 	<main class="p-login">
@@ -50,9 +46,7 @@
 					</form>
 				</div>
 
-				<div class="p-login__register">
-					<a class="btn btn-secondary p-login__register-btn " href="register.php">Create an account</a>
-				</div>
+				<a class="btn btn-secondary p-login__register-btn " href="register.php">Create an account</a>
 			</div>
 		</div>
 	</main>
