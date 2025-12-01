@@ -5,6 +5,7 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Barta - Welcome</title>
+	<link rel="icon" href="assets/img/logo.png" type="image/png">
 	<link rel="stylesheet" href="assets/css/style.css">
 </head>
 
@@ -25,38 +26,38 @@
 			</div>
 			<div class="p-login__right">
 				<div class="p-login__actions">
-					<p class="p-login__headline">Login as</p>
+					<h1 class="p-login__headline">Login as</h1>
 					<div class="p-login__toggle">
-						<button class="btn btn-primary p-login__user-type-btn" data-target="tween">Tween</button>
-						<button class="btn btn-secondary p-login__user-type-btn" data-target="parent">Parent</button>
+						<button class="btn btn-primary user-type-btn" data-target="tween">Tween</button>
+						<button class="btn btn-secondary user-type-btn" data-target="parent">Parent</button>
 					</div>
 				</div>
 
 				<div class="p-login__forms">
-					<form id="tween" class="p-login__form p-login__form--visible" action="#" method="post">
+					<form id="tween" class="form form--visible" action="#" method="post">
 						<label class="form-label">Username</label>
 						<input class="form-input" type="text" name="username" placeholder="Tween Username">
-						<label class="form-label mt-1">Password</label>
+						<label class="form-label">Password</label>
 						<input class="form-input" type="password" name="password" placeholder="Password">
-						<button class="btn btn-primary mt-2" type="submit">Login as Tween</button>
+						<button class="btn btn-primary mt-1" type="submit">Login as Tween</button>
 					</form>
-					<form id="parent" class="p-login__form p-login__form--hidden" action="#" method="post">
+					<form id="parent" class="form form--hidden" action="#" method="post">
 						<label class="form-label">Email</label>
 						<input class="form-input" type="email" name="email" placeholder="Parent Email">
-						<label class="form-label mt-1">Password</label>
+						<label class="form-label">Password</label>
 						<input class="form-input" type="password" name="password" placeholder="Password">
-						<button class="btn btn-primary mt-2" type="submit">Login as Parent</button>
+						<button class="btn btn-primary mt-1" type="submit">Login as Parent</button>
 					</form>
 				</div>
 
 				<div class="p-login__register">
-					<a class="btn btn-secondary p-login__register-btn " href="register_tween.php">Create an account</a>
+					<a class="btn btn-secondary p-login__register-btn " href="register.php">Create an account</a>
 				</div>
 			</div>
 		</div>
 	</main>
 
-	<script src="assets/js/login.js"></script>
+	<script src="assets/js/auth.js"></script>
 </body>
 
 </html>

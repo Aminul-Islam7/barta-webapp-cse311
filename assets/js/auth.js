@@ -1,18 +1,16 @@
 (function () {
 	document.addEventListener('DOMContentLoaded', function () {
-		var toggleButtons = document.querySelectorAll('.p-login__user-type-btn');
-		var forms = document.querySelectorAll('.p-login__form');
-
-		if (!toggleButtons.length) return;
+		var toggleButtons = document.querySelectorAll('[data-target]');
+		var forms = document.querySelectorAll('form[id]');
 
 		function showForm(targetId) {
 			forms.forEach(function (f) {
 				if (f.id === targetId) {
-					f.classList.remove('p-login__form--hidden');
-					f.classList.add('p-login__form--visible');
+					f.classList.remove('form--hidden');
+					f.classList.add('form--visible');
 				} else {
-					f.classList.add('p-login__form--hidden');
-					f.classList.remove('p-login__form--visible');
+					f.classList.add('form--hidden');
+					f.classList.remove('form--visible');
 				}
 			});
 
