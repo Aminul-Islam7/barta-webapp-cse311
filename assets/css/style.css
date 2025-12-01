@@ -119,6 +119,7 @@ a {
 /* Form Input */
 
 .form-label {
+	margin-top: 0.5rem;
 	font-size: 1rem;
 	color: var(--text-muted);
 }
@@ -132,6 +133,51 @@ a {
 .form-input:focus {
 	outline: 2px solid rgba(27, 224, 217, 0.18);
 	border-color: var(--primary);
+}
+.form-select {
+	padding: 0.5rem 0.75rem;
+	background: var(--bg-body);
+	border: 1px solid var(--border-color);
+	border-radius: 10px;
+	font-size: 0.9rem;
+}
+.form-select:focus {
+	outline: 2px solid rgba(27, 224, 217, 0.18);
+	border-color: var(--primary);
+}
+.form-textarea {
+	padding: 0.5rem 0.75rem;
+	background: var(--bg-body);
+	border: 1px solid var(--border-color);
+	border-radius: 10px;
+	font-size: 0.9rem;
+	resize: vertical;
+}
+.form-textarea:focus {
+	outline: 2px solid rgba(27, 224, 217, 0.18);
+	border-color: var(--primary);
+}
+.user-type-btn {
+	flex: 1;
+}
+.form {
+	display: flex;
+	flex-direction: column;
+	gap: 0.3rem;
+	margin-top: 0.5rem;
+}
+.form--hidden {
+	display: none;
+}
+.form--visible {
+	display: flex;
+}
+
+.form-error-message {
+	color: var(--error-600);
+	text-align: center;
+	/* margin-bottom: 1rem; */
+	font-weight: 600;
 }
 
 /* =========================================
@@ -264,7 +310,7 @@ a {
 .p-login__card {
 	display: flex;
 	width: 100%;
-	max-width: 750px;
+	max-width: 800px;
 }
 .p-login__left,
 .p-login__right {
@@ -280,7 +326,7 @@ a {
 .p-login__brand {
 	display: flex;
 	flex-direction: column;
-	gap: 0.5rem;
+	gap: 1.5rem;
 	align-items: center;
 }
 .p-login__logo {
@@ -292,6 +338,7 @@ a {
 .p-login__tagline {
 	color: var(--text-muted);
 	font-size: 1.2rem;
+	text-align: center;
 }
 .p-login__right {
 	flex: 50%;
@@ -321,19 +368,183 @@ a {
 .p-login__user-type-btn {
 	flex: 1;
 }
-.p-login__form {
-	display: flex;
-	flex-direction: column;
-	gap: 0.3rem;
-	margin-top: 0.75rem;
-}
-.p-login__form--hidden {
-	display: none;
-}
-.p-login__form--visible {
-	display: flex;
-}
 .p-login__register-btn {
 	margin-top: 0.5rem;
 	width: 100%;
+}
+
+@media (max-width: 760px) {
+	.p-login__card {
+		flex-direction: column;
+	}
+	.p-login__left,
+	.p-login__right {
+		padding: 1.25rem;
+	}
+}
+
+/* =========================================
+   Page: Register (.p-register)
+   ========================================= */
+.p-register {
+	min-height: 100vh;
+	width: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0.5rem;
+}
+.p-register__card {
+	display: flex;
+	max-width: 800px;
+	width: 100%;
+}
+.p-register__left,
+.p-register__right {
+	padding: 2.25rem;
+	flex: 50%;
+}
+.p-register__left {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+.p-register__right {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	background: var(--bg-surface);
+	padding: 2.25rem;
+	flex: 50%;
+}
+.p-register__info {
+	text-align: center;
+	margin-top: 1rem;
+	font-size: 0.9rem;
+	color: var(--text-muted);
+}
+.p-register__info a {
+	color: var(--brand-600);
+	text-decoration: underline;
+}
+.p-register__brand {
+	display: flex;
+	flex-direction: column;
+	gap: 1.75rem;
+	align-items: center;
+}
+.p-register__logo {
+	max-width: 200px;
+}
+.p-register__title {
+	max-width: 100px;
+}
+.p-register__tagline {
+	color: var(--text-muted);
+	font-size: 1.2rem;
+	text-align: center;
+}
+.p-register__actions {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+}
+.p-register__headline {
+	font-weight: 700;
+	font-size: 1rem;
+	text-transform: uppercase;
+	color: var(--brand-700);
+	text-align: center;
+	background-color: var(--bg-surface);
+	padding: 0.5rem;
+	border-radius: 8px;
+}
+.p-register__toggle {
+	display: flex;
+	gap: 0.5rem;
+}
+
+.p-register__login-btn {
+	margin-top: 0.5rem;
+	width: 100%;
+}
+
+@media (max-width: 760px) {
+	.p-register__card {
+		flex-direction: column;
+	}
+	.p-register__left,
+	.p-register__right {
+		padding: 1.25rem;
+	}
+}
+
+/* =========================================
+   Page: Terms & Privacy
+   ========================================= */
+
+.p-terms__branding,
+.p-privacy__branding {
+	display: block;
+	margin: 0 auto;
+	text-align: center;
+	max-width: 100px;
+	margin-bottom: 1rem;
+}
+
+.p-terms__main,
+.p-privacy__main {
+	min-height: 100vh;
+	padding: 2rem 1rem;
+	background: var(--bg-surface);
+}
+
+.p-terms__title,
+.p-privacy__title {
+	font-size: 2rem;
+	font-weight: 700;
+	color: var(--text-main);
+	margin-bottom: 1rem;
+	text-align: center;
+}
+
+.p-terms__branding,
+.p-privacy__branding {
+	max-width: 100px;
+	display: block;
+	margin: 0 auto 1rem;
+}
+
+.p-terms__branding a,
+.p-privacy__branding a {
+	text-decoration: none;
+}
+
+.p-terms__content,
+.p-privacy__content {
+	max-width: 800px;
+	margin: 0 auto;
+	line-height: 1.6;
+	color: var(--text-main);
+}
+
+.p-terms__content h2,
+.p-privacy__content h2 {
+	font-size: 1.25rem;
+	font-weight: 600;
+	margin-top: 1.5rem;
+	margin-bottom: 0.5rem;
+	color: var(--brand-700);
+}
+
+.p-terms__content ul,
+.p-privacy__content ul {
+	margin-left: 1.5rem;
+}
+
+.p-terms__content a,
+.p-privacy__content a {
+	color: var(--brand-600);
+	text-decoration: underline;
 }
