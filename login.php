@@ -1,3 +1,15 @@
+<?php
+$errors = [
+	'invalid_username' => 'Invalid username',
+	'invalid_credentials' => 'Incorrect username or password',
+	'db_error' => 'Database error. Please try again'
+];
+
+$success = [
+	'registered' => 'Registration successful! Please log in'
+];
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -22,6 +34,11 @@
 			</div>
 			<div class="p-login__right">
 				<div class="p-login__actions">
+					<?php if (isset($_GET['success'])): ?>
+						<div class="form-success-message">
+							<?php echo $success[$_GET['success']] ?? 'Success'; ?>
+						</div>
+					<?php endif; ?>
 					<h1 class="p-login__headline">Login as</h1>
 					<div class="p-login__toggle">
 						<button class="btn btn-primary user-type-btn" data-target="tween">Tween</button>
@@ -35,6 +52,11 @@
 						<input class="form-input" type="text" name="username" placeholder="Tween Username">
 						<label class="form-label">Password</label>
 						<input class="form-input" type="password" name="password" placeholder="Password">
+						<?php if (isset($_GET['error'])): ?>
+							<div class="form-error-message">
+								<?php echo $errors[$_GET['error']] ?? 'An error occurred'; ?>
+							</div>
+						<?php endif; ?>
 						<button class="btn btn-primary mt-1" type="submit">Login as Tween</button>
 					</form>
 					<form id="parent" class="form form--hidden" action="#" method="post">
@@ -56,57 +78,48 @@
 
 </html>
 
-<!--Login for Parent-->
-
 <?php
-session_start();
+
 require "db.php";
 
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
+session_start();
 
-	//Validating email format
-	if (!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
-		header("Location: login.php?error=invalid_email");
+// Tween login
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['username'])) {
+
+	// Sanitize and validate inputs
+	$username = filter_input(INPUT_POST, 'username', FILTER_SANITIZE_SPECIAL_CHARS);
+	if (!$username) {
+		header("Location: login.php?error=invalid_username");
 		exit;
 	}
 
-	$email = $_POST['email'];
 	$password = $_POST['password'];
 
-	//Checking email in database
-	$sql = "SELECT * FROM bartaUser WHERE email = '$email' LIMIT 1";
-	$result = $conn->query($sql);
-
-	if ($result->num_rows == 1) {
-
-		$user = $result->fetch_assoc();
-
-		//Verifing password
-		if (password_verify($password, $user['password_hash'])) {
-
-			//Storing session data
-			$_SESSION['user_id'] = $user['id'];
-			$_SESSION['role'] = $user['role'];
-			$_SESSION['full_name'] = $user['full_name'];
-
-			//Redirect to homepage/dashboard
-			header("Location: dashboard.php");
-			exit();
-		} else {
-			echo "<h3>Incorrect Password</h3>";
-			//header("Location: login.php?error=wrong_password");
-			//exit;
-		}
-	} else {
-		echo "<h3>No Account Found With That Email</h3>";
-		//header("Location: login.php?error=no_account");
-		//exit;
+	// Check if username exists and get password hash
+	$query = "SELECT tu.user_id, bu.password_hash, tu.tween_id FROM tween_user tu JOIN bartauser bu ON tu.user_id = bu.id WHERE tu.username = '$username'";
+	$result = mysqli_query($conn, $query);
+	if (mysqli_num_rows($result) == 0) {
+		header("Location: login.php?error=invalid_credentials");
+		exit;
 	}
 
-	$conn->close();
-}
-?>
+	$row = mysqli_fetch_assoc($result);
+	if (!password_verify($password, $row['password_hash'])) {
+		header("Location: login.php?error=invalid_credentials");
+		exit;
+	}
 
-<!--php
-// Login for Tween
--->
+	// Success
+	$_SESSION['user_id'] = $row['user_id'];
+	$_SESSION['tween_id'] = $row['tween_id'];
+	$_SESSION['username'] = $username;
+	$_SESSION['logged_in'] = true;
+	$_SESSION['role'] = 'tween';
+	header("Location: dashboard_tween.php");
+	exit;
+}
+
+// Parent login
+
+?>
