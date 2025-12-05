@@ -141,5 +141,38 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['username'])) {
 }
 
 // Parent login
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['email'])) {
 
+	// Sanitize and validate inputs
+	$email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
+	if (!$email) {
+		header("Location: login.php?error=invalid_email");
+		exit;
+	}
+
+	$password = $_POST['password'];
+
+	// Check if email exists and get password hash
+	$query = "SELECT bu.id AS user_id, bu.email, bu.password_hash, pu.id AS parent_id FROM parent_user pu JOIN bartauser bu ON pu.user_id = bu.id WHERE bu.email = '$email' LIMIT 1";
+	$result = mysqli_query($conn, $query); //tu.user_id, bu.password_hash, tu.id AS tween_id
+	if (mysqli_num_rows($result) == 0) {
+		header("Location: login.php?error=invalid_credentials");
+		exit;
+	}
+
+	$row = mysqli_fetch_assoc($result);
+	if (!password_verify($password, $row['password_hash'])) {
+		header("Location: login.php?error=invalid_credentials");
+		exit;
+	}
+
+	// Success
+	$_SESSION['user_id'] = $row['user_id'];
+	$_SESSION['parent_id'] = $row['parent_id'];
+	$_SESSION['email'] = $email;
+	$_SESSION['logged_in'] = true;
+	$_SESSION['role'] = 'parent';
+	header("Location: dashboard_parent.php");
+	exit;
+}
 ?>
