@@ -1,16 +1,15 @@
 <?php
 // Main 3-panel tween messaging interface
 session_start();
-echo "Welcome, " . htmlspecialchars($_SESSION['username']) . "!" . "<br>";
-if (!isset($_SESSION['logged_in']) || $_SESSION['role'] != 'tween') {
-	header("Location: login.php");
-	exit;
-}
 
-// logout
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-	session_destroy();
-	header("Location: login.php");
+require "db.php";
+
+$user_id = $_SESSION['user_id'];
+$query = "SELECT is_active FROM tween_user WHERE user_id = $user_id";
+$result = mysqli_query($conn, $query);
+$row = mysqli_fetch_assoc($result);
+if (!$row['is_active']) {
+	header("Location: tween/approval.php");
 	exit;
 }
 

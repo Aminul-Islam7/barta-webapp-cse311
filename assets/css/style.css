@@ -101,9 +101,32 @@ a {
 	background: var(--bg-body);
 	color: var(--brand-700);
 }
+
 .btn-secondary:hover {
 	background: var(--bg-surface);
-	border-color: var(--primary-hover);
+	border-color: var(--brand-700);
+}
+
+.btn-primary-error {
+	background-color: var(--error-500);
+	color: var(--neutral-000);
+	border-color: var(--error-500);
+}
+
+.btn-primary-error:hover {
+	background-color: var(--error-600);
+	border-color: var(--error-600);
+}
+
+.btn-secondary-error {
+	background: var(--bg-body);
+	border: 1px solid var(--error-700);
+	color: var(--error-700);
+}
+
+.btn-secondary-error:hover {
+	background: var(--error-100);
+	border-color: var(--error-800);
 }
 
 /* Card Component */
@@ -116,7 +139,7 @@ a {
 	border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
-/* Form Input */
+/* Form Component */
 
 .form-label {
 	margin-top: 0.5rem;
@@ -183,6 +206,36 @@ a {
 	color: var(--success-600);
 	text-align: center;
 	font-weight: 600;
+}
+
+/* Table Component */
+.table {
+	display: table;
+	width: 100%;
+	border-collapse: collapse;
+	margin-top: 1rem;
+	border-radius: 8px;
+	overflow: hidden;
+	box-shadow: var(--shadow-md);
+}
+.table-header {
+	display: table-header-group;
+	background: var(--bg-surface);
+	font-weight: 600;
+	color: var(--text-main);
+}
+.table-row {
+	display: table-row;
+}
+.table-cell {
+	display: table-cell;
+	padding: 0.75rem;
+	border-bottom: 1px solid var(--border-color);
+	text-align: center;
+	vertical-align: middle;
+}
+.table-row:last-child .table-cell {
+	border-bottom: none;
 }
 
 /* =========================================
@@ -262,7 +315,7 @@ a {
 	--bg-subtle: var(--neutral-200);
 
 	/* Text */
-	--text-main: var(--neutral-900);
+	--text-main: var(--neutral-700);
 	--text-muted: var(--neutral-500);
 	--text-inverted: var(--neutral-100);
 
@@ -552,4 +605,44 @@ a {
 .p-privacy__content a {
 	color: var(--brand-600);
 	text-decoration: underline;
+}
+
+/* =========================================
+   Page: Tween Approval (.p-approval)
+   ========================================= */
+.p-approval {
+	min-height: 100vh;
+	width: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0.5rem;
+}
+.p-approval__card {
+	width: 100%;
+	max-width: 700px;
+	padding: 2.25rem;
+}
+.p-approval__logo {
+	text-align: center;
+	margin-bottom: 1rem;
+}
+.p-approval__logo img {
+	max-width: 100px;
+}
+.p-approval__content h1,
+.p-approval__content p,
+.p-approval__content h2 {
+	text-align: center;
+}
+
+.p-approval .form-success-message,
+.p-approval .form-error-message {
+	text-align: left;
+}
+
+@media (max-width: 760px) {
+	.p-approval__content {
+		padding: 1.25rem;
+	}
 }

@@ -16,7 +16,7 @@ $success = [
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Barta - Welcome</title>
+	<title>Barta - Login</title>
 	<link rel="icon" href="assets/img/logo.png" type="image/png">
 	<link rel="stylesheet" href="assets/css/style.css">
 </head>
@@ -84,6 +84,16 @@ require "db.php";
 
 session_start();
 
+if (isset($_SESSION['logged_in']) && $_SESSION['logged_in']) {
+	if ($_SESSION['role'] == 'tween') {
+		header("Location: dashboard_tween.php");
+		exit;
+	} elseif ($_SESSION['role'] == 'parent') {
+		header("Location: dashboard_parent.php");
+		exit;
+	}
+}
+
 // Tween login
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['username'])) {
 
@@ -116,8 +126,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['username'])) {
 	$_SESSION['username'] = $username;
 	$_SESSION['logged_in'] = true;
 	$_SESSION['role'] = 'tween';
-	header("Location: dashboard_tween.php");
-	exit;
+
+	// Check if tween is active
+	$query = "SELECT is_active FROM tween_user WHERE user_id = " . $row['user_id'];
+	$result2 = mysqli_query($conn, $query);
+	$row2 = mysqli_fetch_assoc($result2);
+	if ($row2['is_active'] == 0) {
+		header("Location: tween/approval.php");
+		exit;
+	} else {
+		header("Location: dashboard_tween.php");
+		exit;
+	}
 }
 
 // Parent login

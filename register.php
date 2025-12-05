@@ -1,4 +1,17 @@
 <?php
+
+session_start();
+
+if (isset($_SESSION['logged_in']) && $_SESSION['logged_in']) {
+	if ($_SESSION['role'] == 'tween') {
+		header("Location: dashboard_tween.php");
+		exit;
+	} elseif ($_SESSION['role'] == 'parent') {
+		header("Location: dashboard_parent.php");
+		exit;
+	}
+}
+
 $errors = [
 	'invalid_name' => 'Invalid name',
 	'invalid_date' => 'Invalid birth date',
@@ -183,7 +196,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['username'])) {
 		$user_id = mysqli_insert_id($conn);
 
 		// Insert into tween_user
-		$query = "INSERT INTO tween_user (user_id, username, parent_id, bio, is_active, daily_msg_limit) VALUES ($user_id, '$username', NULL, '$bio', 1, 100)";
+		$query = "INSERT INTO tween_user (user_id, username, parent_id, bio, is_active, daily_msg_limit) VALUES ($user_id, '$username', NULL, '$bio', 0, 100)";
 
 		if (!mysqli_query($conn, $query)) {
 			throw new Exception('Failed to insert into tween_user');
