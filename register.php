@@ -32,15 +32,11 @@ $errors = [
 <html lang="en">
 
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Barta - Register</title>
-	<link rel="icon" href="assets/img/logo.png" type="image/png">
-	<link rel="stylesheet" href="assets/css/style.css">
+	<?php include "includes/header.php"; ?>
 </head>
 
-<body class="p-<?php echo basename($_SERVER['PHP_SELF'], '.php'); ?>">
-
+<body>
 	<main class="p-register">
 		<div class="card p-register__card">
 			<div class="p-register__left">

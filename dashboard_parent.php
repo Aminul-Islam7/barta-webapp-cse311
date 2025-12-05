@@ -13,6 +13,7 @@ if (!isset($_SESSION['user_id'])) {
 
 <head>
 	<title>Dashboard</title>
+	<?php include "includes/header.php"; ?>
 </head>
 
 <body>
