@@ -1,4 +1,17 @@
 <?php
+
+session_start();
+
+if (isset($_SESSION['logged_in']) && $_SESSION['logged_in']) {
+	if ($_SESSION['role'] == 'tween') {
+		header("Location: dashboard_tween.php");
+		exit;
+	} elseif ($_SESSION['role'] == 'parent') {
+		header("Location: dashboard_parent.php");
+		exit;
+	}
+}
+
 $errors = [
 	'invalid_name' => 'Invalid name',
 	'invalid_date' => 'Invalid birth date',
@@ -19,15 +32,11 @@ $errors = [
 <html lang="en">
 
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Barta - Register</title>
-	<link rel="icon" href="assets/img/logo.png" type="image/png">
-	<link rel="stylesheet" href="assets/css/style.css">
+	<?php include "includes/header.php"; ?>
 </head>
 
-<body class="p-<?php echo basename($_SERVER['PHP_SELF'], '.php'); ?>">
-
+<body>
 	<main class="p-register">
 		<div class="card p-register__card">
 			<div class="p-register__left">
@@ -183,7 +192,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['username'])) {
 		$user_id = mysqli_insert_id($conn);
 
 		// Insert into tween_user
-		$query = "INSERT INTO tween_user (user_id, username, parent_id, bio, is_active, daily_msg_limit) VALUES ($user_id, '$username', NULL, '$bio', 1, 100)";
+		$query = "INSERT INTO tween_user (user_id, username, parent_id, bio, is_active, daily_msg_limit) VALUES ($user_id, '$username', NULL, '$bio', 0, 100)";
 
 		if (!mysqli_query($conn, $query)) {
 			throw new Exception('Failed to insert into tween_user');

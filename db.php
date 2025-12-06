@@ -3,7 +3,7 @@
 $host = "localhost";
 $user = "root";
 $pass = "";
-$db   = "barta_db"; // database name
+$db   = "barta_db";
 
 $conn = new mysqli($host, $user, $pass, $db);
 
