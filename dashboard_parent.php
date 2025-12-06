@@ -1,18 +1,18 @@
 <?php
-// Parent dashboard
+require "db.php";
 session_start();
 
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'parent') {
 	header("Location: login.php");
 	exit();
 }
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-	<title>Dashboard</title>
+	<title>Parent Dashboard - Barta</title>
 	<?php include "includes/header.php"; ?>
 </head>
 
