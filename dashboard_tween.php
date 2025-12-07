@@ -1,11 +1,18 @@
 <?php
-// Main 3-panel tween messaging interface
 session_start();
+
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'tween') {
+	header("Location: login.php");
+	exit;
+}
 
 require "db.php";
 
 $user_id = $_SESSION['user_id'];
-$query = "SELECT is_active FROM tween_user WHERE user_id = $user_id";
+$tween_id = $_SESSION['tween_id'];
+$query = "SELECT is_active
+          FROM tween_user
+          WHERE user_id = $user_id";
 $result = mysqli_query($conn, $query);
 $row = mysqli_fetch_assoc($result);
 if (!$row['is_active']) {
@@ -13,9 +20,91 @@ if (!$row['is_active']) {
 	exit;
 }
 
-$query = "SELECT bu.full_name, tu.username FROM tween_user tu JOIN bartauser bu ON tu.user_id = bu.id WHERE tu.user_id = $user_id";
+$query = "SELECT bu.full_name, tu.username
+          FROM tween_user tu
+          JOIN bartauser bu ON tu.user_id = bu.id
+          WHERE tu.user_id = $user_id";
 $result = mysqli_query($conn, $query);
 $user = mysqli_fetch_assoc($result);
+
+include "tween/get_contacts.php";
+
+$selected_friend = null;
+$selected_group = null;
+$messages = [];
+$contact_info = null;
+
+if (isset($_GET['u'])) {
+	$username = mysqli_real_escape_string($conn, urldecode($_GET['u']));
+	$query = "SELECT tu.id as tween_id, tu.username, tu.bio, bu.full_name
+				FROM tween_user tu
+				JOIN bartauser bu ON tu.user_id = bu.id
+				WHERE tu.username = '$username'";
+	$result = mysqli_query($conn, $query);
+	if (mysqli_num_rows($result) > 0) {
+		$selected_friend = mysqli_fetch_assoc($result);
+		$friend_id = $selected_friend['tween_id'];
+		$is_friend = false;
+		foreach ($friends as $f) {
+			if ($f['tween_id'] == $friend_id) {
+				$is_friend = true;
+				break;
+			}
+		}
+		if ($is_friend) {
+			$query = "SELECT m.id, m.sender_id, m.text_content, m.sent_at, m.is_edited, tu.username as sender_username, bu.full_name as sender_name
+			          FROM message m
+			          JOIN individual_message im ON m.id = im.message_id
+			          JOIN tween_user tu ON m.sender_id = tu.id
+			          JOIN bartauser bu ON tu.user_id = bu.id
+			          WHERE ((m.sender_id = $tween_id AND im.receiver_id = $friend_id) OR (m.sender_id = $friend_id AND im.receiver_id = $tween_id))
+			          AND m.is_deleted = 0
+			          ORDER BY m.sent_at ASC";
+			$result = mysqli_query($conn, $query);
+			$messages = [];
+			while ($row = mysqli_fetch_assoc($result)) {
+				$messages[] = $row;
+			}
+			$contact_info = $selected_friend;
+		}
+	}
+} elseif (isset($_GET['group'])) {
+	$group_id = (int)$_GET['group'];
+	$is_member = false;
+	foreach ($groups as $g) {
+		if ($g['id'] == $group_id) {
+			$is_member = true;
+			$selected_group = $g;
+			break;
+		}
+	}
+	if ($is_member) {
+		$query = "SELECT m.id, m.sender_id, m.text_content, m.sent_at, m.is_edited, tu.username as sender_username, bu.full_name as sender_name
+		          FROM message m
+		          JOIN group_message gm ON m.id = gm.message_id
+		          JOIN tween_user tu ON m.sender_id = tu.id
+		          JOIN bartauser bu ON tu.user_id = bu.id
+		          WHERE gm.group_id = $group_id AND m.is_deleted = 0
+		          ORDER BY m.sent_at ASC";
+		$result = mysqli_query($conn, $query);
+		$messages = [];
+		while ($row = mysqli_fetch_assoc($result)) {
+			$messages[] = $row;
+		}
+		$contact_info = $selected_group;
+		$query = "SELECT tu.username, bu.full_name
+		          FROM group_member gm
+		          JOIN tween_user tu ON gm.member_id = tu.id
+		          JOIN bartauser bu ON tu.user_id = bu.id
+		          WHERE gm.group_id = $group_id";
+		$result = mysqli_query($conn, $query);
+		$members = [];
+		while ($row = mysqli_fetch_assoc($result)) {
+			$members[] = $row;
+		}
+		$contact_info['members'] = $members;
+	}
+}
 
 ?>
 
@@ -25,12 +114,13 @@ $user = mysqli_fetch_assoc($result);
 <head>
 	<title>Barta Chat</title>
 	<?php include "includes/header.php"; ?>
+
 </head>
 
 <body class="p-tween-dashboard">
 	<div class="nav-panel">
 		<div class="nav-top">
-			<img src="/barta-webapp-cse311/assets/img/logo.png" alt="Barta" class="logo">
+			<a href="index.php"><img src="/barta-webapp-cse311/assets/img/logo.png" alt="Barta" class="logo"></a>
 		</div>
 		<div class="nav-middle">
 			<button class="nav-btn" title="Friend Requests"><i class="fa-duotone fa-solid fa-user-group"></i></button>
@@ -53,60 +143,36 @@ $user = mysqli_fetch_assoc($result);
 		</div>
 		<div class="contacts">
 			<h3>Friends</h3>
-			<div class="contact-item" data-type="friend">
-				<div class="contact-icon-circle">
-					<i class="fa-solid fa-user"></i>
+			<?php foreach ($friends as $friend): ?>
+				<div class="contact-item <?php echo (isset($selected_friend) && $selected_friend['username'] === $friend['username']) ? 'is-selected' : ''; ?>" data-type="friend" data-username="<?php echo htmlspecialchars($friend['username']); ?>">
+					<div class="contact-icon-circle">
+						<i class="fa-solid fa-user"></i>
+					</div>
+					<div>
+						<div><?php echo htmlspecialchars($friend['full_name']); ?></div>
+						<div class="text-muted contact-preview">Click to chat</div>
+					</div>
 				</div>
-				<div>
-					<div>Naylah H Chowdhury</div>
-					<div class="text-muted contact-preview">let's play valorant</div>
-				</div>
-			</div>
-			<div class="contact-item" data-type="friend">
-				<div class="contact-icon-circle">
-					<i class="fa-solid fa-user"></i>
-				</div>
-				<div>
-					<div>Maymuna Khanom</div>
-					<div class="text-muted contact-preview">You: hey there</div>
-				</div>
-			</div>
-			<!-- More friends -->
-			<div class="contact-item" data-type="friend">
-				<div class="contact-icon-circle">
-					<i class="fa-solid fa-user"></i>
-				</div>
-				<div>
-					<div>Md. Shahriar Rakib Rabbi</div>
-					<div class="text-muted contact-preview">bro acho?</div>
-				</div>
-			</div>
-			<!-- More friends -->
+			<?php endforeach; ?>
+
 		</div>
 		<div class="groups">
 			<div class="groups-header">
 				<h3>Groups</h3>
 
 			</div>
-			<div class="group-item" data-type="group">
-				<div class="contact-icon-circle">
-					<i class="fa-solid fa-users"></i>
+			<?php foreach ($groups as $group): ?>
+				<div class="group-item <?php echo (isset($selected_group) && $selected_group['id'] == $group['id']) ? 'is-selected' : ''; ?>" data-type="group" data-group-id="<?php echo htmlspecialchars($group['id']); ?>">
+					<div class="contact-icon-circle">
+						<i class="fa-solid fa-users"></i>
+					</div>
+					<div>
+						<div><?php echo htmlspecialchars($group['group_name']); ?></div>
+						<div class="text-muted contact-preview">Click to chat</div>
+					</div>
 				</div>
-				<div>
-					<div>Group One</div>
-					<div class="text-muted contact-preview">You: hola guys!</div>
-				</div>
-			</div>
-			<div class="group-item" data-type="group">
-				<div class="contact-icon-circle">
-					<i class="fa-solid fa-users"></i>
-				</div>
-				<div>
-					<div>Group Two</div>
-					<div class="text-muted contact-preview">Talha: @aminul you there?</div>
-				</div>
-			</div>
-			<!-- More groups -->
+			<?php endforeach; ?>
+
 		</div>
 		<div class="bottom-bar" id="profile-btn">
 			<div class="profile-content">
@@ -118,69 +184,142 @@ $user = mysqli_fetch_assoc($result);
 			</div>
 		</div>
 	</div>
-	<div class="middle-panel">
-		<div class="chat-header">
-			<div class="contact-icon-circle">
-				<i class="fa-solid fa-user"></i>
-			</div>
-			<span>Naylah H Chowdhury</span>
+	<div class="middle-panel <?php echo (!$selected_friend && !$selected_group) ? 'expanded' : ''; ?>">
+		<div class="empty-state" <?php echo (!$selected_friend && !$selected_group) ? '' : 'style="display: none;"'; ?>>
+			<i class="fa-solid fa-comments"></i>
+			<p class="text-muted">Select or search a friend to chat.</p>
 		</div>
-		<div class="messages">
-			<div class="message-wrapper">
-				<div class="sender">Naylah</div>
-				<div class="message">
-					<div class="text">hello! how are you?</div>
-					<div class="timestamp">10:30 AM</div>
+		<div class="chat-container" <?php echo (!$selected_friend && !$selected_group) ? 'style="display: none;"' : ''; ?>>
+			<div class="chat-header">
+				<div class="contact-icon-circle">
+					<i class="fa-solid fa-<?php echo $selected_friend ? 'user' : 'users'; ?>"></i>
 				</div>
+				<span><?php echo htmlspecialchars($selected_friend['full_name'] ?? $selected_group['group_name'] ?? ''); ?></span>
 			</div>
-			<div class="message-wrapper own">
-				<div class="sender">Me</div>
-				<div class="message own">
-					<div class="text">i'm good, thanks! wbu?</div>
-					<div class="timestamp">10:32 AM</div>
-				</div>
+			<div class="messages">
+				<?php if ($selected_friend || $selected_group): ?>
+					<?php
+					$msgCount = count($messages);
+					for ($i = 0; $i < $msgCount; $i++):
+						$msg = $messages[$i];
+						$isOwn = $msg['sender_id'] == $tween_id;
+						$prevSame = ($i > 0 && $messages[$i - 1]['sender_id'] == $msg['sender_id']);
+						$nextSame = ($i < $msgCount - 1 && $messages[$i + 1]['sender_id'] == $msg['sender_id']);
+						$showSender = !$prevSame;
+						$noSenderClass = $showSender ? '' : ' no-sender';
+						$cutTopClass = '';
+						$cutBottomClass = '';
+						if ($isOwn) {
+							if ($prevSame) $cutTopClass = ' cut-top-right';
+							if ($nextSame) $cutBottomClass = ' cut-bottom-right';
+						} else {
+							if ($prevSame) $cutTopClass = ' cut-top-left';
+							if ($nextSame) $cutBottomClass = ' cut-bottom-left';
+						}
+						$messageClasses = 'message' . ($isOwn ? ' own' : '') . $cutTopClass . $cutBottomClass;
+					?>
+						<div class="message-wrapper<?php echo $isOwn ? ' own' : ''; ?><?php echo $noSenderClass; ?>" data-sender-id="<?php echo htmlspecialchars($msg['sender_id']); ?>">
+							<?php if ($showSender): ?>
+								<div class="sender"><?php echo htmlspecialchars($isOwn ? 'Me' : ($msg['sender_name'] ?? '')); ?></div>
+							<?php else: ?>
+								<div class="sender" style="display:none;"></div>
+							<?php endif; ?>
+							<div class="<?php echo $messageClasses; ?>">
+								<div class="text"><?php echo htmlspecialchars($msg['text_content'] ?? ''); ?></div>
+								<div class="timestamp"><?php echo date('g:i A', strtotime($msg['sent_at'] ?? 'now')); ?></div>
+							</div>
+						</div>
+					<?php endfor; ?>
+				<?php endif; ?>
 			</div>
-			<div class="message-wrapper">
-				<div class="sender">Naylah</div>
-				<div class="message">
-					<div class="text">doing great!</div>
-					<div class="timestamp">10:35 AM</div>
-				</div>
+			<div class="message-input" <?php echo (!$selected_friend && !$selected_group) ? 'style="display: none;"' : ''; ?>>
+				<textarea placeholder="Type a message..." rows="1"></textarea>
+				<button class="btn btn-primary" title="Send message"><i class="fa-jelly-fill fa-regular fa-paper-plane"></i></button>
 			</div>
-			<div class="message-wrapper">
-				<div class="sender">Naylah</div>
-				<div class="message">
-					<div class="text">let's play valorant</div>
-					<div class="timestamp">10:35 AM</div>
-				</div>
-			</div>
-			<!-- More messages -->
-		</div>
-		<div class="message-input">
-			<textarea placeholder="Type a message..." rows="1"></textarea>
-			<button class="btn btn-primary"><i class="fa-jelly-fill fa-regular fa-paper-plane"></i></button>
 		</div>
 	</div>
-	<div class="right-panel">
-		<div class="info-panel">
-			<div class="user-avatar">
-				<div class="avatar-circle">
-					<i class="fa-solid fa-user"></i>
+	<div class="right-panel <?php echo (!$selected_friend && !$selected_group) ? 'hidden' : ''; ?>">
+		<?php if (!$contact_info): ?>
+			<div class="info-panel">
+				<p>Select a contact to view details.</p>
+			</div>
+		<?php else: ?>
+			<div class="info-panel">
+				<div class="user-avatar">
+					<div class="avatar-circle">
+						<i class="fa-solid fa-<?php echo $selected_friend ? 'user' : 'users'; ?>"></i>
+					</div>
 				</div>
+				<div class="user-details">
+					<h3><?php echo htmlspecialchars($selected_friend ? $contact_info['full_name'] : $contact_info['group_name']); ?></h3>
+					<small class="text-muted"><?php echo $selected_friend ? '@' . htmlspecialchars($contact_info['username']) : 'Group'; ?></small>
+					<?php if ($selected_friend): ?>
+						<p><?php echo htmlspecialchars($contact_info['bio'] ?? ''); ?></p>
+					<?php else: ?>
+						<p>Members: <?php echo htmlspecialchars(implode(', ', array_map(function ($m) {
+										return $m['full_name'];
+									}, $contact_info['members']))); ?></p>
+					<?php endif; ?>
+				</div>
+				<?php if ($selected_friend): ?>
+					<div class="action-buttons">
+						<button class="btn-round" title="Unfriend"><i class="fa-solid fa-user-xmark"></i></button>
+						<button class="btn-round btn-block" title="Block"><i class="fa-solid fa-ban"></i></button>
+					</div>
+				<?php endif; ?>
 			</div>
-			<div class="user-details">
-				<h3>Naylah H Chowdhury</h3>
-				<small class="text-muted">@naylah</small>
-				<p>Free Palestine 🇵🇸</p>
+		<?php endif; ?>
+	</div>
+
+	<!-- Templates -->
+	<div id="message-template" style="display: none;">
+		<div class="message-wrapper">
+			<div class="sender"></div>
+			<div class="message">
+				<div class="text"></div>
+				<div class="timestamp"></div>
 			</div>
-			<div class="action-buttons">
-				<button class="btn-round" title="Unfriend"><i class="fa-solid fa-user-xmark"></i></button>
-				<button class="btn-round btn-block" title="Block"><i class="fa-solid fa-ban"></i></button>
-			</div>
+		</div>
+	</div>
+	<div id="no-messages-template" style="display: none;">
+		<div class="no-messages">Start new conversation..</div>
+	</div>
+	<div id="friend-info-template" style="display: none;">
+		<div class="user-avatar">
+			<div class="avatar-circle"><i class="fa-solid fa-user"></i></div>
+		</div>
+		<div class="user-details">
+			<h3></h3>
+			<small class="text-muted"></small>
+			<p></p>
+		</div>
+		<div class="action-buttons">
+			<button class="btn-round" title="Unfriend"><i class="fa-solid fa-user-xmark"></i></button>
+			<button class="btn-round btn-block" title="Block"><i class="fa-solid fa-ban"></i></button>
+		</div>
+	</div>
+	<div id="group-info-template" style="display: none;">
+		<div class="user-avatar">
+			<div class="avatar-circle"><i class="fa-solid fa-users"></i></div>
+		</div>
+		<div class="user-details">
+			<h3></h3>
+			<small class="text-muted">Group</small>
+			<p></p>
+		</div>
+	</div>
+	<div id="context-menu-template" style="display: none;">
+		<div class="context-menu">
+			<button class="context-menu-item" data-action="edit">
+				<i class="fa-solid fa-pen-to-square"></i> Edit
+			</button>
+			<button class="context-menu-item" data-action="delete">
+				<i class="fa-jelly-fill fa-regular fa-trash"></i> Delete
+			</button>
 		</div>
 	</div>
 
-	<!-- Create Group Modal -->
+	<!-- Modals -->
 	<div class="modal" id="create-group-modal">
 		<div class="modal-content">
 			<h3><i class="fa-duotone fa-solid fa-users-medical"></i> Create New Group</h3>
@@ -200,8 +339,6 @@ $user = mysqli_fetch_assoc($result);
 			</div>
 		</div>
 	</div>
-
-	<!-- Confirmation Modal -->
 	<div class="modal" id="confirmation-modal">
 		<div class="modal-content">
 			<h3>Confirm Action</h3>
@@ -212,8 +349,6 @@ $user = mysqli_fetch_assoc($result);
 			</div>
 		</div>
 	</div>
-
-	<!-- Edit Message Modal -->
 	<div class="modal" id="edit-message-modal">
 		<div class="modal-content">
 			<h3><i class="fa-solid fa-pen-to-square"></i> Edit Message</h3>
@@ -226,7 +361,7 @@ $user = mysqli_fetch_assoc($result);
 			</div>
 		</div>
 	</div>
-	<script src="/barta-webapp-cse311/assets/js/tween.js"></script>
+	<script src="assets/js/tween.js"></script>
 </body>
 
 </html>
