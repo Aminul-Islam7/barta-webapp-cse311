@@ -4,7 +4,7 @@ session_start();
 require "../db.php";
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header("Location: ../parent_dashboard.php");
+    header("Location: ../dashboard_parent.php");
     exit;
 }
 
@@ -17,7 +17,7 @@ if ($action === "approve") {
 
     // Assign tween to parent
     mysqli_query($conn,"UPDATE tween_user 
-                        SET parent_id = $parent_id 
+                        SET parent_id = $parent_id, is_active = 1 
                         WHERE id = $tween_id");
     // Update request from table
     mysqli_query($conn,"UPDATE tween_link_request 
@@ -37,7 +37,7 @@ else if ($action === "reject") {
 }
 
 // Redirect back to parent dashboard
-header("Location: ../parent_dashboard.php");
+header("Location: ../dashboard_parent.php");
 exit;     
 ?>
 

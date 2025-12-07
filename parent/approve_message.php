@@ -4,7 +4,7 @@ session_start();
 require "../db.php";
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header("Location: ../parent_dashboard.php");
+    header("Location: ../dashboard_parent.php");
     exit;
 }
 
@@ -31,6 +31,6 @@ else if ($action === "reject") {
 }
 
 // Redirect back to parent dashboard
-header("Location: ../parent_dashboard.php");
+header("Location: ../dashboard_parent.php");
 exit;
 ?>

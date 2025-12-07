@@ -3,7 +3,7 @@
 session_start();
 require "../db.php";   // adjust path if needed
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header("Location: ../parent_dashboard.php");
+    header("Location: ../dashboard_parent.php");
     exit;
 }
 
@@ -36,6 +36,6 @@ if ($action === "approve") {
     $_SESSION['msg_success'] = "Friend request declined.";
 }
 // Redirect back to parent dashboard
-header("Location: ../parent_dashboard.php");
+header("Location: ../dashboard_parent.php");
 exit;
 ?>
