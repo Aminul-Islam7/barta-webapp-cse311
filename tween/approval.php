@@ -80,20 +80,6 @@ $requests = [];
 while ($row = mysqli_fetch_assoc($result)) {
 	$requests[] = $row;
 }
-
-// Check if any request is approved, then activate and redirect
-foreach ($requests as $req) {
-	if ($req['status'] === 'approved') {
-		// Use the bartauser.id (parent_bartauser_id) as tween_user.parent_id references bartauser.id
-		$parentBartaId = (int)($req['parent_bartauser_id'] ?? 0);
-		if ($parentBartaId > 0) {
-			$query = "UPDATE tween_user SET is_active = 1, parent_id = $parentBartaId WHERE user_id = $user_id";
-			mysqli_query($conn, $query);
-			header("Location: ../dashboard_tween.php");
-			exit;
-		}
-	}
-}
 ?>
 
 <!DOCTYPE html>
