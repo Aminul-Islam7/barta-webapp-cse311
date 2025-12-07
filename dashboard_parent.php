@@ -43,22 +43,22 @@ if ($link_requests_result) {
 
 // Alert Notifications when friend requests are approved/declined.
 if (!empty($_SESSION['msg_success'])): ?>
-    <div class="alert">
-        <?php 
-            echo $_SESSION['msg_success'];
-            unset($_SESSION['msg_success']);
-        ?>
-    </div>
+	<div class="alert">
+		<?php
+		echo $_SESSION['msg_success'];
+		unset($_SESSION['msg_success']);
+		?>
+	</div>
 <?php endif; ?>
 
 <?php if (!empty($_SESSION['msg_error'])): ?>
-    <div class="alert alert-error">
-        <?php
-            echo $_SESSION['msg_error'];
-            unset($_SESSION['msg_error']);
-        ?>
-    </div>
-<?php endif; 
+	<div class="alert alert-error">
+		<?php
+		echo $_SESSION['msg_error'];
+		unset($_SESSION['msg_error']);
+		?>
+	</div>
+<?php endif;
 
 // Fetch friend requests pending approval
 $friend_requests = [];
@@ -69,9 +69,9 @@ JOIN tween_user rtu ON cr.requester_id = rtu.id
 WHERE tu.parent_id = $parent_id AND cr.receiver_parent_approved = 0";
 $friend_requests_result = mysqli_query($conn, $friend_requests_query);
 if ($friend_requests_result) {
-    while ($freq = mysqli_fetch_assoc($friend_requests_result)) {
-        $friend_requests[] = $freq;
-    }
+	while ($freq = mysqli_fetch_assoc($friend_requests_result)) {
+		$friend_requests[] = $freq;
+	}
 }
 
 // Fetch flagged messages pending approval (with blocked_word highlight)
@@ -123,15 +123,15 @@ if ($flagged_result) {
 // Fetch blocked words for all children display:
 $blocked_words = [];
 foreach ($children as $child) {
-    $bw_query = "SELECT word_id, word FROM blocked_word WHERE tween_id = {$child['id']} ORDER BY word ASC";
-    $bw_result = mysqli_query($conn, $bw_query);
-    if ($bw_result) {
-        while ($bw = mysqli_fetch_assoc($bw_result)) {
-            $bw['tween_id'] = $child['id'];
-            $bw['tween_username'] = $child['username'];
-            $blocked_words[] = $bw;
-        }
-    }
+	$bw_query = "SELECT word_id, word FROM blocked_word WHERE tween_id = {$child['id']} ORDER BY word ASC";
+	$bw_result = mysqli_query($conn, $bw_query);
+	if ($bw_result) {
+		while ($bw = mysqli_fetch_assoc($bw_result)) {
+			$bw['tween_id'] = $child['id'];
+			$bw['tween_username'] = $child['username'];
+			$blocked_words[] = $bw;
+		}
+	}
 }
 
 ?>
@@ -140,11 +140,8 @@ foreach ($children as $child) {
 <html lang="en">
 
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Parent Dashboard - Barta</title>
-	<link rel="icon" href="assets/img/logo.png" type="image/png">
-	<link rel="stylesheet" href="assets/css/style.css">
+	<?php include "includes/header.php"; ?>
 </head>
 
 <body class="p-dashboard-parent">
@@ -156,7 +153,7 @@ foreach ($children as $child) {
 		</div>
 		<div class="p-dashboard-parent__header-right">
 			<div class="p-dashboard-parent__parent-info">
-				<?php echo htmlspecialchars('Welcome '. $parent_data['full_name'] .'!' ?? 'Welcome Parent!'); ?>
+				<?php echo htmlspecialchars('Welcome ' . $parent_data['full_name'] . '!' ?? 'Welcome Parent!'); ?>
 			</div>
 			<a href="parent/settings.php" class="btn btn-secondary p-dashboard-parent__settings-btn">⚙️ Settings</a>
 			<a href="logout.php" class="btn btn-secondary p-dashboard-parent__settings-btn">Logout</a>
@@ -281,15 +278,15 @@ foreach ($children as $child) {
 								<td>
 									<div class="request-preview">
 										<?php
-                                		// Highlight blocked word if present
-                                		$preview = htmlspecialchars(substr($msg['text_content'], 0, 50));
-                                		if ($msg['blocked_word']) {
-                                    		$preview = str_ireplace(
-                                        		htmlspecialchars($msg['blocked_word']),
-                                        		'<span class="blocked-word-highlight">' . htmlspecialchars($msg['blocked_word']) . '</span>',
-                                        		$preview
-                                    		);
-                                		}									
+										// Highlight blocked word if present
+										$preview = htmlspecialchars(substr($msg['text_content'], 0, 50));
+										if ($msg['blocked_word']) {
+											$preview = str_ireplace(
+												htmlspecialchars($msg['blocked_word']),
+												'<span class="blocked-word-highlight">' . htmlspecialchars($msg['blocked_word']) . '</span>',
+												$preview
+											);
+										}
 										echo $preview;
 										if (strlen($msg['text_content']) > 50) {
 											echo '<div class="request-preview__subtitle">...</div>';
@@ -298,7 +295,7 @@ foreach ($children as $child) {
 									</div>
 								</td>
 								<td>
-									<?php 
+									<?php
 									if ($msg['blocked_word']) {
 										echo '<span class="blocked-word-highlight">' . htmlspecialchars($msg['blocked_word']) . '</span>';
 									} else {
@@ -330,7 +327,7 @@ foreach ($children as $child) {
 					<p>No messages pending approval</p>
 				</div>
 			<?php endif; ?>
-		</section>	
+		</section>
 
 		<!-- D. Linked Children Overview -->
 		<section class="dashboard-panel">
@@ -359,7 +356,7 @@ foreach ($children as $child) {
 						}
 
 						// Get daily limit
-						$child_limit = $child['daily_msg_limit'] ?? 0; 
+						$child_limit = $child['daily_msg_limit'] ?? 0;
 						?>
 
 						<div class="child-card">
@@ -442,10 +439,10 @@ foreach ($children as $child) {
 					<p>No child linked yet.</p>
 				</div>
 			<?php endif; ?>
-			
+
 			<?php foreach ($children as $child): ?>
-    			<h3><?php echo htmlspecialchars($child['username']); ?>'s Friends</h3>
-    			<?php if (count($child['friends']) > 0): ?>
+				<h3><?php echo htmlspecialchars($child['username']); ?>'s Friends</h3>
+				<?php if (count($child['friends']) > 0): ?>
 					<table class="dashboard-table">
 						<thead>
 							<tr>
@@ -455,32 +452,32 @@ foreach ($children as $child) {
 							</tr>
 						</thead>
 						<tbody>
-           				<?php foreach ($child['friends'] as $friend): ?>
-							<tr>
-								<td><?php echo htmlspecialchars($friend['username']); ?></td>
-								<td><?php echo htmlspecialchars(substr($friend['bio'] ?? '', 0, 50)); ?></td>
-								<td>
-									<div class="dashboard-actions">
-										<form method="POST" action="parent/block_child_friend.php" style="display: inline;">
-											<input type="hidden" name="child_id" value="<?php echo $child['id']; ?>">
-											<input type="hidden" name="friend_id" value="<?php echo $friend['id']; ?>">
-											<button type="submit" class="btn btn-secondary">🚫 Block</button>
-										</form>
-										<form method="POST" action="parent/remove_child_friend.php" style="display: inline;">
-											<input type="hidden" name="child_id" value="<?php echo $child['id']; ?>">
-											<input type="hidden" name="friend_id" value="<?php echo $friend['id']; ?>">
-											<button type="submit" class="btn btn-secondary">❌ Remove</button>
-										</form>
-									</div>
-								</td>
-							</tr>
-						<?php endforeach; ?>
+							<?php foreach ($child['friends'] as $friend): ?>
+								<tr>
+									<td><?php echo htmlspecialchars($friend['username']); ?></td>
+									<td><?php echo htmlspecialchars(substr($friend['bio'] ?? '', 0, 50)); ?></td>
+									<td>
+										<div class="dashboard-actions">
+											<form method="POST" action="parent/block_child_friend.php" style="display: inline;">
+												<input type="hidden" name="child_id" value="<?php echo $child['id']; ?>">
+												<input type="hidden" name="friend_id" value="<?php echo $friend['id']; ?>">
+												<button type="submit" class="btn btn-secondary">🚫 Block</button>
+											</form>
+											<form method="POST" action="parent/remove_child_friend.php" style="display: inline;">
+												<input type="hidden" name="child_id" value="<?php echo $child['id']; ?>">
+												<input type="hidden" name="friend_id" value="<?php echo $friend['id']; ?>">
+												<button type="submit" class="btn btn-secondary">❌ Remove</button>
+											</form>
+										</div>
+									</td>
+								</tr>
+							<?php endforeach; ?>
 						</tbody>
 					</table>
 				<?php else: ?>
 					<div class="dashboard-empty">
 						<div class="dashboard-empty__icon">👫</div>
-						<?php if(empty($children)  || empty($child['username'])): ?> 
+						<?php if (empty($children)  || empty($child['username'])): ?>
 							<p>No child linked yet.</p>
 						<?php else: ?>
 							<p>No friends for <?php echo htmlspecialchars($child['username']); ?> yet.</p>
@@ -488,7 +485,7 @@ foreach ($children as $child) {
 					</div>
 				<?php endif; ?>
 			<?php endforeach; ?>
-		</section>	
+		</section>
 
 		<!-- F. Blocked Words Management -->
 		<section class="dashboard-panel">
@@ -502,7 +499,7 @@ foreach ($children as $child) {
 				</select>
 				<input type="text" name="word" class="form-input" placeholder="Add new blocked word" required>
 				<button type="submit" class="btn btn-primary">Add Word</button>
-			</form>		
+			</form>
 
 			<?php if (count($blocked_words) > 0): ?>
 				<div class="blocked-words-list">

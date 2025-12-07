@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 01, 2025 at 02:56 PM
+-- Generation Time: Dec 05, 2025 at 04:42 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -398,7 +398,7 @@ ALTER TABLE `tween_link_request`
 --
 ALTER TABLE `tween_user`
   ADD CONSTRAINT `fk_tween_user_bartaUser` FOREIGN KEY (`user_id`) REFERENCES `bartauser` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_tween_user_parent_user` FOREIGN KEY (`parent_id`) REFERENCES `bartauser` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `fk_tween_user_parent_user` FOREIGN KEY (`parent_id`) REFERENCES `parent_user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `user_group`
