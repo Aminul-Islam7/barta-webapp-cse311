@@ -41,25 +41,6 @@ if ($link_requests_result) {
 	}
 }
 
-// Alert Notifications when friend requests are approved/declined.
-if (!empty($_SESSION['msg_success'])): ?>
-	<div class="alert">
-		<?php
-		echo $_SESSION['msg_success'];
-		unset($_SESSION['msg_success']);
-		?>
-	</div>
-<?php endif; ?>
-
-<?php if (!empty($_SESSION['msg_error'])): ?>
-	<div class="alert alert-error">
-		<?php
-		echo $_SESSION['msg_error'];
-		unset($_SESSION['msg_error']);
-		?>
-	</div>
-<?php endif;
-
 // Fetch friend requests pending approval
 $friend_requests = [];
 $friend_requests_query = "SELECT cr.requester_id, cr.receiver_id, tu.username AS receiver_name,
