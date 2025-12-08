@@ -254,7 +254,7 @@ if (isset($_GET['u'])) {
 					<h3><?php echo htmlspecialchars($selected_friend ? $contact_info['full_name'] : $contact_info['group_name']); ?></h3>
 					<small class="text-muted"><?php echo $selected_friend ? '@' . htmlspecialchars($contact_info['username']) : 'Group'; ?></small>
 					<?php if ($selected_friend): ?>
-						<p><?php echo htmlspecialchars($contact_info['bio'] ?? ''); ?></p>
+						<p><?php echo htmlspecialchars(html_entity_decode($contact_info['bio'] ?? '')); ?></p>
 					<?php else: ?>
 						<p>Members: <?php echo htmlspecialchars(implode(', ', array_map(function ($m) {
 										return $m['full_name'];

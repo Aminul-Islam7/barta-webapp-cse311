@@ -51,6 +51,9 @@ if (isset($_GET['u'])) {
 		exit;
 	}
 
+	// Decode bio for proper display
+	$friend['bio'] = html_entity_decode($friend['bio']);
+
 	// Fetch messages between the tween and the friend
 	// If since > 0, hold the request up to $LONG_POLL_TIMEOUT and return when new messages arrive
 	$query = "SELECT m.id, m.sender_id, m.text_content, m.sent_at, m.is_edited, tu.username as sender_username, bu.full_name as sender_name
