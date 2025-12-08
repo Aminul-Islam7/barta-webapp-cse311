@@ -13,6 +13,13 @@ $tween_id = (int)$_SESSION['tween_id'];
 
 $since = isset($_GET['since']) ? (int)$_GET['since'] : 0;
 
+// Release session lock to prevent blocking other requests (like send_message)
+session_write_close();
+
+// Long polling configuration (only used when since > 0)
+$LONG_POLL_TIMEOUT = 25; // seconds
+$LONG_POLL_SLEEP_MICRO = 500000; // 0.5 seconds
+
 $response = ['messages' => [], 'contact' => null, 'type' => null];
 
 if (isset($_GET['u'])) {
@@ -45,6 +52,7 @@ if (isset($_GET['u'])) {
 	}
 
 	// Fetch messages between the tween and the friend
+	// If since > 0, hold the request up to $LONG_POLL_TIMEOUT and return when new messages arrive
 	$query = "SELECT m.id, m.sender_id, m.text_content, m.sent_at, m.is_edited, tu.username as sender_username, bu.full_name as sender_name
           FROM message m
           JOIN individual_message im ON m.id = im.message_id
@@ -52,9 +60,21 @@ if (isset($_GET['u'])) {
           JOIN bartauser bu ON tu.user_id = bu.id
           WHERE ((m.sender_id = $tween_id AND im.receiver_id = $friend_id) OR (m.sender_id = $friend_id AND im.receiver_id = $tween_id))
           AND m.is_deleted = 0
-          AND m.id > $since
+		  AND m.id > $since
           ORDER BY m.sent_at ASC";
-	$result = mysqli_query($conn, $query);
+	// If client is asking only for changes, enable long-polling wait loop
+	if ($since > 0) {
+		set_time_limit(0);
+		ignore_user_abort(true);
+		$start = microtime(true);
+		while ((microtime(true) - $start) < $LONG_POLL_TIMEOUT) {
+			$result = mysqli_query($conn, $query);
+			if ($result && mysqli_num_rows($result) > 0) break;
+			usleep($LONG_POLL_SLEEP_MICRO);
+		}
+	} else {
+		$result = mysqli_query($conn, $query);
+	}
 	$messages = [];
 	while ($row = mysqli_fetch_assoc($result)) {
 		$messages[] = $row;
@@ -100,9 +120,20 @@ if (isset($_GET['group'])) {
           JOIN tween_user tu ON m.sender_id = tu.id
           JOIN bartauser bu ON tu.user_id = bu.id
           WHERE gm.group_id = $group_id AND m.is_deleted = 0
-          AND m.id > $since
+		  AND m.id > $since
           ORDER BY m.sent_at ASC";
-	$result = mysqli_query($conn, $query);
+	if ($since > 0) {
+		set_time_limit(0);
+		ignore_user_abort(true);
+		$start = microtime(true);
+		while ((microtime(true) - $start) < $LONG_POLL_TIMEOUT) {
+			$result = mysqli_query($conn, $query);
+			if ($result && mysqli_num_rows($result) > 0) break;
+			usleep($LONG_POLL_SLEEP_MICRO);
+		}
+	} else {
+		$result = mysqli_query($conn, $query);
+	}
 	$messages = [];
 	while ($row = mysqli_fetch_assoc($result)) {
 		$messages[] = $row;

@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	}
 	let currentTarget = null;
 	let currentTargetType = null;
-	let pollingInterval = null;
+	let pollAbortController = null;
 	let lastMessageId = 0;
 	function renderMessages(messages, meId) {
 		// Clear existing messages
@@ -154,8 +154,10 @@ document.addEventListener('DOMContentLoaded', function () {
 				const username = el.getAttribute('data-username');
 				if (!username) return;
 				// Stop previous polling
-				if (pollingInterval) clearInterval(pollingInterval);
-				pollingInterval = null;
+				if (pollAbortController) {
+					pollAbortController.abort();
+					pollAbortController = null;
+				}
 				currentTargetType = 'friend';
 				currentTarget = username;
 				const url = 'tween/fetch_conversation.php?u=' + encodeURIComponent(username);
@@ -171,8 +173,10 @@ document.addEventListener('DOMContentLoaded', function () {
 				const groupId = el.getAttribute('data-group-id');
 				if (!groupId) return;
 				// Stop previous polling
-				if (pollingInterval) clearInterval(pollingInterval);
-				pollingInterval = null;
+				if (pollAbortController) {
+					pollAbortController.abort();
+					pollAbortController = null;
+				}
 				currentTargetType = 'group';
 				currentTarget = groupId;
 				const url = 'tween/fetch_conversation.php?group=' + encodeURIComponent(groupId);
@@ -194,8 +198,10 @@ document.addEventListener('DOMContentLoaded', function () {
 			document.querySelector('.right-panel').classList.add('hidden');
 			clearSelection();
 			// Stop polling
-			if (pollingInterval) clearInterval(pollingInterval);
-			pollingInterval = null;
+			if (pollAbortController) {
+				pollAbortController.abort();
+				pollAbortController = null;
+			}
 			currentTarget = null;
 			currentTargetType = null;
 			lastMessageId = 0;
@@ -411,23 +417,42 @@ document.addEventListener('DOMContentLoaded', function () {
 	}
 
 	// Polling for new messages
+	function longPoll(signal) {
+		if (!currentTargetType || !currentTarget) {
+			// nothing to poll for, retry in 2s
+			if (signal && signal.aborted) return;
+			setTimeout(() => longPoll(signal), 2000);
+			return;
+		}
+		const url = `tween/fetch_conversation.php?${currentTargetType === 'friend' ? 'u' : 'group'}=${encodeURIComponent(currentTarget)}&since=${lastMessageId}`;
+		fetch(url, { cache: 'no-store', signal: signal })
+			.then((r) => r.json())
+			.then((data) => {
+				if (data && data.messages && data.messages.length > 0) {
+					data.messages.forEach((msg) => {
+						appendMessage(msg, data.me_id);
+						lastMessageId = Math.max(lastMessageId, msg.id);
+					});
+				}
+				// immediately start next long poll
+				if (!signal || !signal.aborted) setTimeout(() => longPoll(signal), 0);
+			})
+			.catch((err) => {
+				// If fetch aborted, do nothing; otherwise retry with backoff
+				if (err && err.name === 'AbortError') return;
+				setTimeout(() => {
+					if (!signal || !signal.aborted) longPoll(signal);
+				}, 2000);
+			});
+	}
+
 	function startPolling() {
-		if (pollingInterval) clearInterval(pollingInterval);
-		pollingInterval = setInterval(() => {
-			if (!currentTargetType || !currentTarget) return;
-			const url = `tween/fetch_conversation.php?${currentTargetType === 'friend' ? 'u' : 'group'}=${encodeURIComponent(currentTarget)}&since=${lastMessageId}`;
-			fetch(url)
-				.then((r) => r.json())
-				.then((data) => {
-					if (data.messages && data.messages.length > 0) {
-						data.messages.forEach((msg) => {
-							appendMessage(msg, data.me_id);
-							lastMessageId = Math.max(lastMessageId, msg.id);
-						});
-					}
-				})
-				.catch((err) => {});
-		}, 500); // poll every 3 seconds
+		if (pollAbortController) {
+			pollAbortController.abort();
+			pollAbortController = null;
+		}
+		pollAbortController = new AbortController();
+		longPoll(pollAbortController.signal);
 	}
 
 	// Scroll helper
@@ -511,6 +536,12 @@ document.addEventListener('DOMContentLoaded', function () {
 				appendMessage(data.message, data.me_id);
 				// Update last message ID
 				lastMessageId = data.message.id;
+				// Abort any pending long-poll and restart to prevent refetching our own message
+				if (pollAbortController) {
+					pollAbortController.abort();
+					pollAbortController = null;
+				}
+				startPolling();
 				// clear textarea
 				const ta = document.querySelector('.message-input textarea');
 				if (ta) {
