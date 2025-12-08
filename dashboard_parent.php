@@ -344,11 +344,11 @@ foreach ($children as $child) {
 							<div class="child-card__header">
 								<div>
 									<div class="child-card__name"><?php echo htmlspecialchars($child['username']); ?></div>
-									<div class="child-card__bio"><?php echo htmlspecialchars($child['bio'] ?? ''); ?></div>
+									<div class="child-card__bio" style="margin-top: 0.25rem; font-style: italic;"><?php echo htmlspecialchars($child['bio'] ?? ''); ?></div>
 								</div>
 							</div>
 
-							<div class="child-card__stat">
+							<div class="child-card__stat" style="margin-top: -1.5rem;">
 								<span class="child-card__stat-label">Sent Messages:</span>
 								<span class="child-card__stat-value"><?php echo $sent_count; ?></span>
 							</div>
@@ -362,12 +362,17 @@ foreach ($children as $child) {
 							<form method="POST" action="parent/update_daily_limit.php" style="display: flex; gap: 0.5rem;">
 								<input type="hidden" name="tween_id" value="<?php echo $child['id']; ?>">
 								<input type="number" name="daily_limit" value="<?php echo $child_limit; ?>" class="form-input child-card__limit-input" min="0">
-								<button type="submit" class="btn btn-primary" style="padding: 0.5rem 1rem;">Update</button>
+								<button type="submit" class="btn btn-primary" style="height: 65px; padding: 0.5rem 1rem;">Update</button>
 							</form>
 
 							<div class="child-card__actions">
-								<a href="parent/settings.php?child_id=<?php echo $child['id']; ?>" class="btn btn-secondary">View Details</a>
+    							<button class="btn btn-secondary view-details-btn" data-child-id="<?php echo $child['id']; ?>">View Details</button>
 							</div>
+							<!-- Hidden container for details -->
+							<div 
+								class="child-card__extra" id="child-details-<?php echo $child['id']; ?>" style="display: none; margin-top: 0.5rem;">
+							</div>
+							
 						</div>
 					<?php endforeach; ?>
 				</div>
@@ -471,7 +476,8 @@ foreach ($children as $child) {
 		<!-- F. Blocked Words Management -->
 		<section class="dashboard-panel">
 			<h2 class="dashboard-panel__title">🚫 Blocked Words Management</h2>
-			<form method="POST" action="parent/add_blocked_word.php" class="blocked-words-form">
+			<form method="POST" action="parent/manage_blocked_word.php" class="blocked-words-form">
+				<input type="hidden" name="action" value="add">
 				<select name="tween_id" required class="form-select">
 					<option value="">Choose Child</option>
 					<?php foreach ($children as $child): ?>
@@ -487,7 +493,8 @@ foreach ($children as $child) {
 					<?php foreach ($blocked_words as $word): ?>
 						<div class="blocked-word-badge">
 							<?php echo htmlspecialchars($word['tween_username']); ?>: <b><?php echo htmlspecialchars($word['word']); ?></b>
-							<form method="POST" action="parent/remove_blocked_word.php" style="display: inline; margin-left: 0.5rem;">
+							<form method="POST" action="parent/manage_blocked_word.php" style="display: inline; margin-left: 0.5rem;">
+								<input type="hidden" name="action" value="remove">
 								<input type="hidden" name="word_id" value="<?php echo $word['word_id']; ?>">
 								<button type="submit" class="blocked-word-badge__remove" onclick="return confirm('Remove this word?');">×</button>
 							</form>
