@@ -11,6 +11,11 @@ document.addEventListener('DOMContentLoaded', function () {
 	let currentTargetType = null;
 	let pollAbortController = null;
 	let lastMessageId = 0;
+	let lastActiveTime = 0;
+	let meId = null;
+	// BroadcastChannel for local tab sync and a per-tab stable id
+	const TAB_ID = 'tab-' + Math.random().toString(36).substr(2, 9);
+	const bc = window.BroadcastChannel ? new BroadcastChannel('barta-messages') : null;
 	function renderMessages(messages, meId) {
 		// Clear existing messages
 		const messagesEl = document.querySelector('.messages');
@@ -33,6 +38,10 @@ document.addEventListener('DOMContentLoaded', function () {
 			const showSender = !prevSame;
 			wrapper.className = 'message-wrapper' + (isOwn ? ' own' : '') + (!showSender ? ' no-sender' : '');
 			wrapper.setAttribute('data-sender-id', msg.sender_id);
+			wrapper.setAttribute('data-message-id', msg.id);
+			if (!isOwn && msg.sender_name) {
+				wrapper.setAttribute('data-sender-name', msg.sender_name.split(' ')[0].toUpperCase());
+			}
 			const sender = wrapper.querySelector('.sender');
 			if (showSender) {
 				sender.textContent = isOwn ? 'Me' : (msg.sender_name || '').split(' ')[0].toUpperCase();
@@ -120,6 +129,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				document.querySelector('.middle-panel').classList.remove('expanded');
 				document.querySelector('.right-panel').classList.remove('hidden');
 				// render messages and contact info
+				meId = data.me_id;
 				renderMessages(data.messages, data.me_id);
 				renderContact(data.contact, data.type); // set current target for sending
 				if (data.type === 'friend') {
@@ -131,10 +141,50 @@ document.addEventListener('DOMContentLoaded', function () {
 				}
 				// Set last message ID for polling
 				lastMessageId = data.messages.length > 0 ? Math.max(...data.messages.map((m) => m.id)) : 0;
+				lastActiveTime = data.last_active_time || 0;
 				// Start polling for new messages
 				startPolling();
 			})
 			.catch((err) => {});
+	}
+
+	// Listen for BroadcastChannel messages (instant updates among same-user tabs)
+	if (bc) {
+		bc.onmessage = function (event) {
+			const payload = event.data || {};
+			const { type, messageId, newText, message, me_id, target_type, target } = payload;
+			// Only handle events if we're viewing a conversation
+			if (!currentTargetType || !currentTarget) return;
+			// Ignore our own broadcasts
+			if (payload.source && payload.source === TAB_ID) return;
+			if (type === 'edit') {
+				if (target_type !== currentTargetType || String(target) !== String(currentTarget)) return;
+				const wrapper = document.querySelector(`.message-wrapper[data-message-id="${messageId}"]`);
+				if (wrapper) {
+					const textEl = wrapper.querySelector('.text');
+					if (textEl) textEl.textContent = newText;
+				}
+				return;
+			}
+			if (type === 'delete') {
+				if (target_type !== currentTargetType || String(target) !== String(currentTarget)) return;
+				const wrapper = document.querySelector(`.message-wrapper[data-message-id="${messageId}"]`);
+				if (wrapper) {
+					wrapper.remove();
+					recalculateMessageUI();
+				}
+				return;
+			}
+			if (type === 'send' && message) {
+				if (target_type !== currentTargetType || String(target) !== String(currentTarget)) return;
+				// avoid duplicates
+				if (!document.querySelector(`.message-wrapper[data-message-id="${message.id}"]`)) {
+					appendMessage(message, me_id);
+					lastMessageId = Math.max(lastMessageId, message.id);
+				}
+				return;
+			}
+		};
 	}
 
 	// Highlight selected contact
@@ -205,6 +255,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			currentTarget = null;
 			currentTargetType = null;
 			lastMessageId = 0;
+			lastActiveTime = 0;
 			return;
 		}
 		// Load conversation based on state
@@ -270,12 +321,43 @@ document.addEventListener('DOMContentLoaded', function () {
 		});
 
 		saveEditBtn.addEventListener('click', function () {
-			if (currentMessage) {
-				const newText = editMessageText.value.trim();
-				if (newText) {
-					currentMessage.querySelector('.text').textContent = newText;
-				}
+			const newText = editMessageText.value.trim();
+			if (!newText || !currentMessage) {
+				editMessageModal.classList.remove('show');
+				return;
 			}
+			const wrapper = currentMessage.closest('.message-wrapper');
+			const messageId = wrapper?.getAttribute('data-message-id');
+			if (!messageId) {
+				editMessageModal.classList.remove('show');
+				return;
+			}
+
+			const form = new FormData();
+			form.append('message_id', messageId);
+			form.append('text', newText);
+
+			fetch('tween/edit_message.php', {
+				method: 'POST',
+				body: form,
+			})
+				.then((r) => r.json())
+				.then((data) => {
+					if (data && data.success) {
+						currentMessage.querySelector('.text').textContent = newText;
+						// Broadcast edit to other same-user tabs
+						if (bc) {
+							bc.postMessage({ type: 'edit', messageId, newText, target_type: currentTargetType, target: currentTarget, source: TAB_ID });
+						}
+						// Abort current poll (it will naturally restart on its own)
+					} else {
+						console.error(data?.error || 'Failed to edit message');
+					}
+				})
+				.catch((err) => {
+					console.error(err);
+				});
+
 			editMessageModal.classList.remove('show');
 		});
 	}
@@ -333,6 +415,8 @@ document.addEventListener('DOMContentLoaded', function () {
 		if (e.target.closest('.message.own')) {
 			e.preventDefault();
 			currentMessage = e.target.closest('.message.own');
+			const wrapper = currentMessage.closest('.message-wrapper') || currentMessage.closest('[data-message-id]');
+			console.log('Context menu on message wrapper dataset=', wrapper?.dataset, 'getAttribute=', wrapper?.getAttribute?.('data-message-id'));
 			contextMenu.style.left = e.clientX + 'px';
 			contextMenu.style.top = e.clientY + 'px';
 			contextMenu.classList.add('show');
@@ -356,6 +440,13 @@ document.addEventListener('DOMContentLoaded', function () {
 				editMessageText.value = currentText;
 				editMessageModal.classList.add('show');
 			} else if (action === 'delete') {
+				let wrapper = currentMessage.closest('.message-wrapper');
+				if (!wrapper) wrapper = currentMessage.closest('[data-message-id]');
+				let messageId = wrapper?.getAttribute('data-message-id');
+				if (!messageId && currentMessage.dataset && currentMessage.dataset.messageId) {
+					messageId = currentMessage.dataset.messageId;
+				}
+				console.log('Delete clicked on message wrapper dataset:', wrapper?.dataset, 'messageId:', messageId);
 				showConfirmation(
 					{
 						title: 'Delete Message',
@@ -364,7 +455,33 @@ document.addEventListener('DOMContentLoaded', function () {
 						confirmText: 'Delete',
 					},
 					function () {
-						currentMessage.remove();
+						if (!messageId || isNaN(parseInt(messageId, 10))) {
+							console.error('Invalid message id for delete:', messageId);
+							return;
+						}
+						const form = new FormData();
+						form.append('message_id', messageId);
+						console.log('Deleting message id', messageId);
+						fetch('tween/delete_message.php', {
+							method: 'POST',
+							body: form,
+						})
+							.then((r) => r.json())
+							.then((data) => {
+								console.log('Delete response', data);
+								if (data && data.success) {
+									wrapper.remove();
+									recalculateMessageUI();
+									if (bc) {
+										bc.postMessage({ type: 'delete', messageId, target_type: currentTargetType, target: currentTarget, source: TAB_ID });
+									}
+								} else {
+									console.error(data?.error || 'Failed to delete message');
+								}
+							})
+							.catch((err) => {
+								console.error(err);
+							});
 					}
 				);
 			}
@@ -416,6 +533,50 @@ document.addEventListener('DOMContentLoaded', function () {
 		});
 	}
 
+	// Recalculate corner classes and sender visibility for all messages
+	function recalculateMessageUI() {
+		const messagesEl = document.querySelector('.messages');
+		if (!messagesEl) return;
+		const wrappers = messagesEl.querySelectorAll('.message-wrapper');
+		if (wrappers.length === 0) return;
+
+		wrappers.forEach((wrapper, i) => {
+			const message = wrapper.querySelector('.message');
+			if (!message) return;
+			const isOwn = wrapper.classList.contains('own');
+			const senderId = wrapper.getAttribute('data-sender-id');
+			const prevWrapper = i > 0 ? wrappers[i - 1] : null;
+			const nextWrapper = i < wrappers.length - 1 ? wrappers[i + 1] : null;
+			const prevSame = prevWrapper && prevWrapper.getAttribute('data-sender-id') === senderId;
+			const nextSame = nextWrapper && nextWrapper.getAttribute('data-sender-id') === senderId;
+
+			// Update sender visibility
+			const sender = wrapper.querySelector('.sender');
+			if (!prevSame) {
+				wrapper.classList.remove('no-sender');
+				if (sender) {
+					sender.style.display = '';
+					if (!sender.textContent) {
+						sender.textContent = isOwn ? 'Me' : wrapper.getAttribute('data-sender-name') || '';
+					}
+				}
+			} else {
+				wrapper.classList.add('no-sender');
+				if (sender) sender.style.display = 'none';
+			}
+
+			// Update corner cuts
+			message.classList.remove('cut-top-left', 'cut-top-right', 'cut-bottom-left', 'cut-bottom-right');
+			if (isOwn) {
+				if (prevSame) message.classList.add('cut-top-right');
+				if (nextSame) message.classList.add('cut-bottom-right');
+			} else {
+				if (prevSame) message.classList.add('cut-top-left');
+				if (nextSame) message.classList.add('cut-bottom-left');
+			}
+		});
+	}
+
 	// Polling for new messages
 	function longPoll(signal) {
 		if (!currentTargetType || !currentTarget) {
@@ -424,18 +585,47 @@ document.addEventListener('DOMContentLoaded', function () {
 			setTimeout(() => longPoll(signal), 2000);
 			return;
 		}
-		const url = `tween/fetch_conversation.php?${currentTargetType === 'friend' ? 'u' : 'group'}=${encodeURIComponent(currentTarget)}&since=${lastMessageId}`;
+		// Track request duration; if the server returns immediately (unexpected for long-poll), we add a tiny delay before the next attempt to avoid request storms.
+		const startedAt = Date.now();
+		const url = `tween/fetch_conversation.php?${currentTargetType === 'friend' ? 'u' : 'group'}=${encodeURIComponent(currentTarget)}&since=${lastMessageId}&last_active_time=${lastActiveTime}`;
 		fetch(url, { cache: 'no-store', signal: signal })
 			.then((r) => r.json())
 			.then((data) => {
+				if (data.last_active_time) {
+					lastActiveTime = data.last_active_time;
+				}
 				if (data && data.messages && data.messages.length > 0) {
 					data.messages.forEach((msg) => {
 						appendMessage(msg, data.me_id);
 						lastMessageId = Math.max(lastMessageId, msg.id);
 					});
 				}
-				// immediately start next long poll
-				if (!signal || !signal.aborted) setTimeout(() => longPoll(signal), 0);
+				// Handle deleted messages
+				if (data && data.deleted_message_ids && data.deleted_message_ids.length > 0) {
+					data.deleted_message_ids.forEach((msgId) => {
+						const wrapper = document.querySelector(`.message-wrapper[data-message-id="${msgId}"]`);
+						if (wrapper) {
+							wrapper.remove();
+							recalculateMessageUI();
+						}
+					});
+				}
+				// Handle edited messages
+				if (data && data.edited_messages && data.edited_messages.length > 0) {
+					data.edited_messages.forEach((edit) => {
+						const wrapper = document.querySelector(`.message-wrapper[data-message-id="${edit.id}"]`);
+						if (wrapper) {
+							const textEl = wrapper.querySelector('.text');
+							if (textEl) textEl.textContent = edit.text_content;
+						}
+					});
+				}
+				// Immediately restart long-poll (server holds connection up to 25s)
+				if (!signal || !signal.aborted) {
+					const duration = Date.now() - startedAt;
+					const delay = duration < 400 ? 500 : 0; // guard against rapid-fire responses
+					setTimeout(() => longPoll(signal), delay);
+				}
 			})
 			.catch((err) => {
 				// If fetch aborted, do nothing; otherwise retry with backoff
@@ -478,6 +668,10 @@ document.addEventListener('DOMContentLoaded', function () {
 		const prevSame = lastSenderId === msg.sender_id.toString();
 		const showSender = !prevSame;
 		wrapper.setAttribute('data-sender-id', msg.sender_id);
+		wrapper.setAttribute('data-message-id', msg.id);
+		if (!isOwn && msg.sender_name) {
+			wrapper.setAttribute('data-sender-name', msg.sender_name.split(' ')[0].toUpperCase());
+		}
 		wrapper.className = 'message-wrapper' + (isOwn ? ' own' : '') + (!showSender ? ' no-sender' : '');
 		const sender = wrapper.querySelector('.sender');
 		if (showSender) {
@@ -536,12 +730,11 @@ document.addEventListener('DOMContentLoaded', function () {
 				appendMessage(data.message, data.me_id);
 				// Update last message ID
 				lastMessageId = data.message.id;
-				// Abort any pending long-poll and restart to prevent refetching our own message
-				if (pollAbortController) {
-					pollAbortController.abort();
-					pollAbortController = null;
+				// Broadcast the sent message to other same-user tabs
+				if (bc) {
+					bc.postMessage({ type: 'send', message: data.message, me_id: data.me_id, target_type: data.target_type, target: data.target, source: TAB_ID });
 				}
-				startPolling();
+				// Abort current poll (it will naturally restart on its own)
 				// clear textarea
 				const ta = document.querySelector('.message-input textarea');
 				if (ta) {

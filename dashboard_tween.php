@@ -218,7 +218,7 @@ if (isset($_GET['u'])) {
 						}
 						$messageClasses = 'message' . ($isOwn ? ' own' : '') . $cutTopClass . $cutBottomClass;
 					?>
-						<div class="message-wrapper<?php echo $isOwn ? ' own' : ''; ?><?php echo $noSenderClass; ?>" data-sender-id="<?php echo htmlspecialchars($msg['sender_id']); ?>">
+						<div class="message-wrapper<?php echo $isOwn ? ' own' : ''; ?><?php echo $noSenderClass; ?>" data-sender-id="<?php echo htmlspecialchars($msg['sender_id']); ?>" data-message-id="<?php echo htmlspecialchars($msg['id']); ?>">
 							<?php if ($showSender): ?>
 								<div class="sender"><?php echo htmlspecialchars($isOwn ? 'Me' : ($msg['sender_name'] ?? '')); ?></div>
 							<?php else: ?>

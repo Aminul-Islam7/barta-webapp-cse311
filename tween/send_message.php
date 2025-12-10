@@ -121,7 +121,7 @@ if (!$fetchRes || mysqli_num_rows($fetchRes) == 0) {
 }
 $message = mysqli_fetch_assoc($fetchRes);
 
-$response = ['success' => true, 'message' => $message, 'me_id' => $tween_id];
+$response = ['success' => true, 'message' => $message, 'me_id' => $tween_id, 'target_type' => $targetType, 'target' => ($targetType === 'friend' ? $username : $targetId)];
 
 echo json_encode($response);
 exit;
