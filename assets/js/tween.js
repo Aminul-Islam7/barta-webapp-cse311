@@ -1,4 +1,31 @@
 document.addEventListener('DOMContentLoaded', function () {
+	// Cookie helpers
+	function setCookie(name, value, days = 365) {
+		const d = new Date();
+		d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
+		document.cookie = name + '=' + value + ';expires=' + d.toUTCString() + ';path=/';
+	}
+
+	function getCookie(name) {
+		const nameEQ = name + '=';
+		const ca = document.cookie.split(';');
+		for (let i = 0; i < ca.length; i++) {
+			let c = ca[i];
+			while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+			if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+		}
+		return null;
+	}
+
+	let toggleBtn; // Declare here to avoid redeclaration
+
+	// Apply saved preferences on load
+	const savedTheme = getCookie('theme');
+	if (savedTheme === 'dark') {
+		document.body.setAttribute('data-theme', 'dark');
+		const themeIcon = document.querySelector('#theme-toggle i');
+		if (themeIcon) themeIcon.className = 'fa-jelly-fill fa-regular fa-lightbulb';
+	}
 	// Show/hide message input based on chat visibility
 	const messageInputEl = document.querySelector('.message-input');
 	const chatContainerEl = document.querySelector('.chat-container');
@@ -188,8 +215,26 @@ document.addEventListener('DOMContentLoaded', function () {
 				document.querySelector('.empty-state').style.display = 'none';
 				document.querySelector('.chat-container').style.display = 'flex';
 				document.querySelector('.message-input').style.display = 'flex';
-				document.querySelector('.middle-panel').classList.remove('expanded');
-				document.querySelector('.right-panel').classList.remove('hidden');
+				// Set right panel state based on cookie
+				const rightPanelHidden = getCookie('rightPanelHidden') === 'true';
+				const rightPanel = document.querySelector('.right-panel');
+				const middlePanel = document.querySelector('.middle-panel');
+				if (rightPanelHidden) {
+					rightPanel.classList.add('hidden');
+					middlePanel.classList.add('expanded');
+				} else {
+					rightPanel.classList.remove('hidden');
+					middlePanel.classList.remove('expanded');
+				}
+				// Update toggle button icon
+				const toggleBtn = document.querySelector('.toggle-right-panel-btn');
+				if (toggleBtn) {
+					if (rightPanelHidden) {
+						toggleBtn.innerHTML = '<i class="fa-duotone fa-solid fa-chevrons-left"></i>';
+					} else {
+						toggleBtn.innerHTML = '<i class="fa-duotone fa-solid fa-chevrons-right"></i>';
+					}
+				}
 				// render messages and contact info
 				meId = data.me_id;
 				renderMessages(data.messages, data.me_id);
@@ -450,9 +495,11 @@ document.addEventListener('DOMContentLoaded', function () {
 			if (currentTheme === 'dark') {
 				document.body.removeAttribute('data-theme');
 				themeIcon.className = 'fa-jelly-fill fa-regular fa-moon';
+				setCookie('theme', 'light');
 			} else {
 				document.body.setAttribute('data-theme', 'dark');
 				themeIcon.className = 'fa-jelly-fill fa-regular fa-lightbulb';
+				setCookie('theme', 'dark');
 			}
 		});
 	}
@@ -851,7 +898,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	}
 
 	// Add toggle button for right panel
-	const toggleBtn = document.querySelector('.toggle-right-panel-btn');
+	toggleBtn = document.querySelector('.toggle-right-panel-btn');
 	if (toggleBtn) {
 		const rightPanel = document.querySelector('.right-panel');
 		// initialize icon based on current panel state
@@ -867,10 +914,12 @@ document.addEventListener('DOMContentLoaded', function () {
 				rightPanel.classList.remove('hidden');
 				middlePanel.classList.remove('expanded');
 				toggleBtn.innerHTML = '<i class="fa-duotone fa-solid fa-chevrons-right"></i>';
+				setCookie('rightPanelHidden', 'false');
 			} else {
 				rightPanel.classList.add('hidden');
 				middlePanel.classList.add('expanded');
 				toggleBtn.innerHTML = '<i class="fa-duotone fa-solid fa-chevrons-left"></i>';
+				setCookie('rightPanelHidden', 'true');
 			}
 		});
 	}
