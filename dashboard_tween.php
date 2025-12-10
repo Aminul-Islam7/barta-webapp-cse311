@@ -140,6 +140,7 @@ if (isset($_GET['u'])) {
 		<div class="top-bar">
 			<i class="fa-regular fa-magnifying-glass search-icon"></i>
 			<input type="text" class="search-box" placeholder="Search for friends">
+			<div class="search-hint text-muted"></div>
 		</div>
 		<div class="contacts">
 			<div class="contacts-header">
@@ -147,7 +148,7 @@ if (isset($_GET['u'])) {
 			</div>
 			<div class="contacts-list">
 				<?php foreach ($friends as $friend): ?>
-					<div class="contact-item <?php echo (isset($selected_friend) && $selected_friend['username'] === $friend['username']) ? 'is-selected' : ''; ?>" data-type="friend" data-username="<?php echo htmlspecialchars($friend['username']); ?>">
+					<div class="contact-item <?php echo (isset($selected_friend) && $selected_friend['username'] === $friend['username']) ? 'is-selected' : ''; ?>" data-type="friend" data-username="<?php echo htmlspecialchars($friend['username']); ?>" data-is-friend="true">
 						<div class="contact-icon-circle">
 							<i class="fa-solid fa-user"></i>
 						</div>
@@ -187,19 +188,21 @@ if (isset($_GET['u'])) {
 						</div>
 						<div>
 							<div><?php echo htmlspecialchars($group['group_name']); ?></div>
-							<div class="text-muted contact-preview"><?php
-																	$preview = 'Click to chat';
-																	if (!empty($group['last_message_text'])) {
-																		$previewText = htmlspecialchars($group['last_message_text']);
-																		if (!empty($group['last_message_sender_id']) && $group['last_message_sender_id'] == $tween_id) {
-																			$previewText = 'You: ' . $previewText;
-																		}
-																		if (mb_strlen($previewText) > 40) {
-																			$previewText = mb_substr($previewText, 0, 37) . '...';
-																		}
-																		$preview = $previewText;
-																	}
-																	echo $preview; ?></div>
+							<div class="text-muted contact-preview">
+								<?php
+								$preview = 'Click to chat';
+								if (!empty($group['last_message_text'])) {
+									$previewText = htmlspecialchars($group['last_message_text']);
+									if (!empty($group['last_message_sender_id']) && $group['last_message_sender_id'] == $tween_id) {
+										$previewText = 'You: ' . $previewText;
+									}
+									if (mb_strlen($previewText) > 40) {
+										$previewText = mb_substr($previewText, 0, 37) . '...';
+									}
+									$preview = $previewText;
+								}
+								echo $preview; ?>
+							</div>
 						</div>
 					</div>
 				<?php endforeach; ?>
@@ -339,6 +342,20 @@ if (isset($_GET['u'])) {
 			<h3></h3>
 			<small class="text-muted">Group</small>
 			<p></p>
+		</div>
+	</div>
+	<div id="non-friend-info-template" style="display: none;">
+		<div class="user-avatar">
+			<div class="avatar-circle"><i class="fa-solid fa-user"></i></div>
+		</div>
+		<div class="user-details">
+			<h3></h3>
+			<small class="text-muted"></small>
+			<p></p>
+		</div>
+		<div class="action-buttons">
+			<button class="btn btn-primary btn-add-friend" title="Send Friend Request"><i class="fa-solid fa-user-plus"></i> Send Friend Request</button>
+			<button class="btn-round btn-block" title="Block"><i class="fa-solid fa-ban"></i></button>
 		</div>
 	</div>
 	<div id="context-menu-template" style="display: none;">

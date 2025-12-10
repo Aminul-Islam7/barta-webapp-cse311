@@ -28,7 +28,7 @@ $response = ['messages' => [], 'contact' => null, 'type' => null];
 if (isset($_GET['u'])) {
 	// Fetch by friend's username and check if the username exists
 	$username = mysqli_real_escape_string($conn, urldecode($_GET['u']));
-	$query = "SELECT tu.id as tween_id, tu.username, tu.bio, bu.full_name
+	$query = "SELECT tu.id as tween_id, tu.username, tu.bio, bu.full_name, bu.role
           FROM tween_user tu
           JOIN bartauser bu ON tu.user_id = bu.id
           WHERE tu.username = '$username'
@@ -40,6 +40,11 @@ if (isset($_GET['u'])) {
 	}
 	$friend = mysqli_fetch_assoc($result);
 	$friend_id = (int)$friend['tween_id'];
+	// Make sure this maps to a tween bartauser row — if not, treat as not found
+	if (!isset($friend['role']) || $friend['role'] !== 'tween') {
+		echo json_encode(['error' => 'Friend not found']);
+		exit;
+	}
 
 	// Verify friendship from connection table
 	$checkQuery = "SELECT *

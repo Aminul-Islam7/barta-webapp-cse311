@@ -204,6 +204,115 @@ document.addEventListener('DOMContentLoaded', function () {
 		}
 	}
 
+	function moveContactToTop(type, idOrUsername) {
+		let listSelector = type === 'friend' ? '.contacts-list' : '.groups-list';
+		let itemSelector = type === 'friend' ? `.contact-item[data-username="${idOrUsername}"]` : `.group-item[data-group-id="${idOrUsername}"]`;
+		const list = document.querySelector(listSelector);
+		const el = document.querySelector(itemSelector);
+		if (list && el) {
+			// Prepend the element to the list to move it to top
+			list.prepend(el);
+		}
+	}
+
+	function showNonFriendView(username) {
+		// Fetch user info
+		fetch('api/get_user_info.php?username=' + encodeURIComponent(username))
+			.then((r) => r.json())
+			.then((data) => {
+				if (data.error) {
+					console.error(data.error);
+					return;
+				}
+
+				// Show chat container, hide empty state
+				document.querySelector('.empty-state').style.display = 'none';
+				document.querySelector('.chat-container').style.display = 'flex';
+				document.querySelector('.message-input').style.display = 'none'; // Hide message input for non-friends
+
+				// Update chat header
+				const chatHeader = document.querySelector('.chat-header');
+				if (chatHeader) {
+					const iconContainer = chatHeader.querySelector('.contact-icon-circle');
+					const contactName = chatHeader.querySelector('span');
+					const icon = iconContainer.querySelector('i');
+
+					if (contactName) {
+						contactName.textContent = data.full_name;
+					}
+					if (icon) {
+						icon.className = 'fa-solid fa-user';
+					}
+				}
+
+				// Show "Add as friend to chat" message
+				const messagesEl = document.querySelector('.messages');
+				if (messagesEl) {
+					messagesEl.innerHTML = '<div class="no-messages">Add as friend to chat..</div>';
+				}
+
+				// Update right panel with non-friend info
+				const rightPanel = document.querySelector('.right-panel');
+				const middlePanel = document.querySelector('.middle-panel');
+				rightPanel.classList.remove('hidden');
+				middlePanel.classList.remove('expanded');
+
+				const infoPanel = document.querySelector('.right-panel .info-panel');
+				if (infoPanel) {
+					infoPanel.innerHTML = '';
+					const template = document.getElementById('non-friend-info-template');
+					const clone = template.cloneNode(true);
+					clone.style.display = '';
+
+					const h3 = clone.querySelector('h3');
+					const small = clone.querySelector('small');
+					const p = clone.querySelector('p');
+					const addFriendBtn = clone.querySelector('.btn-add-friend');
+
+					h3.textContent = data.full_name;
+					small.textContent = '@' + data.username;
+					p.textContent = data.bio || '';
+
+					// Add friend request handler
+					if (addFriendBtn) {
+						addFriendBtn.onclick = function () {
+							sendFriendRequest(username);
+						};
+					}
+
+					infoPanel.appendChild(clone);
+				}
+			})
+			.catch((err) => console.error(err));
+	}
+
+	function sendFriendRequest(username) {
+		const form = new FormData();
+		form.append('username', username);
+
+		fetch('tween/add_friend.php', {
+			method: 'POST',
+			body: form,
+		})
+			.then((r) => r.json())
+			.then((data) => {
+				if (data.error) {
+					alert(data.error);
+					return;
+				}
+				if (data.success) {
+					alert('Friend request sent!');
+					// Update button to show pending
+					const addFriendBtn = document.querySelector('.btn-add-friend');
+					if (addFriendBtn) {
+						addFriendBtn.textContent = 'Request Pending';
+						addFriendBtn.disabled = true;
+					}
+				}
+			})
+			.catch((err) => console.error(err));
+	}
+
 	function fetchConversation(url) {
 		fetch(url)
 			.then((r) => r.json())
@@ -239,6 +348,12 @@ document.addEventListener('DOMContentLoaded', function () {
 				meId = data.me_id;
 				renderMessages(data.messages, data.me_id);
 				renderContact(data.contact, data.type); // set current target for sending
+				// Move the contact to top of the list to reflect most recent activity
+				if (data.type === 'friend' && data.contact && data.contact.username) {
+					moveContactToTop('friend', data.contact.username);
+				} else if (data.type === 'group' && data.contact && data.contact.id) {
+					moveContactToTop('group', data.contact.id);
+				}
 				if (data.type === 'friend') {
 					currentTargetType = 'friend';
 					currentTarget = data.contact.username;
@@ -283,14 +398,22 @@ document.addEventListener('DOMContentLoaded', function () {
 				return;
 			}
 			if (type === 'send' && message) {
-				if (target_type !== currentTargetType || String(target) !== String(currentTarget)) return;
-				// avoid duplicates
-				if (!document.querySelector(`.message-wrapper[data-message-id="${message.id}"]`)) {
-					appendMessage(message, me_id);
-					lastMessageId = Math.max(lastMessageId, message.id);
+				// if the message belongs to the currently-open conversation, append
+				if (target_type === currentTargetType && String(target) === String(currentTarget)) {
+					// avoid duplicates
+					if (!document.querySelector(`.message-wrapper[data-message-id="${message.id}"]`)) {
+						appendMessage(message, me_id);
+						lastMessageId = Math.max(lastMessageId, message.id);
+					}
+					// Update contact preview as well
+					updateContactPreview(target_type, target, message, me_id);
+					// Move to top for current target conversation
+					moveContactToTop(target_type === 'friend' ? 'friend' : 'group', target);
+				} else {
+					// Not the current conversation: only update preview and reorder lists (immediate)
+					updateContactPreview(target_type, target, message, me_id);
+					moveContactToTop(target_type === 'friend' ? 'friend' : 'group', target);
 				}
-				// Update contact preview
-				updateContactPreview(target_type, target, message, me_id);
 				return;
 			}
 		};
@@ -309,26 +432,37 @@ document.addEventListener('DOMContentLoaded', function () {
 	function initContactClicks() {
 		const contactItems = document.querySelectorAll('.contacts .contact-item');
 		contactItems.forEach((el) => {
-			el.addEventListener('click', function (e) {
+			el.onclick = function (e) {
 				const username = el.getAttribute('data-username');
+				const isFriend = el.getAttribute('data-is-friend') === 'true';
 				if (!username) return;
 				// Stop previous polling
 				if (pollAbortController) {
 					pollAbortController.abort();
 					pollAbortController = null;
 				}
-				currentTargetType = 'friend';
-				currentTarget = username;
-				const url = 'tween/fetch_conversation.php?u=' + encodeURIComponent(username);
-				selectItem(el);
-				history.pushState({ u: username }, '', '?u=' + encodeURIComponent(username));
-				fetchConversation(url);
-			});
+
+				if (isFriend) {
+					// Existing friend - load conversation
+					currentTargetType = 'friend';
+					currentTarget = username;
+					const url = 'tween/fetch_conversation.php?u=' + encodeURIComponent(username);
+					selectItem(el);
+					history.pushState({ u: username }, '', '?u=' + encodeURIComponent(username));
+					fetchConversation(url);
+				} else {
+					// Non-friend - show add friend view
+					currentTargetType = 'non-friend';
+					currentTarget = username;
+					selectItem(el);
+					showNonFriendView(username);
+				}
+			};
 		});
 
 		const groupItems = document.querySelectorAll('.groups .group-item');
 		groupItems.forEach((el) => {
-			el.addEventListener('click', function (e) {
+			el.onclick = function (e) {
 				const groupId = el.getAttribute('data-group-id');
 				if (!groupId) return;
 				// Stop previous polling
@@ -342,7 +476,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				selectItem(el);
 				history.pushState({ group: groupId }, '', '?group=' + encodeURIComponent(groupId));
 				fetchConversation(url);
-			});
+			};
 		});
 	}
 
@@ -378,6 +512,241 @@ document.addEventListener('DOMContentLoaded', function () {
 
 	// Initialize contact click handlers
 	initContactClicks();
+
+	// Search functionality
+	const searchBox = document.querySelector('.search-box');
+	let searchTimeout = null;
+	let isSearchActive = false;
+	let originalFriends = []; // Cache original friends list
+	let originalGroups = []; // Cache original groups list
+
+	function performSearch(query) {
+		if (!query || query.trim() === '') {
+			// Restore original lists
+			isSearchActive = false;
+			const hintEl = document.querySelector('.search-hint');
+			if (hintEl) hintEl.textContent = '';
+			refreshContacts(true);
+			return;
+		}
+		isSearchActive = true;
+		console.debug('performSearch', query);
+		// Visual feedback
+		const placeholder = searchBox.placeholder;
+		const hintEl = document.querySelector('.search-hint');
+		if (hintEl) hintEl.textContent = 'Searching...';
+		searchBox.placeholder = 'Searching...';
+		fetch('api/search_users.php?q=' + encodeURIComponent(query))
+			.then((r) => {
+				// For debugging, capture the raw response first
+				return r.text().then((text) => {
+					try {
+						return JSON.parse(text);
+					} catch (e) {
+						console.error('search_users response non-JSON', text);
+						throw e;
+					}
+				});
+			})
+			.then((data) => {
+				console.debug('search results', data);
+				if (data.error) return;
+				renderSearchResults(data.friends, data.non_friends);
+				if (hintEl) {
+					const count = (Array.isArray(data.friends) ? data.friends.length : 0) + (Array.isArray(data.non_friends) ? data.non_friends.length : 0);
+					hintEl.textContent = count + (count === 1 ? ' match' : ' matches');
+				}
+			})
+			.catch((err) => {
+				console.error('performSearch error', err);
+				if (hintEl) hintEl.textContent = 'Error';
+			})
+			.finally(() => {
+				searchBox.placeholder = placeholder;
+			});
+	}
+
+	function renderSearchResults(friends, nonFriends) {
+		const contactsList = document.querySelector('.contacts-list');
+		if (!contactsList) return;
+		console.debug('renderSearchResults', { friendsCount: friends?.length || 0, nonFriendsCount: nonFriends?.length || 0 });
+
+		// Remember selection
+		const selected = document.querySelector('.contact-item.is-selected');
+		const selectedUsername = selected ? selected.getAttribute('data-username') : null;
+		const selectedIsFriend = selected ? selected.getAttribute('data-is-friend') === 'true' : false;
+
+		// Clear list
+		contactsList.innerHTML = '';
+
+		let itemsAdded = 0;
+		// Render friends matching search
+		if (Array.isArray(friends) && friends.length > 0) {
+			friends.forEach((friend) => {
+				const el = createContactElement(friend, true);
+				contactsList.appendChild(el);
+				itemsAdded++;
+			});
+		}
+
+		// Render non-friends
+		if (Array.isArray(nonFriends) && nonFriends.length > 0) {
+			nonFriends.forEach((nonFriend) => {
+				const el = createContactElement(nonFriend, false);
+				contactsList.appendChild(el);
+				itemsAdded++;
+			});
+		}
+
+		// If no results, show placeholder
+		if (itemsAdded === 0) {
+			const noRes = document.createElement('div');
+			noRes.className = 'text-muted';
+			noRes.textContent = 'No results found';
+			contactsList.appendChild(noRes);
+		}
+
+		// Re-initialize click handlers
+		initContactClicks();
+
+		// Restore selection if still present
+		if (selectedUsername) {
+			const newSel = document.querySelector(`.contact-item[data-username="${selectedUsername}"][data-is-friend="${selectedIsFriend}"]`);
+			if (newSel) newSel.classList.add('is-selected');
+		}
+	}
+
+	function createContactElement(contact, isFriend) {
+		const el = document.createElement('div');
+		el.className = 'contact-item';
+		el.setAttribute('data-type', isFriend ? 'friend' : 'non-friend');
+		el.setAttribute('data-username', contact.username);
+		el.setAttribute('data-is-friend', isFriend ? 'true' : 'false');
+
+		const iconCircle = document.createElement('div');
+		iconCircle.className = 'contact-icon-circle' + (isFriend ? '' : ' bg-subtle');
+		iconCircle.innerHTML = '<i class="fa-solid fa-user"></i>';
+
+		const textContainer = document.createElement('div');
+
+		const nameDiv = document.createElement('div');
+		nameDiv.textContent = contact.full_name;
+
+		const previewDiv = document.createElement('div');
+		previewDiv.className = 'text-muted contact-preview';
+		if (isFriend) {
+			previewDiv.textContent = 'Click to chat';
+		} else {
+			// Show bio for non-friends
+			const bio = contact.bio || 'No bio';
+			previewDiv.textContent = truncateText(bio, 40);
+		}
+
+		textContainer.appendChild(nameDiv);
+		textContainer.appendChild(previewDiv);
+
+		el.appendChild(iconCircle);
+		el.appendChild(textContainer);
+
+		return el;
+	}
+
+	if (searchBox) {
+		searchBox.addEventListener('input', function (e) {
+			const query = e.target.value;
+			console.debug('search input detected:', query);
+			clearTimeout(searchTimeout);
+			searchTimeout = setTimeout(() => {
+				performSearch(query);
+			}, 300); // 300ms debounce
+		});
+		searchBox.addEventListener('keydown', function (e) {
+			if (e.key === 'Enter') {
+				e.preventDefault();
+				performSearch(e.target.value);
+			}
+		});
+	}
+
+	// Refresh contacts periodically to update previews and ordering
+	let contactsRefreshInterval = null;
+	function refreshContacts(force = false) {
+		// Don't refresh if search is active
+		if (isSearchActive && !force) return;
+
+		fetch('api/fetch_contacts.php')
+			.then((r) => r.json())
+			.then((data) => {
+				if (data.error) return;
+				// update previews and reorder lists according to server-sorted order
+				const contactsList = document.querySelector('.contacts-list');
+				if (contactsList && Array.isArray(data.friends)) {
+					// Remove any non-friend items left in the list (search-created) to restore server friend list
+					contactsList.querySelectorAll('.contact-item[data-is-friend="false"]').forEach((el) => el.remove());
+					// Remove any "No results found" placeholder inserted by search
+					contactsList.querySelectorAll('.text-muted').forEach((el) => {
+						if (el.textContent && el.textContent.trim() === 'No results found') el.remove();
+					});
+					// remember selected contact
+					const selected = document.querySelector('.contact-item.is-selected');
+					const selectedUsername = selected ? selected.getAttribute('data-username') : null;
+					// Rebuild/reorder friends list according to data.friends order; create missing elements if necessary
+					data.friends.forEach((friend) => {
+						let el = document.querySelector(`.contact-item[data-username="${friend.username}"][data-is-friend="true"]`);
+						if (!el) {
+							el = createContactElement(friend, true);
+						}
+						// update preview
+						const preview = el.querySelector('.contact-preview');
+						if (preview) {
+							let text = friend.last_message_text || 'Click to chat';
+							if (friend.last_message_sender_id && Number(friend.last_message_sender_id) === Number(meId)) {
+								text = 'You: ' + text;
+							}
+							preview.textContent = truncateText(text, 40);
+						}
+						// append in order
+						contactsList.appendChild(el);
+					});
+					// reapply selection
+					if (selectedUsername) {
+						const newSel = document.querySelector(`.contact-item[data-username="${selectedUsername}"][data-is-friend="true"]`);
+						if (newSel) newSel.classList.add('is-selected');
+					}
+					// Ensure click handlers are attached to any newly created elements
+					initContactClicks();
+				}
+
+				// groups
+				const groupsList = document.querySelector('.groups-list');
+				if (groupsList && Array.isArray(data.groups)) {
+					const selectedGroup = document.querySelector('.group-item.is-selected');
+					const selectedGroupId = selectedGroup ? selectedGroup.getAttribute('data-group-id') : null;
+					data.groups.forEach((group) => {
+						const el = document.querySelector(`.group-item[data-group-id="${group.id}"]`);
+						if (!el) return;
+						const preview = el.querySelector('.contact-preview');
+						if (preview) {
+							let text = group.last_message_text || 'Click to chat';
+							if (group.last_message_sender_id && Number(group.last_message_sender_id) === Number(meId)) {
+								text = 'You: ' + text;
+							}
+							preview.textContent = truncateText(text, 40);
+						}
+						groupsList.appendChild(el);
+					});
+					if (selectedGroupId) {
+						const newSel = document.querySelector(`.group-item[data-group-id="${selectedGroupId}"]`);
+						if (newSel) newSel.classList.add('is-selected');
+					}
+				}
+			})
+			.catch(() => {});
+	}
+
+	// refresh initially then every 7s
+	refreshContacts();
+	contactsRefreshInterval = setInterval(refreshContacts, 7000);
 
 	// If URL already has u= or group=, load that conversation
 	const params = new URLSearchParams(window.location.search);
@@ -854,6 +1223,8 @@ document.addEventListener('DOMContentLoaded', function () {
 				appendMessage(data.message, data.me_id);
 				// Update contact preview for the conversation
 				updateContactPreview(currentTargetType, currentTarget, data.message, data.me_id);
+				// Move contact to top (ensure current target is at top after send)
+				if (currentTargetType && currentTarget) moveContactToTop(currentTargetType, currentTarget);
 				// Update last message ID and lastActiveTime
 				lastMessageId = data.message.id;
 				lastActiveTime = data.message.sent_at || lastActiveTime;

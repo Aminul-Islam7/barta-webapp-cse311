@@ -6,11 +6,13 @@ require_once __DIR__ . "/../db.php";
 $tween_id = $_SESSION['tween_id'];
 
 // Fetch friends
-$query = "SELECT c.sender_id, c.receiver_id, tu.id as tween_id, tu.username, tu.bio, bu.full_name
-          FROM connection c
-          JOIN tween_user tu ON (tu.id = c.sender_id OR tu.id = c.receiver_id) AND tu.id != $tween_id
-          JOIN bartauser bu ON tu.user_id = bu.id
-          WHERE (c.sender_id = $tween_id OR c.receiver_id = $tween_id) AND c.type = 'added'";
+$query = "SELECT c.sender_id, c.receiver_id,
+		  CASE WHEN c.sender_id = $tween_id THEN c.receiver_id ELSE c.sender_id END AS tween_id,
+		  tu.username, tu.bio, bu.full_name
+		  FROM connection c
+		  JOIN tween_user tu ON tu.id = (CASE WHEN c.sender_id = $tween_id THEN c.receiver_id ELSE c.sender_id END)
+		  JOIN bartauser bu ON tu.user_id = bu.id AND bu.role = 'tween'
+		  WHERE (c.sender_id = $tween_id OR c.receiver_id = $tween_id) AND c.type = 'added'";
 $result = mysqli_query($conn, $query);
 $friends = [];
 while ($row = mysqli_fetch_assoc($result)) {
@@ -35,6 +37,15 @@ while ($row = mysqli_fetch_assoc($result)) {
 		$row['last_message_at'] = null;
 	}
 	$friends[] = $row;
+}
+
+// Sort friends by last message timestamp (desc)
+if (count($friends) > 1) {
+	usort($friends, function ($a, $b) {
+		$at = isset($a['last_message_at']) && $a['last_message_at'] ? strtotime($a['last_message_at']) : 0;
+		$bt = isset($b['last_message_at']) && $b['last_message_at'] ? strtotime($b['last_message_at']) : 0;
+		return $bt <=> $at; // newest first
+	});
 }
 
 // Fetch groups
@@ -65,4 +76,13 @@ while ($row = mysqli_fetch_assoc($result)) {
 		$row['last_message_at'] = null;
 	}
 	$groups[] = $row;
+}
+
+// Sort groups by last message timestamp (desc)
+if (count($groups) > 1) {
+	usort($groups, function ($a, $b) {
+		$at = isset($a['last_message_at']) && $a['last_message_at'] ? strtotime($a['last_message_at']) : 0;
+		$bt = isset($b['last_message_at']) && $b['last_message_at'] ? strtotime($b['last_message_at']) : 0;
+		return $bt <=> $at; // newest first
+	});
 }

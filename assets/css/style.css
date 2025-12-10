@@ -160,12 +160,14 @@ a {
 	--bg-subtle: var(--neutral-200);
 	--bg-contrast: var(--neutral-300);
 	--bg-contrast-heavy: var(--neutral-400);
+	--bg-overlay-light: rgba(0, 0, 0, 0.05);
 
 	/* Text */
 	--text-main: var(--neutral-700);
 	--text-secondary: var(--neutral-600);
 	--text-muted: var(--neutral-400);
 	--text-inverted: var(--neutral-100);
+	--text-primary: var(--brand-700);
 
 	/* Borders */
 	--border-color: var(--neutral-300);
@@ -193,12 +195,14 @@ a {
 	--bg-subtle: var(--neutral-600);
 	--bg-contrast: var(--neutral-500);
 	--bg-contrast-heavy: var(--neutral-400);
+	--bg-overlay-light: rgba(255, 255, 255, 0.05);
 
 	/* Remapping text */
 	--text-main: var(--neutral-100);
 	--text-secondary: var(--neutral-200);
 	--text-muted: var(--neutral-300);
 	--text-inverted: var(--neutral-800);
+	--text-primary: var(--brand-500);
 
 	/* Dark mode borders should be subtle */
 	--border-color: var(--neutral-700);
@@ -289,12 +293,12 @@ a {
 }
 .btn-secondary {
 	background: var(--bg-body);
-	color: var(--brand-700);
+	color: var(--text-primary);
 }
 
 .btn-secondary:hover {
 	background: var(--bg-surface);
-	border-color: var(--brand-700);
+	border-color: var(--text-primary);
 }
 
 .btn-primary-error {
@@ -905,6 +909,14 @@ input[type='color'] {
 	font-size: 1rem;
 	margin-left: 0.25rem;
 }
+.top-bar .search-hint {
+	margin-left: 0.5rem;
+	font-size: 0.8rem;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 120px;
+}
 
 .top-bar .search-box {
 	flex: 1;
@@ -985,7 +997,7 @@ input[type='color'] {
 
 .contact-item:hover,
 .group-item:hover {
-	background: rgba(0, 0, 0, 0.05);
+	background: var(--bg-overlay-light);
 }
 
 .contact-item:not(:last-child)::after,
@@ -1011,6 +1023,11 @@ input[type='color'] {
 	flex-shrink: 0;
 	color: var(--on-primary);
 	margin-right: 0.5rem;
+}
+
+.contact-icon-circle.bg-subtle {
+	background: var(--bg-subtle);
+	color: var(--text-secondary);
 }
 
 .contact-preview {
@@ -1441,6 +1458,17 @@ input[type='color'] {
 .action-buttons {
 	display: flex;
 	gap: 1rem;
+	justify-content: center;
+	flex-wrap: wrap;
+}
+
+.action-buttons .btn-add-friend {
+	width: 100%;
+	padding: 0.75rem 1rem;
+	font-size: 0.9rem;
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
 	justify-content: center;
 }
 
