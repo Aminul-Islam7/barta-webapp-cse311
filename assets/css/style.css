@@ -782,6 +782,7 @@ input[type='color'] {
 	border-radius: 12px;
 	box-shadow: var(--shadow-md);
 	overflow: hidden;
+	transition: all 0.3s ease;
 }
 .p-tween-dashboard .middle-panel .empty-state,
 .p-tween-dashboard .middle-panel .chat-container {
@@ -813,6 +814,7 @@ input[type='color'] {
 	border-radius: 12px;
 	box-shadow: var(--shadow-md);
 	overflow: hidden;
+	transition: all 0.3s ease;
 }
 
 .top-bar {
@@ -939,6 +941,24 @@ input[type='color'] {
 	right: 1rem;
 	height: 1px;
 	background: var(--border-light);
+}
+
+/* Toggle button for right panel in chat header */
+.chat-header .toggle-right-panel-btn {
+	margin-left: auto; /* push to far right */
+	background: transparent; /* remove btn background */
+	border: none; /* remove border */
+	padding: 0.85rem 0.75rem; /* small clickable area */
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--text-muted);
+	cursor: pointer;
+	border-radius: 100%;
+	transition: 0.2s;
+}
+.chat-header .toggle-right-panel-btn:hover {
+	background: transparent;
 }
 
 .messages {
@@ -1414,13 +1434,23 @@ input[type='color'] {
 	color: var(--text-muted);
 }
 
+/* Hidden state: collapse width to 0 and fade out, allowing smooth transitions */
 .right-panel.hidden {
-	display: none;
+	width: 0 !important;
+	opacity: 0 !important;
+	padding: 0 !important;
+	min-width: 0 !important;
+	pointer-events: none !important;
+	overflow: hidden !important;
 }
 
-.middle-panel.expanded {
-	width: calc(100% - 300px);
+/* Add transition to right-panel to animate width and opacity */
+.p-tween-dashboard .right-panel {
+	transition: width 0.25s ease, opacity 0.25s ease, padding 0.25s ease;
+	min-width: 0; /* allow it to collapse */
 }
+
+/* Middle panel expands/shrinks via flex layout when right-panel width changes */
 
 .no-messages {
 	display: flex;

@@ -195,6 +195,7 @@ if (isset($_GET['u'])) {
 					<i class="fa-solid fa-<?php echo $selected_friend ? 'user' : 'users'; ?>"></i>
 				</div>
 				<span><?php echo htmlspecialchars($selected_friend['full_name'] ?? $selected_group['group_name'] ?? ''); ?></span>
+				<button class="btn btn-icon toggle-right-panel-btn" title="Details"><i class="fa-duotone fa-solid fa-chevrons-right"></i></button>
 			</div>
 			<div class="messages">
 				<?php if ($selected_friend || $selected_group): ?>

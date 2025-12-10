@@ -776,4 +776,29 @@ document.addEventListener('DOMContentLoaded', function () {
 			}
 		});
 	}
+
+	// Add toggle button for right panel
+	const toggleBtn = document.querySelector('.toggle-right-panel-btn');
+	if (toggleBtn) {
+		const rightPanel = document.querySelector('.right-panel');
+		// initialize icon based on current panel state
+		if (rightPanel && rightPanel.classList.contains('hidden')) {
+			toggleBtn.innerHTML = '<i class="fa-duotone fa-solid fa-chevrons-left"></i>';
+		} else {
+			toggleBtn.innerHTML = '<i class="fa-duotone fa-solid fa-chevrons-right"></i>';
+		}
+
+		toggleBtn.addEventListener('click', function () {
+			const middlePanel = document.querySelector('.middle-panel');
+			if (rightPanel.classList.contains('hidden')) {
+				rightPanel.classList.remove('hidden');
+				middlePanel.classList.remove('expanded');
+				toggleBtn.innerHTML = '<i class="fa-duotone fa-solid fa-chevrons-right"></i>';
+			} else {
+				rightPanel.classList.add('hidden');
+				middlePanel.classList.add('expanded');
+				toggleBtn.innerHTML = '<i class="fa-duotone fa-solid fa-chevrons-left"></i>';
+			}
+		});
+	}
 });
