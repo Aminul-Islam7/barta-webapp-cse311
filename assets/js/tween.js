@@ -115,6 +115,27 @@ document.addEventListener('DOMContentLoaded', function () {
 		return hours + ':' + minutes + ' ' + ampm;
 	}
 
+	// helper: truncate text safely
+	function truncateText(text, maxLen = 40) {
+		if (!text) return '';
+		if (text.length <= maxLen) return text;
+		return text.substring(0, maxLen - 3) + '...';
+	}
+
+	function updateContactPreview(targetType, target, msg, meId) {
+		if (!targetType || !target || !msg) return;
+		let previewText = msg.text_content || '';
+		if (Number(msg.sender_id) === Number(meId)) previewText = 'You: ' + previewText;
+		previewText = truncateText(previewText, 40);
+		if (targetType === 'friend') {
+			const el = document.querySelector(`.contact-item[data-username="${target}"] .contact-preview`);
+			if (el) el.textContent = previewText;
+		} else if (targetType === 'group') {
+			const el = document.querySelector(`.group-item[data-group-id="${target}"] .contact-preview`);
+			if (el) el.textContent = previewText;
+		}
+	}
+
 	function fetchConversation(url) {
 		fetch(url)
 			.then((r) => r.json())
@@ -182,6 +203,8 @@ document.addEventListener('DOMContentLoaded', function () {
 					appendMessage(message, me_id);
 					lastMessageId = Math.max(lastMessageId, message.id);
 				}
+				// Update contact preview
+				updateContactPreview(target_type, target, message, me_id);
 				return;
 			}
 		};
@@ -599,6 +622,8 @@ document.addEventListener('DOMContentLoaded', function () {
 						// Avoid duplicates: if the message is already present, don't append it.
 						if (!document.querySelector(`.message-wrapper[data-message-id="${msg.id}"]`)) {
 							appendMessage(msg, data.me_id);
+							// Update contact preview for this conversation
+							updateContactPreview(currentTargetType, currentTarget, msg, data.me_id);
 						}
 						// Always update watermark id so polling progresses past this message.
 						lastMessageId = Math.max(lastMessageId, msg.id);
@@ -734,6 +759,8 @@ document.addEventListener('DOMContentLoaded', function () {
 				}
 				// Append newly created message
 				appendMessage(data.message, data.me_id);
+				// Update contact preview for the conversation
+				updateContactPreview(currentTargetType, currentTarget, data.message, data.me_id);
 				// Update last message ID and lastActiveTime
 				lastMessageId = data.message.id;
 				lastActiveTime = data.message.sent_at || lastActiveTime;
