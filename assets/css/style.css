@@ -39,6 +39,188 @@ a {
 	color: inherit;
 }
 
+/* Scrollbars: limited to scrollable containers */
+.contacts,
+.groups,
+.messages,
+.p-dashboard-parent__content,
+.chat-container {
+	scrollbar-width: thin;
+	scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+/* Webkit (Chromium/Safari) scrollbars for specific containers */
+.contacts::-webkit-scrollbar,
+.groups::-webkit-scrollbar,
+.messages::-webkit-scrollbar,
+.p-dashboard-parent__content::-webkit-scrollbar,
+.chat-container::-webkit-scrollbar {
+	width: 12px;
+	height: 12px;
+}
+.contacts::-webkit-scrollbar-track,
+.groups::-webkit-scrollbar-track,
+.messages::-webkit-scrollbar-track,
+.p-dashboard-parent__content::-webkit-scrollbar-track,
+.chat-container::-webkit-scrollbar-track {
+	background: var(--scrollbar-track);
+	border-radius: 10px;
+}
+.contacts::-webkit-scrollbar-thumb,
+.groups::-webkit-scrollbar-thumb,
+.messages::-webkit-scrollbar-thumb,
+.p-dashboard-parent__content::-webkit-scrollbar-thumb,
+.chat-container::-webkit-scrollbar-thumb {
+	background-color: var(--scrollbar-thumb);
+	border-radius: 10px;
+	border: 3px solid transparent;
+	background-clip: padding-box;
+}
+.contacts::-webkit-scrollbar-thumb:hover,
+.groups::-webkit-scrollbar-thumb:hover,
+.messages::-webkit-scrollbar-thumb:hover,
+.p-dashboard-parent__content::-webkit-scrollbar-thumb:hover,
+.chat-container::-webkit-scrollbar-thumb:hover {
+	background: var(--scrollbar-thumb-hover);
+}
+/* =========================================
+   VARIABLES
+   ========================================= */
+:root {
+	/* --- Brand Colors --- */
+	--brand-100: #edfffe;
+	--brand-200: #b6faf8;
+	--brand-300: #7df0ec;
+	--brand-400: #4be9e4;
+	--brand-500: #1be0d9; /* Main Brand Color */
+	--brand-600: #0eb5af;
+	--brand-700: #088985;
+	--brand-800: #035e5b;
+	--brand-900: #003331;
+
+	/* --- Supporting: Success --- */
+	--success-100: #edfff8;
+	--success-200: #b6fade;
+	--success-300: #7df0c0;
+	--success-400: #4be9a7;
+	--success-500: #1be08e;
+	--success-600: #0eb570;
+	--success-700: #088953;
+	--success-800: #035e38;
+	--success-900: #00331e;
+
+	/* --- Supporting: Warning --- */
+	--warning-100: #fffded;
+	--warning-200: #faf3b6;
+	--warning-300: #f0e47d;
+	--warning-400: #e9d94b;
+	--warning-500: #e0cc1b;
+	--warning-600: #b5a40e;
+	--warning-700: #897c08;
+	--warning-800: #5e5503;
+	--warning-900: #332e00;
+
+	/* --- Supporting: Error --- */
+	--error-100: #ffeded;
+	--error-200: #fab6b6;
+	--error-300: #f07d7d;
+	--error-400: #e94b4b;
+	--error-500: #e01b1b;
+	--error-600: #b50e0e;
+	--error-700: #890808;
+	--error-800: #5e0303;
+	--error-900: #330000;
+
+	/* --- Neutrals --- */
+	--neutral-000: #ffffff;
+	--neutral-100: #ebf5f5;
+	--neutral-200: #c3d9d8;
+	--neutral-300: #8fb2b1;
+	--neutral-400: #628c8b;
+	--neutral-500: #3d6564;
+	--neutral-600: #224d4b;
+	--neutral-700: #0f3332;
+	--neutral-800: #041a19;
+	--neutral-900: #000000;
+
+	/* --- Shadows --- */
+	--shadow-color: 15 51 50; /* Based on neutral-700 hue */
+	--shadow-sm: 0 1px 2px rgb(var(--shadow-color) / 0.1);
+	--shadow-md: 0 4px 6px -1px rgb(var(--shadow-color) / 0.1), 0 2px 4px -1px rgb(var(--shadow-color) / 0.06);
+	--shadow-lg: 0 10px 15px -3px rgb(var(--shadow-color) / 0.1), 0 4px 6px -2px rgb(var(--shadow-color) / 0.05);
+}
+
+/* =========================================
+   THEME TOKENS (LIGHT MODE DEFAULT)
+   ========================================= */
+:root {
+	/* Backgrounds */
+	--bg-body: var(--neutral-000);
+	--bg-surface: var(--neutral-100);
+	--bg-subtle: var(--neutral-200);
+	--bg-contrast: var(--neutral-300);
+	--bg-contrast-heavy: var(--neutral-400);
+
+	/* Text */
+	--text-main: var(--neutral-700);
+	--text-secondary: var(--neutral-600);
+	--text-muted: var(--neutral-400);
+	--text-inverted: var(--neutral-100);
+
+	/* Borders */
+	--border-color: var(--neutral-300);
+	--border-light: var(--neutral-200);
+	--border-heavy: var(--neutral-400);
+
+	/* Brand Semantic Map */
+	--primary: var(--brand-600);
+	--primary-hover: var(--brand-700);
+	--on-primary: var(--neutral-100);
+
+	/* Scrollbar defaults (light mode) */
+	--scrollbar-track: var(--bg-body);
+	--scrollbar-thumb: var(--bg-subtle);
+	--scrollbar-thumb-hover: var(--bg-contrast);
+}
+
+/* =========================================
+   DARK MODE OVERRIDES
+   ========================================= */
+[data-theme='dark'] {
+	/* Remapping semantics to Dark Neutrals */
+	--bg-body: var(--neutral-800);
+	--bg-surface: var(--neutral-700);
+	--bg-subtle: var(--neutral-600);
+	--bg-contrast: var(--neutral-500);
+	--bg-contrast-heavy: var(--neutral-400);
+
+	/* Remapping text */
+	--text-main: var(--neutral-100);
+	--text-secondary: var(--neutral-200);
+	--text-muted: var(--neutral-300);
+	--text-inverted: var(--neutral-800);
+
+	/* Dark mode borders should be subtle */
+	--border-color: var(--neutral-700);
+
+	/* Brand adjustments for Dark Mode */
+	--primary: var(--brand-500); /* Lighter to pop against dark bg */
+	--primary-hover: var(--brand-400);
+	--on-primary: var(--neutral-900);
+
+	/* Scrollbar overrides for dark mode */
+	--scrollbar-track: var(--bg-body);
+	--scrollbar-thumb: var(--bg-subtle);
+	--scrollbar-thumb-hover: var(--bg-contrast);
+
+	/* Border adjustments */
+	--border-light: var(--neutral-600);
+	--border-heavy: var(--neutral-500);
+
+	/* Shadow adjustment */
+	--shadow-color: 0 0 0; /* Pure black shadows in dark mode */
+}
+
 /* =========================================
    6. UTILITIES (Helpers)
    ========================================= */
@@ -281,126 +463,6 @@ input[type='color'] {
 }
 .table-row:last-child .table-cell {
 	border-bottom: none;
-}
-
-/* =========================================
-   VARIABLES
-   ========================================= */
-:root {
-	/* --- Brand Colors --- */
-	--brand-100: #edfffe;
-	--brand-200: #b6faf8;
-	--brand-300: #7df0ec;
-	--brand-400: #4be9e4;
-	--brand-500: #1be0d9; /* Main Brand Color */
-	--brand-600: #0eb5af;
-	--brand-700: #088985;
-	--brand-800: #035e5b;
-	--brand-900: #003331;
-
-	/* --- Supporting: Success --- */
-	--success-100: #edfff8;
-	--success-200: #b6fade;
-	--success-300: #7df0c0;
-	--success-400: #4be9a7;
-	--success-500: #1be08e;
-	--success-600: #0eb570;
-	--success-700: #088953;
-	--success-800: #035e38;
-	--success-900: #00331e;
-
-	/* --- Supporting: Warning --- */
-	--warning-100: #fffded;
-	--warning-200: #faf3b6;
-	--warning-300: #f0e47d;
-	--warning-400: #e9d94b;
-	--warning-500: #e0cc1b;
-	--warning-600: #b5a40e;
-	--warning-700: #897c08;
-	--warning-800: #5e5503;
-	--warning-900: #332e00;
-
-	/* --- Supporting: Error --- */
-	--error-100: #ffeded;
-	--error-200: #fab6b6;
-	--error-300: #f07d7d;
-	--error-400: #e94b4b;
-	--error-500: #e01b1b;
-	--error-600: #b50e0e;
-	--error-700: #890808;
-	--error-800: #5e0303;
-	--error-900: #330000;
-
-	/* --- Neutrals --- */
-	--neutral-000: #ffffff;
-	--neutral-100: #ebf5f5;
-	--neutral-200: #c3d9d8;
-	--neutral-300: #8fb2b1;
-	--neutral-400: #628c8b;
-	--neutral-500: #3d6564;
-	--neutral-600: #224d4b;
-	--neutral-700: #0f3332;
-	--neutral-800: #041a19;
-	--neutral-900: #000000;
-
-	/* --- Shadows --- */
-	--shadow-color: 15 51 50; /* Based on neutral-700 hue */
-	--shadow-sm: 0 1px 2px rgb(var(--shadow-color) / 0.1);
-	--shadow-md: 0 4px 6px -1px rgb(var(--shadow-color) / 0.1), 0 2px 4px -1px rgb(var(--shadow-color) / 0.06);
-	--shadow-lg: 0 10px 15px -3px rgb(var(--shadow-color) / 0.1), 0 4px 6px -2px rgb(var(--shadow-color) / 0.05);
-}
-
-/* =========================================
-   THEME TOKENS (LIGHT MODE DEFAULT)
-   ========================================= */
-:root {
-	/* Backgrounds */
-	--bg-body: var(--neutral-000);
-	--bg-surface: var(--neutral-100);
-	--bg-subtle: var(--neutral-200);
-
-	/* Text */
-	--text-main: var(--neutral-700);
-	--text-secondary: var(--neutral-600);
-	--text-muted: var(--neutral-400);
-	--text-inverted: var(--neutral-100);
-
-	/* Borders */
-	--border-color: var(--neutral-300);
-	--border-light: var(--neutral-200);
-	--border-heavy: var(--neutral-400);
-
-	/* Brand Semantic Map */
-	--primary: var(--brand-600);
-	--primary-hover: var(--brand-700);
-	--on-primary: var(--neutral-100);
-}
-
-/* =========================================
-   DARK MODE OVERRIDES
-   ========================================= */
-[data-theme='dark'] {
-	/* Remapping semantics to Dark Neutrals */
-	--bg-body: var(--neutral-800);
-	--bg-surface: var(--neutral-700);
-	--bg-subtle: var(--neutral-600);
-
-	/* Remapping text */
-	--text-main: var(--neutral-100);
-	--text-secondary: var(--neutral-200);
-	--text-muted: var(--neutral-300);
-	--text-inverted: var(--neutral-900);
-
-	/* Dark mode borders should be subtle */
-	--border-color: var(--neutral-700);
-
-	/* Brand adjustments for Dark Mode */
-	--primary: var(--brand-500); /* Lighter to pop against dark bg */
-	--primary-hover: var(--brand-400);
-	--on-primary: var(--neutral-900);
-
-	/* Shadow adjustment */
-	--shadow-color: 0 0 0; /* Pure black shadows in dark mode */
 }
 
 /* =========================================
@@ -719,6 +781,10 @@ input[type='color'] {
 	overflow: hidden;
 }
 
+[data-theme='dark'] .nav-panel {
+	background: linear-gradient(180deg, var(--brand-800), var(--brand-800));
+}
+
 .nav-top {
 	margin-bottom: auto;
 	width: 100%;
@@ -771,6 +837,10 @@ input[type='color'] {
 	display: flex;
 	flex-direction: column;
 	gap: 1rem;
+}
+/* Allow left-panel children to shrink and enable internal scrolling */
+.p-tween-dashboard .left-panel {
+	min-height: 0;
 }
 
 .p-tween-dashboard .middle-panel {
@@ -851,12 +921,19 @@ input[type='color'] {
 
 .contacts,
 .groups {
-	padding: 1rem;
+	display: flex;
+	flex-direction: column;
+	padding: 0.5rem 1rem;
 	flex: 1;
-	overflow-y: auto;
+	overflow: visible;
 	background: var(--bg-body);
 	border-radius: 12px;
 	box-shadow: var(--shadow-md);
+}
+/* Needed for flex items to allow overflow rather than expanding parent */
+.contacts,
+.groups {
+	min-height: 0;
 }
 
 .contacts h3,
@@ -864,6 +941,22 @@ input[type='color'] {
 	margin-bottom: 1rem;
 	font-size: 1.1rem;
 	color: var(--text-main);
+}
+.contacts-header,
+.groups-header {
+	font-size: 1.1rem;
+	color: var(--text-main);
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.25rem 0;
+}
+
+.contacts-list,
+.groups-list {
+	overflow-y: auto;
+	flex: 1;
+	padding-right: 0.25rem; /* allow space for scrollbar */
 }
 
 .groups-header {
@@ -972,7 +1065,7 @@ input[type='color'] {
 /* Date separator displayed between messages when day changes */
 .date-separator {
 	text-align: center;
-	font-size: 0.75rem;
+	font-size: 0.9rem;
 	color: var(--text-muted);
 	display: flex;
 	align-items: center;
@@ -1043,6 +1136,10 @@ input[type='color'] {
 .message.own {
 	background: var(--brand-700);
 	color: var(--on-primary);
+}
+
+[data-theme='dark'] .message.own {
+	background: var(--brand-600);
 }
 
 .sender {
@@ -1352,8 +1449,8 @@ input[type='color'] {
 	height: 36px;
 	border-radius: 50%;
 	border: none;
-	background: var(--neutral-300);
-	color: var(--neutral-000);
+	background: var(--bg-contrast);
+	color: var(--text-inverted);
 	display: flex;
 	align-items: center;
 	justify-content: center;

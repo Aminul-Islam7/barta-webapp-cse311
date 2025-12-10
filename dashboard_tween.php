@@ -123,7 +123,7 @@ if (isset($_GET['u'])) {
 			<a href="index.php"><img src="/barta-webapp-cse311/assets/img/logo.png" alt="Barta" class="logo"></a>
 		</div>
 		<div class="nav-middle">
-			<button class="nav-btn" title="Friend Requests"><i class="fa-duotone fa-solid fa-user-group"></i></button>
+			<button class="nav-btn" title="Friends"><i class="fa-duotone fa-solid fa-user-group"></i></button>
 			<button class="nav-btn" id="create-group-btn" title="Create Group"><i class="fa-duotone fa-solid fa-users-medical"></i></button>
 			<button class="nav-btn" title="Message Limits"><i class="fa-solid fa-gauge-high"></i></button>
 			<button class="nav-btn" id="theme-toggle" title="Toggle Theme"><i class="fa-jelly-fill fa-regular fa-moon"></i></button>
@@ -142,63 +142,69 @@ if (isset($_GET['u'])) {
 			<input type="text" class="search-box" placeholder="Search for friends">
 		</div>
 		<div class="contacts">
-			<h3>Friends</h3>
-			<?php foreach ($friends as $friend): ?>
-				<div class="contact-item <?php echo (isset($selected_friend) && $selected_friend['username'] === $friend['username']) ? 'is-selected' : ''; ?>" data-type="friend" data-username="<?php echo htmlspecialchars($friend['username']); ?>">
-					<div class="contact-icon-circle">
-						<i class="fa-solid fa-user"></i>
-					</div>
-					<div>
-						<div><?php echo htmlspecialchars($friend['full_name']); ?></div>
-						<div class="text-muted contact-preview"><?php
-																$preview = 'Click to chat';
-																if (!empty($friend['last_message_text'])) {
-																	$previewText = htmlspecialchars($friend['last_message_text']);
-																	// add prefix if tween sent it
-																	if (!empty($friend['last_message_sender_id']) && $friend['last_message_sender_id'] == $tween_id) {
-																		$previewText = 'You: ' . $previewText;
+			<div class="contacts-header">
+				<h3>Friends</h3>
+			</div>
+			<div class="contacts-list">
+				<?php foreach ($friends as $friend): ?>
+					<div class="contact-item <?php echo (isset($selected_friend) && $selected_friend['username'] === $friend['username']) ? 'is-selected' : ''; ?>" data-type="friend" data-username="<?php echo htmlspecialchars($friend['username']); ?>">
+						<div class="contact-icon-circle">
+							<i class="fa-solid fa-user"></i>
+						</div>
+						<div>
+							<div><?php echo htmlspecialchars($friend['full_name']); ?></div>
+							<div class="text-muted contact-preview"><?php
+																	$preview = 'Click to chat';
+																	if (!empty($friend['last_message_text'])) {
+																		$previewText = htmlspecialchars($friend['last_message_text']);
+																		// add prefix if tween sent it
+																		if (!empty($friend['last_message_sender_id']) && $friend['last_message_sender_id'] == $tween_id) {
+																			$previewText = 'You: ' . $previewText;
+																		}
+																		// truncate safely
+																		if (mb_strlen($previewText) > 40) {
+																			$previewText = mb_substr($previewText, 0, 37) . '...';
+																		}
+																		$preview = $previewText;
 																	}
-																	// truncate safely
-																	if (mb_strlen($previewText) > 40) {
-																		$previewText = mb_substr($previewText, 0, 37) . '...';
-																	}
-																	$preview = $previewText;
-																}
-																echo $preview; ?></div>
+																	echo $preview; ?></div>
+						</div>
 					</div>
-				</div>
-			<?php endforeach; ?>
+				<?php endforeach; ?>
 
+			</div>
 		</div>
 		<div class="groups">
 			<div class="groups-header">
 				<h3>Groups</h3>
 
 			</div>
-			<?php foreach ($groups as $group): ?>
-				<div class="group-item <?php echo (isset($selected_group) && $selected_group['id'] == $group['id']) ? 'is-selected' : ''; ?>" data-type="group" data-group-id="<?php echo htmlspecialchars($group['id']); ?>">
-					<div class="contact-icon-circle">
-						<i class="fa-solid fa-users"></i>
-					</div>
-					<div>
-						<div><?php echo htmlspecialchars($group['group_name']); ?></div>
-						<div class="text-muted contact-preview"><?php
-																$preview = 'Click to chat';
-																if (!empty($group['last_message_text'])) {
-																	$previewText = htmlspecialchars($group['last_message_text']);
-																	if (!empty($group['last_message_sender_id']) && $group['last_message_sender_id'] == $tween_id) {
-																		$previewText = 'You: ' . $previewText;
+			<div class="groups-list">
+				<?php foreach ($groups as $group): ?>
+					<div class="group-item <?php echo (isset($selected_group) && $selected_group['id'] == $group['id']) ? 'is-selected' : ''; ?>" data-type="group" data-group-id="<?php echo htmlspecialchars($group['id']); ?>">
+						<div class="contact-icon-circle">
+							<i class="fa-solid fa-users"></i>
+						</div>
+						<div>
+							<div><?php echo htmlspecialchars($group['group_name']); ?></div>
+							<div class="text-muted contact-preview"><?php
+																	$preview = 'Click to chat';
+																	if (!empty($group['last_message_text'])) {
+																		$previewText = htmlspecialchars($group['last_message_text']);
+																		if (!empty($group['last_message_sender_id']) && $group['last_message_sender_id'] == $tween_id) {
+																			$previewText = 'You: ' . $previewText;
+																		}
+																		if (mb_strlen($previewText) > 40) {
+																			$previewText = mb_substr($previewText, 0, 37) . '...';
+																		}
+																		$preview = $previewText;
 																	}
-																	if (mb_strlen($previewText) > 40) {
-																		$previewText = mb_substr($previewText, 0, 37) . '...';
-																	}
-																	$preview = $previewText;
-																}
-																echo $preview; ?></div>
+																	echo $preview; ?></div>
+						</div>
 					</div>
-				</div>
-			<?php endforeach; ?>
+				<?php endforeach; ?>
 
+			</div>
 		</div>
 		<div class="bottom-bar" id="profile-btn">
 			<div class="profile-content">
