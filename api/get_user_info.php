@@ -28,4 +28,17 @@ if (mysqli_num_rows($result) === 0) {
 }
 
 $user = mysqli_fetch_assoc($result);
+	// Check whether current tween has a pending outgoing friend request to this user
+	$tween_id = isset($_SESSION['tween_id']) ? intval($_SESSION['tween_id']) : 0;
+	$target_id = intval($user['tween_id']);
+	$pending = false;
+	if ($tween_id && $target_id) {
+		$rq = "SELECT * FROM connection_request WHERE requester_id = $tween_id AND receiver_id = $target_id AND receiver_accepted = 0";
+		$rqres = mysqli_query($conn, $rq);
+		if ($rqres && mysqli_num_rows($rqres) > 0) {
+			$pending = true;
+		}
+	}
+
+	$user['request_pending'] = $pending;
 echo json_encode($user);

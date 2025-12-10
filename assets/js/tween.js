@@ -134,6 +134,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			h3.textContent = contact.group_name;
 			p.textContent = 'Members: ' + (contact.members || []).map((m) => m.full_name).join(', ');
 		}
+		// Append the built clone into right panel
 		infoPanel.appendChild(clone);
 	}
 
@@ -204,17 +205,6 @@ document.addEventListener('DOMContentLoaded', function () {
 		}
 	}
 
-	function moveContactToTop(type, idOrUsername) {
-		let listSelector = type === 'friend' ? '.contacts-list' : '.groups-list';
-		let itemSelector = type === 'friend' ? `.contact-item[data-username="${idOrUsername}"]` : `.group-item[data-group-id="${idOrUsername}"]`;
-		const list = document.querySelector(listSelector);
-		const el = document.querySelector(itemSelector);
-		if (list && el) {
-			// Prepend the element to the list to move it to top
-			list.prepend(el);
-		}
-	}
-
 	function showNonFriendView(username) {
 		// Fetch user info
 		fetch('api/get_user_info.php?username=' + encodeURIComponent(username))
@@ -275,9 +265,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
 					// Add friend request handler
 					if (addFriendBtn) {
-						addFriendBtn.onclick = function () {
-							sendFriendRequest(username);
-						};
+						if (data.request_pending) {
+							addFriendBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Cancel Request';
+							addFriendBtn.disabled = false;
+							addFriendBtn.onclick = function () {
+								sendFriendRequest(username, 'cancel');
+							};
+						} else {
+							addFriendBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Add Friend';
+							addFriendBtn.disabled = false;
+							addFriendBtn.onclick = function () {
+								sendFriendRequest(username, 'send');
+							};
+						}
 					}
 
 					infoPanel.appendChild(clone);
@@ -286,9 +286,15 @@ document.addEventListener('DOMContentLoaded', function () {
 			.catch((err) => console.error(err));
 	}
 
-	function sendFriendRequest(username) {
+	function sendFriendRequest(username, action = 'send') {
 		const form = new FormData();
 		form.append('username', username);
+		if (action === 'cancel') form.append('action', 'cancel');
+
+		const addFriendBtn = document.querySelector('.btn-add-friend');
+		if (addFriendBtn) {
+			addFriendBtn.disabled = true;
+		}
 
 		fetch('tween/add_friend.php', {
 			method: 'POST',
@@ -298,19 +304,33 @@ document.addEventListener('DOMContentLoaded', function () {
 			.then((data) => {
 				if (data.error) {
 					alert(data.error);
+					if (addFriendBtn) addFriendBtn.disabled = false;
 					return;
 				}
 				if (data.success) {
-					alert('Friend request sent!');
-					// Update button to show pending
-					const addFriendBtn = document.querySelector('.btn-add-friend');
-					if (addFriendBtn) {
-						addFriendBtn.textContent = 'Request Pending';
-						addFriendBtn.disabled = true;
-					}
+					if (action === 'cancel') {
+						if (addFriendBtn) {
+							addFriendBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Add Friend';
+							addFriendBtn.disabled = false;
+							addFriendBtn.onclick = function () {
+								sendFriendRequest(username, 'send');
+							};
+						}
+											} else {
+						if (addFriendBtn) {
+							addFriendBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Cancel Request';
+							addFriendBtn.disabled = false;
+							addFriendBtn.onclick = function () {
+								sendFriendRequest(username, 'cancel');
+							};
+						}
+											}
 				}
 			})
-			.catch((err) => console.error(err));
+			.catch((err) => {
+				console.error(err);
+				if (addFriendBtn) addFriendBtn.disabled = false;
+			});
 	}
 
 	function fetchConversation(url) {

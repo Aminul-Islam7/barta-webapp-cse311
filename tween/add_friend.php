@@ -11,6 +11,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'tween') {
 
 $tween_id = $_SESSION['tween_id'];
 $username = isset($_POST['username']) ? mysqli_real_escape_string($conn, $_POST['username']) : '';
+$action = isset($_POST['action']) ? $_POST['action'] : 'send';
 
 if (empty($username)) {
 	echo json_encode(['error' => 'Username required']);
@@ -61,14 +62,31 @@ if (mysqli_num_rows($req_result) > 0) {
 	$req = mysqli_fetch_assoc($req_result);
 	// If request exists and not yet accepted (receiver_accepted is 0 by default)
 	if ($req['receiver_accepted'] == 0) {
+		// If action is cancel and current user is the requester, delete the request
+		if ($action === 'cancel' && $req['requester_id'] == $tween_id) {
+			$del_q = "DELETE FROM connection_request WHERE requester_id = $tween_id AND receiver_id = $target_id";
+			if (mysqli_query($conn, $del_q)) {
+				echo json_encode(['success' => true, 'message' => 'Friend request canceled']);
+			} else {
+				echo json_encode(['error' => 'Failed to cancel request']);
+			}
+			exit;
+		}
+
 		echo json_encode(['error' => 'Friend request already pending']);
 		exit;
 	}
 }
 
+// If action is cancel but no pending request found from current user, return error
+if ($action === 'cancel') {
+	echo json_encode(['error' => 'No pending request to cancel']);
+	exit;
+}
+
 // Create friend request
 $insert_query = "INSERT INTO connection_request (requester_id, receiver_id, sent_at) 
-                 VALUES ($tween_id, $target_id, NOW())";
+				 VALUES ($tween_id, $target_id, NOW())";
 
 if (mysqli_query($conn, $insert_query)) {
 	echo json_encode(['success' => true, 'message' => 'Friend request sent']);

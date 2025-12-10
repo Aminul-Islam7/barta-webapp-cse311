@@ -210,7 +210,7 @@ a {
 	/* Brand adjustments for Dark Mode */
 	--primary: var(--brand-500); /* Lighter to pop against dark bg */
 	--primary-hover: var(--brand-400);
-	--on-primary: var(--neutral-900);
+	--on-primary: var(--neutral-800);
 
 	/* Scrollbar overrides for dark mode */
 	--scrollbar-track: var(--bg-body);
@@ -263,6 +263,11 @@ a {
 	margin-top: 1rem;
 }
 
+.bg-subtle {
+	background: var(--bg-subtle) !important;
+	color: var(--text-secondary) !important;
+}
+
 /* =========================================
    7. COMPONENTS
    ========================================= */
@@ -272,7 +277,7 @@ a {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	padding: 0.5rem 1.5rem;
+	padding: 0.5rem 1rem;
 	border-radius: 8px;
 	font-weight: 600;
 	font-size: 1rem;
@@ -280,6 +285,7 @@ a {
 	cursor: pointer;
 	border: 1px solid var(--primary);
 	transition: 0.15s ease;
+	gap: 0.5rem;
 }
 
 .btn-primary {
@@ -1025,11 +1031,6 @@ input[type='color'] {
 	margin-right: 0.5rem;
 }
 
-.contact-icon-circle.bg-subtle {
-	background: var(--bg-subtle);
-	color: var(--text-secondary);
-}
-
 .contact-preview {
 	font-size: 0.8rem;
 }
@@ -1463,13 +1464,6 @@ input[type='color'] {
 }
 
 .action-buttons .btn-add-friend {
-	width: 100%;
-	padding: 0.75rem 1rem;
-	font-size: 0.9rem;
-	display: flex;
-	align-items: center;
-	gap: 0.5rem;
-	justify-content: center;
 }
 
 .btn-round {
@@ -1503,7 +1497,9 @@ input[type='color'] {
 }
 
 .btn-block:hover {
-	background: var(--error-500);
+	background: rgba(224, 27, 27, 0.1);
+	border: 1px solid var(--error-500);
+	color: var(--error-500);
 }
 
 .context-menu {

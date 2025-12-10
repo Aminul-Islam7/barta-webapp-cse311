@@ -299,8 +299,8 @@ if (isset($_GET['u'])) {
 				</div>
 				<?php if ($selected_friend): ?>
 					<div class="action-buttons">
-						<button class="btn-round" title="Unfriend"><i class="fa-solid fa-user-xmark"></i></button>
-						<button class="btn-round btn-block" title="Block"><i class="fa-solid fa-ban"></i></button>
+						<button class="btn btn-secondary" title="Unfriend"><i class="fa-solid fa-user-xmark"></i></button>
+						<button class="btn btn-secondary btn-block" title="Block"><i class="fa-solid fa-ban"></i></button>
 					</div>
 				<?php endif; ?>
 			</div>
@@ -330,8 +330,8 @@ if (isset($_GET['u'])) {
 			<p></p>
 		</div>
 		<div class="action-buttons">
-			<button class="btn-round" title="Unfriend"><i class="fa-solid fa-user-xmark"></i></button>
-			<button class="btn-round btn-block" title="Block"><i class="fa-solid fa-ban"></i></button>
+			<button class="btn btn-secondary" title="Unfriend"><i class="fa-solid fa-user-xmark"></i> Unfriend</button>
+			<button class="btn btn-secondary btn-block" title="Block"><i class="fa-solid fa-ban"></i> Block</button>
 		</div>
 	</div>
 	<div id="group-info-template" style="display: none;">
@@ -346,7 +346,7 @@ if (isset($_GET['u'])) {
 	</div>
 	<div id="non-friend-info-template" style="display: none;">
 		<div class="user-avatar">
-			<div class="avatar-circle"><i class="fa-solid fa-user"></i></div>
+			<div class="avatar-circle bg-subtle"><i class="fa-solid fa-user"></i></div>
 		</div>
 		<div class="user-details">
 			<h3></h3>
@@ -354,8 +354,8 @@ if (isset($_GET['u'])) {
 			<p></p>
 		</div>
 		<div class="action-buttons">
-			<button class="btn btn-primary btn-add-friend" title="Send Friend Request"><i class="fa-solid fa-user-plus"></i> Send Friend Request</button>
-			<button class="btn-round btn-block" title="Block"><i class="fa-solid fa-ban"></i></button>
+			<button class="btn btn-primary btn-add-friend" title="Friend Request"><i class="fa-solid fa-user-plus"></i> Add Friend</button>
+			<button class="btn btn-secondary btn-block" title="Block"><i class="fa-solid fa-ban"></i>Block</button>
 		</div>
 	</div>
 	<div id="context-menu-template" style="display: none;">
