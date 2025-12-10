@@ -596,7 +596,11 @@ document.addEventListener('DOMContentLoaded', function () {
 				}
 				if (data && data.messages && data.messages.length > 0) {
 					data.messages.forEach((msg) => {
-						appendMessage(msg, data.me_id);
+						// Avoid duplicates: if the message is already present, don't append it.
+						if (!document.querySelector(`.message-wrapper[data-message-id="${msg.id}"]`)) {
+							appendMessage(msg, data.me_id);
+						}
+						// Always update watermark id so polling progresses past this message.
 						lastMessageId = Math.max(lastMessageId, msg.id);
 					});
 				}
@@ -656,6 +660,8 @@ document.addEventListener('DOMContentLoaded', function () {
 	function appendMessage(msg, meId) {
 		const messagesEl = document.querySelector('.messages');
 		if (!messagesEl) return;
+		// Avoid duplicate appends when message is already rendered
+		if (messagesEl.querySelector(`.message-wrapper[data-message-id="${msg.id}"]`)) return;
 		const noMsg = messagesEl.querySelector('.no-messages');
 		if (noMsg) noMsg.remove();
 		const template = document.getElementById('message-template');
@@ -728,8 +734,9 @@ document.addEventListener('DOMContentLoaded', function () {
 				}
 				// Append newly created message
 				appendMessage(data.message, data.me_id);
-				// Update last message ID
+				// Update last message ID and lastActiveTime
 				lastMessageId = data.message.id;
+				lastActiveTime = data.message.sent_at || lastActiveTime;
 				// Broadcast the sent message to other same-user tabs
 				if (bc) {
 					bc.postMessage({ type: 'send', message: data.message, me_id: data.me_id, target_type: data.target_type, target: data.target, source: TAB_ID });

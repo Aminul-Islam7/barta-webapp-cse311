@@ -67,7 +67,7 @@ if (isset($_GET['u'])) {
           AND m.is_deleted = 0
 		  AND m.id > $since
           ORDER BY m.sent_at ASC";
-	
+
 	if ($is_polling) {
 		// Determine the time watermark for edits/deletes
 		$sinceTime = $last_active_time;
@@ -88,7 +88,7 @@ if (isset($_GET['u'])) {
 			// Check for new messages
 			$result = mysqli_query($conn, $query);
 			if ($result && mysqli_num_rows($result) > 0) break;
-			
+
 			// Check for edits/deletes since our last seen timestamp
 			if ($sinceTime) {
 				$changeQuery = "SELECT 1 FROM message m JOIN individual_message im ON m.id = im.message_id 
@@ -102,7 +102,7 @@ if (isset($_GET['u'])) {
 	} else {
 		$result = mysqli_query($conn, $query);
 	}
-	
+
 	$messages = [];
 	$max_time = $last_active_time;
 	while ($row = mysqli_fetch_assoc($result)) {
@@ -199,7 +199,7 @@ if (isset($_GET['group'])) {
           WHERE gm.group_id = $group_id AND m.is_deleted = 0
 		  AND m.id > $since
           ORDER BY m.sent_at ASC";
-	
+
 	if ($is_polling) {
 		// Determine the time watermark for edits/deletes
 		$sinceTime = $last_active_time;
@@ -219,7 +219,7 @@ if (isset($_GET['group'])) {
 		while ((microtime(true) - $start) < $LONG_POLL_TIMEOUT) {
 			$result = mysqli_query($conn, $query);
 			if ($result && mysqli_num_rows($result) > 0) break;
-			
+
 			if ($sinceTime) {
 				$changeQuery = "SELECT 1 FROM message m JOIN group_message gm ON m.id = gm.message_id 
 								WHERE gm.group_id = $group_id 
@@ -232,7 +232,7 @@ if (isset($_GET['group'])) {
 	} else {
 		$result = mysqli_query($conn, $query);
 	}
-	
+
 	$messages = [];
 	$max_time = $last_active_time;
 	while ($row = mysqli_fetch_assoc($result)) {
