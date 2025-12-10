@@ -37,6 +37,8 @@ document.addEventListener('DOMContentLoaded', function () {
 			const nextSame = i < messages.length - 1 && messages[i + 1].sender_id === msg.sender_id;
 			const showSender = !prevSame;
 			wrapper.className = 'message-wrapper' + (isOwn ? ' own' : '') + (!showSender ? ' no-sender' : '');
+			// store sent time on wrapper for date separator logic
+			wrapper.setAttribute('data-sent-at', msg.sent_at || new Date().toISOString());
 			wrapper.setAttribute('data-sender-id', msg.sender_id);
 			wrapper.setAttribute('data-message-id', msg.id);
 			if (!isOwn && msg.sender_name) {
@@ -68,6 +70,8 @@ document.addEventListener('DOMContentLoaded', function () {
 			messagesEl.appendChild(wrapper);
 		}
 		// Scroll chat to bottom after rendering
+		// ensure date separators are inserted
+		insertDateSeparators();
 		scrollToBottom();
 	}
 
@@ -113,6 +117,43 @@ document.addEventListener('DOMContentLoaded', function () {
 		const ampm = hours >= 12 ? 'PM' : 'AM';
 		hours = hours % 12 || 12;
 		return hours + ':' + minutes + ' ' + ampm;
+	}
+
+	// Format a friendly date label used in the date separator
+	function formatDateLabel(datetime) {
+		const d = new Date(datetime);
+		const today = new Date();
+		const yesterday = new Date();
+		yesterday.setDate(today.getDate() - 1);
+		if (d.toDateString() === today.toDateString()) return 'Today';
+		if (d.toDateString() === yesterday.toDateString()) return 'Yesterday';
+		return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+	}
+
+	// Insert date separators before the first message and when day changes between messages
+	function insertDateSeparators() {
+		const messagesEl = document.querySelector('.messages');
+		if (!messagesEl) return;
+		// Remove existing separators
+		messagesEl.querySelectorAll('.date-separator').forEach((el) => el.remove());
+		const wrappers = Array.from(messagesEl.querySelectorAll('.message-wrapper'));
+		let prevDateStr = null;
+		for (let i = 0; i < wrappers.length; i++) {
+			const w = wrappers[i];
+			const sentAt = w.getAttribute('data-sent-at');
+			const d = sentAt ? new Date(sentAt) : new Date();
+			const ds = d.toDateString();
+			if (i === 0 || ds !== prevDateStr) {
+				// add separator element before wrapper
+				const separator = document.createElement('div');
+				separator.className = 'date-separator';
+				const small = document.createElement('small');
+				small.textContent = formatDateLabel(d);
+				separator.appendChild(small);
+				messagesEl.insertBefore(separator, w);
+				prevDateStr = ds;
+			}
+		}
 	}
 
 	// helper: truncate text safely
@@ -598,6 +639,8 @@ document.addEventListener('DOMContentLoaded', function () {
 				if (nextSame) message.classList.add('cut-bottom-left');
 			}
 		});
+		// Recompute date separators when the message list layout changes
+		insertDateSeparators();
 	}
 
 	// Polling for new messages
@@ -699,6 +742,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		const prevSame = lastSenderId === msg.sender_id.toString();
 		const showSender = !prevSame;
 		wrapper.setAttribute('data-sender-id', msg.sender_id);
+		wrapper.setAttribute('data-sent-at', msg.sent_at || new Date().toISOString());
 		wrapper.setAttribute('data-message-id', msg.id);
 		if (!isOwn && msg.sender_name) {
 			wrapper.setAttribute('data-sender-name', msg.sender_name.split(' ')[0].toUpperCase());
@@ -733,6 +777,8 @@ document.addEventListener('DOMContentLoaded', function () {
 		const timestampDiv = messageEl.querySelector('.timestamp');
 		timestampDiv.textContent = formatTime(msg.sent_at);
 		messagesEl.appendChild(wrapper);
+		// Ensure date separators are up-to-date after appending
+		insertDateSeparators();
 		scrollToBottom();
 	}
 

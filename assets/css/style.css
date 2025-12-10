@@ -782,7 +782,6 @@ input[type='color'] {
 	border-radius: 12px;
 	box-shadow: var(--shadow-md);
 	overflow: hidden;
-	transition: all 0.3s ease;
 }
 .p-tween-dashboard .middle-panel .empty-state,
 .p-tween-dashboard .middle-panel .chat-container {
@@ -814,7 +813,6 @@ input[type='color'] {
 	border-radius: 12px;
 	box-shadow: var(--shadow-md);
 	overflow: hidden;
-	transition: all 0.3s ease;
 }
 
 .top-bar {
@@ -894,7 +892,7 @@ input[type='color'] {
 
 .contact-item:hover,
 .group-item:hover {
-	background: var(--bg-surface);
+	background: rgba(0, 0, 0, 0.05);
 }
 
 .contact-item:not(:last-child)::after,
@@ -969,6 +967,23 @@ input[type='color'] {
 	flex-direction: column;
 	gap: 1rem;
 	position: relative;
+}
+
+/* Date separator displayed between messages when day changes */
+.date-separator {
+	text-align: center;
+	font-size: 0.75rem;
+	color: var(--text-muted);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin: 2rem 0;
+}
+.date-separator small {
+	background: var(--bg-surface);
+	color: var(--text-muted);
+	padding: 0.25rem 0.75rem;
+	border-radius: 12px;
 }
 
 .message-wrapper {
@@ -1404,7 +1419,7 @@ input[type='color'] {
 /* Highlight selected contact */
 .contact-item.is-selected,
 .group-item.is-selected {
-	background-color: var(--bg-subtle);
+	background-color: var(--bg-surface);
 }
 
 .contact-item.is-selected .contact-icon-circle,

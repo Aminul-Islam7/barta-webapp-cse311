@@ -151,20 +151,20 @@ if (isset($_GET['u'])) {
 					<div>
 						<div><?php echo htmlspecialchars($friend['full_name']); ?></div>
 						<div class="text-muted contact-preview"><?php
-							$preview = 'Click to chat';
-							if (!empty($friend['last_message_text'])) {
-								$previewText = htmlspecialchars($friend['last_message_text']);
-								// add prefix if tween sent it
-								if (!empty($friend['last_message_sender_id']) && $friend['last_message_sender_id'] == $tween_id) {
-									$previewText = 'You: ' . $previewText;
-								}
-								// truncate safely
-								if (mb_strlen($previewText) > 40) {
-									$previewText = mb_substr($previewText, 0, 37) . '...';
-								}
-								$preview = $previewText;
-							}
-							echo $preview; ?></div>
+																$preview = 'Click to chat';
+																if (!empty($friend['last_message_text'])) {
+																	$previewText = htmlspecialchars($friend['last_message_text']);
+																	// add prefix if tween sent it
+																	if (!empty($friend['last_message_sender_id']) && $friend['last_message_sender_id'] == $tween_id) {
+																		$previewText = 'You: ' . $previewText;
+																	}
+																	// truncate safely
+																	if (mb_strlen($previewText) > 40) {
+																		$previewText = mb_substr($previewText, 0, 37) . '...';
+																	}
+																	$preview = $previewText;
+																}
+																echo $preview; ?></div>
 					</div>
 				</div>
 			<?php endforeach; ?>
@@ -183,18 +183,18 @@ if (isset($_GET['u'])) {
 					<div>
 						<div><?php echo htmlspecialchars($group['group_name']); ?></div>
 						<div class="text-muted contact-preview"><?php
-							$preview = 'Click to chat';
-							if (!empty($group['last_message_text'])) {
-								$previewText = htmlspecialchars($group['last_message_text']);
-								if (!empty($group['last_message_sender_id']) && $group['last_message_sender_id'] == $tween_id) {
-									$previewText = 'You: ' . $previewText;
-								}
-								if (mb_strlen($previewText) > 40) {
-									$previewText = mb_substr($previewText, 0, 37) . '...';
-								}
-								$preview = $previewText;
-							}
-							echo $preview; ?></div>
+																$preview = 'Click to chat';
+																if (!empty($group['last_message_text'])) {
+																	$previewText = htmlspecialchars($group['last_message_text']);
+																	if (!empty($group['last_message_sender_id']) && $group['last_message_sender_id'] == $tween_id) {
+																		$previewText = 'You: ' . $previewText;
+																	}
+																	if (mb_strlen($previewText) > 40) {
+																		$previewText = mb_substr($previewText, 0, 37) . '...';
+																	}
+																	$preview = $previewText;
+																}
+																echo $preview; ?></div>
 					</div>
 				</div>
 			<?php endforeach; ?>
