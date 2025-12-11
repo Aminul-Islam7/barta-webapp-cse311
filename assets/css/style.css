@@ -40,47 +40,27 @@ a {
 }
 
 /* Scrollbars: limited to scrollable containers */
-.contacts,
-.groups,
-.messages,
-.p-dashboard-parent__content,
-.chat-container {
+* {
 	scrollbar-width: thin;
 	scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
 /* Webkit (Chromium/Safari) scrollbars for specific containers */
-.contacts::-webkit-scrollbar,
-.groups::-webkit-scrollbar,
-.messages::-webkit-scrollbar,
-.p-dashboard-parent__content::-webkit-scrollbar,
-.chat-container::-webkit-scrollbar {
+*::-webkit-scrollbar {
 	width: 12px;
 	height: 12px;
 }
-.contacts::-webkit-scrollbar-track,
-.groups::-webkit-scrollbar-track,
-.messages::-webkit-scrollbar-track,
-.p-dashboard-parent__content::-webkit-scrollbar-track,
-.chat-container::-webkit-scrollbar-track {
+*::-webkit-scrollbar-track {
 	background: var(--scrollbar-track);
 	border-radius: 10px;
 }
-.contacts::-webkit-scrollbar-thumb,
-.groups::-webkit-scrollbar-thumb,
-.messages::-webkit-scrollbar-thumb,
-.p-dashboard-parent__content::-webkit-scrollbar-thumb,
-.chat-container::-webkit-scrollbar-thumb {
+*::-webkit-scrollbar-thumb {
 	background-color: var(--scrollbar-thumb);
 	border-radius: 10px;
 	border: 3px solid transparent;
 	background-clip: padding-box;
 }
-.contacts::-webkit-scrollbar-thumb:hover,
-.groups::-webkit-scrollbar-thumb:hover,
-.messages::-webkit-scrollbar-thumb:hover,
-.p-dashboard-parent__content::-webkit-scrollbar-thumb:hover,
-.chat-container::-webkit-scrollbar-thumb:hover {
+*::-webkit-scrollbar-thumb:hover {
 	background: var(--scrollbar-thumb-hover);
 }
 /* =========================================
@@ -1463,9 +1443,6 @@ input[type='color'] {
 	flex-wrap: wrap;
 }
 
-.action-buttons .btn-add-friend {
-}
-
 .btn-round {
 	width: 36px;
 	height: 36px;
@@ -1599,8 +1576,168 @@ input[type='color'] {
 	position: absolute;
 	top: 0;
 	left: 0;
-	right: 0;
-	bottom: 0;
+	pointer-events: none;
+}
+
+/* Friends Modal Styles */
+.friends-modal-content {
+	min-width: 1000px;
+	max-width: 1200px;
+	max-height: 80vh;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+}
+
+.modal-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding-bottom: 1rem;
+	border-bottom: 1px solid var(--border-subtle);
+	margin-bottom: 1rem;
+}
+
+.modal-header h3 {
+	margin: 0;
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.btn-close {
+	background: transparent;
+	border: none;
+	color: var(--text-muted);
+	cursor: pointer;
+	padding: 0.5rem;
+	border-radius: 50%;
+	width: 32px;
+	height: 32px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.btn-close:hover {
+	background: var(--bg-subtle);
+	color: var(--text-main);
+}
+
+.friends-modal-body {
+	overflow-y: auto;
+	flex: 1;
+	padding-right: 0.5rem;
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 1.5rem;
+}
+
+.friends-right-column {
+	display: flex;
+	flex-direction: column;
+	gap: 1.5rem;
+}
+
+.friends-right-column hr {
+	border: none;
+	border-top: 1px solid var(--border-light);
+	margin: 1rem 0;
+}
+
+.friends-section {
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+}
+
+.friends-section h4 {
+	font-size: 0.9rem;
+	font-weight: 600;
+	color: var(--text-muted);
+	margin-bottom: 0.75rem;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.friends-list {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	overflow-y: auto;
+	flex: 1;
+	min-height: 0;
+}
+
+.friend-item {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0.6rem 1rem;
+	background: var(--bg-surface);
+	border-radius: 8px;
+	transition: background-color 0.2s ease;
+}
+
+.friend-name {
+	font-weight: 500;
+	color: var(--text-main);
+}
+
+.friend-actions {
+	display: flex;
+	gap: 0.5rem;
+}
+
+.btn-friend-action {
+	width: 42px;
+	height: 42px;
+	border-radius: 50%;
+	border: none;
+	background: transparent;
+	color: var(--text-muted);
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: background-color 0.2s ease, color 0.2s ease;
+	font-size: 0.9rem;
+}
+
+.btn-friend-action:hover {
+	background: var(--bg-body);
+	color: var(--error-500);
+}
+
+.btn-unblock:hover {
+	color: var(--success-500);
+}
+
+.btn-accept:hover {
+	color: var(--success-600);
+	background: var(--success-100);
+}
+
+/* Notification Dot */
+.notification-dot {
+	position: absolute;
+	top: 8px;
+	right: 8px;
+	width: 8px;
+	height: 8px;
+	background: var(--error-500);
+	border-radius: 50%;
+	border: 2px solid var(--bg-surface);
+}
+
+.nav-btn {
+	position: relative;
+}
+
+/* Dark theme adjustments for notification dot */
+[data-theme='dark'] .notification-dot {
+	border-color: var(--neutral-700);
 }
 
 /* =========================================

@@ -123,7 +123,10 @@ if (isset($_GET['u'])) {
 			<a href="index.php"><img src="/barta-webapp-cse311/assets/img/logo.png" alt="Barta" class="logo"></a>
 		</div>
 		<div class="nav-middle">
-			<button class="nav-btn" title="Friends"><i class="fa-duotone fa-solid fa-user-group"></i></button>
+			<button class="nav-btn" id="friends-btn" title="Connections">
+				<i class="fa-duotone fa-solid fa-user-group"></i>
+				<span class="notification-dot" id="friends-notification-dot" style="display: none;"></span>
+			</button>
 			<button class="nav-btn" id="create-group-btn" title="Create Group"><i class="fa-duotone fa-solid fa-users-medical"></i></button>
 			<button class="nav-btn" title="Message Limits"><i class="fa-solid fa-gauge-high"></i></button>
 			<button class="nav-btn" id="theme-toggle" title="Toggle Theme"><i class="fa-jelly-fill fa-regular fa-moon"></i></button>
@@ -408,6 +411,39 @@ if (isset($_GET['u'])) {
 			<div class="modal-buttons">
 				<button class="btn btn-secondary" id="cancel-edit">Cancel</button>
 				<button class="btn btn-primary" id="save-edit">Save</button>
+			</div>
+		</div>
+	</div>
+	<div class="modal" id="friends-modal">
+		<div class="modal-content friends-modal-content">
+			<div class="modal-header">
+				<h3><i class="fa-duotone fa-solid fa-user-group"></i> Connections</h3>
+				<button class="btn-close" id="close-friends-modal" title="Close"><i class="fa-solid fa-xmark"></i></button>
+			</div>
+			<div class="friends-modal-body">
+				<!-- Current Friends Section -->
+				<div class="friends-section">
+					<h4>Your Friends</h4>
+					<div class="friends-list" id="current-friends-list">
+						<!-- Populated by JS -->
+					</div>
+				</div>
+				<!-- Right Column: Friend Requests and Blocked Users -->
+				<div class="friends-right-column">
+					<div class="friends-section">
+						<h4>Friend Requests</h4>
+						<div class="friends-list" id="pending-requests-list">
+							<!-- Populated by JS -->
+						</div>
+					</div>
+					<hr>
+					<div class="friends-section">
+						<h4>Blocked Users</h4>
+						<div class="friends-list" id="blocked-users-list">
+							<!-- Populated by JS -->
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>

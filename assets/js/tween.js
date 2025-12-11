@@ -855,6 +855,286 @@ document.addEventListener('DOMContentLoaded', function () {
 		});
 	}
 
+	// Friends Modal
+	const friendsBtn = document.getElementById('friends-btn');
+	const friendsModal = document.getElementById('friends-modal');
+	const closeFriendsModalBtn = document.getElementById('close-friends-modal');
+	const friendsNotificationDot = document.getElementById('friends-notification-dot');
+
+	function loadFriendsData() {
+		fetch('api/fetch_friends_data.php')
+			.then((r) => r.text().then((text) => ({ status: r.status, ok: r.ok, text })))
+			.then((res) => {
+				if (!res.ok) {
+					console.error('fetch_friends_data HTTP error', res.status, res.text);
+					// still try to parse body for JSON error info
+					let parsed = null;
+					try {
+						parsed = JSON.parse(res.text);
+					} catch (e) {
+						console.error('fetch_friends_data returned non-JSON error body:', res.text);
+						throw new Error('Server error');
+					}
+					return parsed;
+				}
+				try {
+					const data = JSON.parse(res.text);
+					console.log('Friends data loaded:', data);
+					return data;
+				} catch (e) {
+					console.error('fetch_friends_data returned non-JSON:', res.text);
+					throw e;
+				}
+			})
+			.then((data) => {
+				if (data.error) {
+					console.error('API error:', data.error, data.detail || '');
+					const friendsList = document.getElementById('current-friends-list');
+					const blockedList = document.getElementById('blocked-users-list');
+					const requestsList = document.getElementById('pending-requests-list');
+					if (friendsList) friendsList.innerHTML = '<p class="text-muted">Error: ' + data.error + '</p>';
+					if (blockedList) blockedList.innerHTML = '<p class="text-muted">Error: ' + data.error + '</p>';
+					if (requestsList) requestsList.innerHTML = '<p class="text-muted">Error: ' + data.error + '</p>';
+					if (friendsNotificationDot) friendsNotificationDot.style.display = 'none';
+					return;
+				}
+
+				// Populate current friends
+				const friendsList = document.getElementById('current-friends-list');
+				friendsList.innerHTML = '';
+				if (data.friends && data.friends.length > 0) {
+					data.friends.forEach((friend) => {
+						const item = document.createElement('div');
+						item.className = 'friend-item';
+						const fid = friend.id || friend.tween_id || friend.tweenId || '';
+						item.innerHTML = `
+							<span class="friend-name">${friend.full_name}</span>
+							<div class="friend-actions">
+								<button class="btn-friend-action btn-unfriend" data-tween-id="${fid}" title="Unfriend">
+									<i class="fa-solid fa-user-xmark"></i>
+								</button>
+								<button class="btn-friend-action btn-block-user" data-tween-id="${fid}" title="Block">
+									<i class="fa-solid fa-ban"></i>
+								</button>
+							</div>
+						`;
+						friendsList.appendChild(item);
+					});
+				} else {
+					friendsList.innerHTML = '<p class="text-muted">No friends yet.</p>';
+				}
+
+				// Populate blocked users
+				const blockedList = document.getElementById('blocked-users-list');
+				blockedList.innerHTML = '';
+				if (data.blocked && data.blocked.length > 0) {
+					data.blocked.forEach((user) => {
+						const item = document.createElement('div');
+						item.className = 'friend-item';
+						const uid = user.id || user.tween_id || user.tweenId || '';
+						item.innerHTML = `
+							<span class="friend-name">${user.full_name}</span>
+							<div class="friend-actions">
+								<button class="btn-friend-action btn-unblock" data-tween-id="${uid}" title="Unblock">
+									<i class="fa-solid fa-unlock"></i>
+								</button>
+							</div>
+						`;
+						blockedList.appendChild(item);
+					});
+				} else {
+					blockedList.innerHTML = '<p class="text-muted">No blocked users.</p>';
+				}
+
+				// Populate pending requests
+				const requestsList = document.getElementById('pending-requests-list');
+				requestsList.innerHTML = '';
+				if (data.pending_requests && data.pending_requests.length > 0) {
+					data.pending_requests.forEach((req) => {
+						const item = document.createElement('div');
+						item.className = 'friend-item';
+						item.innerHTML = `
+							<span class="friend-name">${req.full_name}</span>
+							<div class="friend-actions">
+								<button class="btn-friend-action btn-accept" data-request-id="${req.request_id}" title="Accept">
+									<i class="fa-solid fa-check"></i>
+								</button>
+								<button class="btn-friend-action btn-decline" data-request-id="${req.request_id}" title="Decline">
+									<i class="fa-solid fa-xmark"></i>
+								</button>
+							</div>
+						`;
+						requestsList.appendChild(item);
+					});
+					// Show notification dot
+					if (friendsNotificationDot) friendsNotificationDot.style.display = 'block';
+				} else {
+					requestsList.innerHTML = '<p class="text-muted">No pending requests.</p>';
+					if (friendsNotificationDot) friendsNotificationDot.style.display = 'none';
+				}
+
+				// Attach event listeners to action buttons
+				attachFriendActionListeners();
+			})
+			.catch((err) => console.error(err));
+	}
+
+	function attachFriendActionListeners() {
+		// Unfriend buttons
+		document.querySelectorAll('.btn-unfriend').forEach((btn) => {
+			btn.addEventListener('click', function () {
+				const tweenId = this.getAttribute('data-tween-id');
+				showConfirmation(
+					{
+						title: 'Unfriend',
+						icon: '<i class="fa-solid fa-user-xmark"></i>',
+						message: 'Are you sure you want to unfriend this person?',
+						confirmText: 'Unfriend',
+					},
+					function () {
+						// Unfriend logic placeholder (implement endpoint)
+						console.log('Unfriend tween:', tweenId);
+						// After success, reload friends data
+						loadFriendsData();
+					}
+				);
+			});
+		});
+
+		// Block buttons
+		document.querySelectorAll('.btn-block-user').forEach((btn) => {
+			btn.addEventListener('click', function () {
+				const tweenId = this.getAttribute('data-tween-id');
+				showConfirmation(
+					{
+						title: 'Block User',
+						icon: '<i class="fa-solid fa-ban"></i>',
+						message: 'Are you sure you want to block this person?',
+						confirmText: 'Block',
+					},
+					function () {
+						const form = new FormData();
+						form.append('tween_id', tweenId);
+						fetch('tween/block_user.php', {
+							method: 'POST',
+							body: form,
+						})
+							.then((r) => r.json())
+							.then((data) => {
+								if (data.success) {
+									loadFriendsData();
+									refreshContacts(true);
+								} else {
+									console.error(data.error || 'Failed to block user');
+								}
+							})
+							.catch((err) => console.error(err));
+					}
+				);
+			});
+		});
+
+		// Unblock buttons
+		document.querySelectorAll('.btn-unblock').forEach((btn) => {
+			btn.addEventListener('click', function () {
+				const tweenId = this.getAttribute('data-tween-id');
+				const form = new FormData();
+				form.append('tween_id', tweenId);
+				fetch('tween/unblock_user.php', {
+					method: 'POST',
+					body: form,
+				})
+					.then((r) => r.json())
+					.then((data) => {
+						if (data.success) {
+							loadFriendsData();
+							refreshContacts(true);
+						} else {
+							console.error(data.error || 'Failed to unblock user');
+						}
+					})
+					.catch((err) => console.error(err));
+			});
+		});
+
+		// Accept buttons
+		document.querySelectorAll('.btn-accept').forEach((btn) => {
+			btn.addEventListener('click', function () {
+				const requestId = this.getAttribute('data-request-id');
+				const form = new FormData();
+				form.append('request_id', requestId);
+				fetch('tween/accept_friend.php', {
+					method: 'POST',
+					body: form,
+				})
+					.then((r) => r.json())
+					.then((data) => {
+						if (data.success) {
+							loadFriendsData();
+							refreshContacts(true);
+						} else {
+							console.error(data.error || 'Failed to accept request');
+						}
+					})
+					.catch((err) => console.error(err));
+			});
+		});
+
+		// Decline buttons
+		document.querySelectorAll('.btn-decline').forEach((btn) => {
+			btn.addEventListener('click', function () {
+				const requestId = this.getAttribute('data-request-id');
+				const form = new FormData();
+				form.append('request_id', requestId);
+				fetch('tween/decline_friend.php', {
+					method: 'POST',
+					body: form,
+				})
+					.then((r) => r.json())
+					.then((data) => {
+						if (data.success) {
+							loadFriendsData();
+						} else {
+							console.error(data.error || 'Failed to decline request');
+						}
+					})
+					.catch((err) => console.error(err));
+			});
+		});
+	}
+
+	if (friendsBtn && friendsModal) {
+		friendsBtn.addEventListener('click', function () {
+			friendsModal.classList.add('show');
+			loadFriendsData();
+		});
+	}
+
+	if (closeFriendsModalBtn) {
+		closeFriendsModalBtn.addEventListener('click', function () {
+			friendsModal.classList.remove('show');
+		});
+	}
+
+	// Close modal when clicking outside
+	if (friendsModal) {
+		friendsModal.addEventListener('click', function (e) {
+			if (e.target === friendsModal) {
+				friendsModal.classList.remove('show');
+			}
+		});
+	}
+
+	// Load notification dot status on page load
+	fetch('api/fetch_friends_data.php')
+		.then((r) => r.json())
+		.then((data) => {
+			if (data.pending_requests && data.pending_requests.length > 0 && friendsNotificationDot) {
+				friendsNotificationDot.style.display = 'block';
+			}
+		})
+		.catch(() => {});
+
 	// Edit Message Modal
 	const editMessageModal = document.getElementById('edit-message-modal');
 	const cancelEditBtn = document.getElementById('cancel-edit');
