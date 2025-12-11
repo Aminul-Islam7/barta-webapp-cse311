@@ -44,28 +44,42 @@ if (isset($_GET['u'])) {
 	if (mysqli_num_rows($result) > 0) {
 		$selected_friend = mysqli_fetch_assoc($result);
 		$friend_id = $selected_friend['tween_id'];
-		$is_friend = false;
-		foreach ($friends as $f) {
-			if ($f['tween_id'] == $friend_id) {
-				$is_friend = true;
-				break;
+
+		// Check if blocked - treat as not found
+		$blockQuery = "SELECT *
+		              FROM connection c
+		              WHERE ((c.sender_id = $tween_id AND c.receiver_id = $friend_id) OR (c.sender_id = $friend_id AND c.receiver_id = $tween_id))
+		              AND c.type = 'blocked'
+		              LIMIT 1";
+		$blockRes = mysqli_query($conn, $blockQuery);
+		if ($blockRes && mysqli_num_rows($blockRes) > 0) {
+			$selected_friend = null;
+		} else {
+			$is_friend = false;
+			foreach ($friends as $f) {
+				if ($f['tween_id'] == $friend_id) {
+					$is_friend = true;
+					break;
+				}
 			}
-		}
-		if ($is_friend) {
-			$query = "SELECT m.id, m.sender_id, m.text_content, m.sent_at, m.is_edited, tu.username as sender_username, bu.full_name as sender_name
-			          FROM message m
-			          JOIN individual_message im ON m.id = im.message_id
-			          JOIN tween_user tu ON m.sender_id = tu.id
-			          JOIN bartauser bu ON tu.user_id = bu.id
-			          WHERE ((m.sender_id = $tween_id AND im.receiver_id = $friend_id) OR (m.sender_id = $friend_id AND im.receiver_id = $tween_id))
-			          AND m.is_deleted = 0
-			          ORDER BY m.sent_at ASC";
-			$result = mysqli_query($conn, $query);
-			$messages = [];
-			while ($row = mysqli_fetch_assoc($result)) {
-				$messages[] = $row;
+			if ($is_friend) {
+				$query = "SELECT m.id, m.sender_id, m.text_content, m.sent_at, m.is_edited, tu.username as sender_username, bu.full_name as sender_name
+				          FROM message m
+				          JOIN individual_message im ON m.id = im.message_id
+				          JOIN tween_user tu ON m.sender_id = tu.id
+				          JOIN bartauser bu ON tu.user_id = bu.id
+				          WHERE ((m.sender_id = $tween_id AND im.receiver_id = $friend_id) OR (m.sender_id = $friend_id AND im.receiver_id = $tween_id))
+				          AND m.is_deleted = 0
+				          ORDER BY m.sent_at ASC";
+				$result = mysqli_query($conn, $query);
+				$messages = [];
+				while ($row = mysqli_fetch_assoc($result)) {
+					$messages[] = $row;
+				}
+				$contact_info = $selected_friend;
+			} else {
+				$selected_friend = null;
 			}
-			$contact_info = $selected_friend;
 		}
 	}
 } elseif (isset($_GET['group'])) {

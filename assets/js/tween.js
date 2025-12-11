@@ -130,12 +130,91 @@ document.addEventListener('DOMContentLoaded', function () {
 			h3.textContent = contact.full_name;
 			small.textContent = '@' + contact.username;
 			p.textContent = contact.bio || '';
+			// Add tween_id to block button
+			const blockBtn = clone.querySelector('.btn-block');
+			if (blockBtn) {
+				const id = contact.id || contact.tween_id || contact.tweenId || contact.tweenId || '';
+				blockBtn.setAttribute('data-tween-id', id);
+			}
 		} else {
 			h3.textContent = contact.group_name;
 			p.textContent = 'Members: ' + (contact.members || []).map((m) => m.full_name).join(', ');
 		}
 		// Append the built clone into right panel
 		infoPanel.appendChild(clone);
+
+		// Attach event listeners to the new buttons
+		const unfriendBtn = clone.querySelector('button[title="Unfriend"]');
+		const blockBtn = clone.querySelector('button[title="Block"]');
+
+		if (unfriendBtn) {
+			unfriendBtn.addEventListener('click', function () {
+				showConfirmation(
+					{
+						title: 'Unfriend',
+						icon: '<i class="fa-solid fa-user-times"></i>',
+						message: 'Are you sure you want to unfriend this person?',
+						confirmText: 'Unfriend',
+					},
+					function () {
+						// Unfriend logic - placeholder
+					}
+				);
+			});
+		}
+
+		if (blockBtn) {
+			blockBtn.addEventListener('click', function () {
+				showConfirmation(
+					{
+						title: 'Block User',
+						icon: '<i class="fa-solid fa-ban"></i>',
+						message: 'Are you sure you want to block this person?',
+						confirmText: 'Block',
+					},
+					function () {
+						const tweenId = blockBtn.getAttribute('data-tween-id');
+						console.debug('block_user: confirmed (right-panel friend)', tweenId);
+						const form = new FormData();
+						form.append('tween_id', tweenId);
+						fetch('tween/block_user.php', {
+							method: 'POST',
+							body: form,
+						})
+							.then((r) => r.json())
+							.then((data) => {
+								if (data.success) {
+									loadFriendsData();
+									loadFriendsData();
+									refreshContacts(true);
+									// Remove from left panel contacts list
+									const username = document.querySelector('.user-details small').textContent.slice(1);
+									const contactItem = document.querySelector(`.contact-item[data-username="${username}"]`);
+									if (contactItem) contactItem.remove();
+									// Close the chat view
+									document.querySelector('.empty-state').style.display = '';
+									document.querySelector('.chat-container').style.display = 'none';
+									document.querySelector('.message-input').style.display = 'none';
+									document.querySelector('.middle-panel').classList.add('expanded');
+									document.querySelector('.right-panel').classList.add('hidden');
+									clearSelection();
+									if (pollAbortController) {
+										pollAbortController.abort();
+										pollAbortController = null;
+									}
+									currentTarget = null;
+									currentTargetType = null;
+									lastMessageId = 0;
+									lastActiveTime = 0;
+								} else {
+									console.error(data.error || 'Failed to block user');
+								}
+							})
+							.catch((err) => console.error(err));
+					}
+				);
+			});
+		}
 	}
 
 	function formatTime(datetime) {
@@ -278,10 +357,14 @@ document.addEventListener('DOMContentLoaded', function () {
 					const small = clone.querySelector('small');
 					const p = clone.querySelector('p');
 					const addFriendBtn = clone.querySelector('.btn-add-friend');
+					const blockBtn = clone.querySelector('.btn-block');
 
 					h3.textContent = data.full_name;
 					small.textContent = '@' + data.username;
 					p.textContent = data.bio || '';
+
+					// Add tween_id to block button
+					if (blockBtn) blockBtn.setAttribute('data-tween-id', data.id);
 
 					// Add friend request handler
 					if (addFriendBtn) {
@@ -298,6 +381,58 @@ document.addEventListener('DOMContentLoaded', function () {
 								sendFriendRequest(username, 'send');
 							};
 						}
+					}
+
+					// Attach block button listener
+					if (blockBtn) {
+						blockBtn.addEventListener('click', function () {
+							showConfirmation(
+								{
+									title: 'Block User',
+									icon: '<i class="fa-solid fa-ban"></i>',
+									message: 'Are you sure you want to block this person?',
+									confirmText: 'Block',
+								},
+								function () {
+									const tweenId = blockBtn.getAttribute('data-tween-id');
+									console.debug('block_user: confirmed (right-panel friend) ', tweenId);
+									const form = new FormData();
+									form.append('tween_id', tweenId);
+									fetch('tween/block_user.php', {
+										method: 'POST',
+										body: form,
+									})
+										.then((r) => r.json())
+										.then((data) => {
+											if (data.success) {
+												refreshContacts(true);
+												// Remove from left panel contacts list if it was a friend
+												const username = document.querySelector('.user-details small').textContent.slice(1);
+												const contactItem = document.querySelector(`.contact-item[data-username="${username}"]`);
+												if (contactItem) contactItem.remove();
+												// Close the chat view
+												document.querySelector('.empty-state').style.display = '';
+												document.querySelector('.chat-container').style.display = 'none';
+												document.querySelector('.message-input').style.display = 'none';
+												document.querySelector('.middle-panel').classList.add('expanded');
+												document.querySelector('.right-panel').classList.add('hidden');
+												clearSelection();
+												if (pollAbortController) {
+													pollAbortController.abort();
+													pollAbortController = null;
+												}
+												currentTarget = null;
+												currentTargetType = null;
+												lastMessageId = 0;
+												lastActiveTime = 0;
+											} else {
+												console.error(data.error || 'Failed to block user');
+											}
+										})
+										.catch((err) => console.error(err));
+								}
+							);
+						});
 					}
 
 					infoPanel.appendChild(clone);
@@ -907,6 +1042,7 @@ document.addEventListener('DOMContentLoaded', function () {
 						const item = document.createElement('div');
 						item.className = 'friend-item';
 						const fid = friend.id || friend.tween_id || friend.tweenId || '';
+						item.setAttribute('data-username', friend.username);
 						item.innerHTML = `
 							<span class="friend-name">${friend.full_name}</span>
 							<div class="friend-actions">
@@ -982,6 +1118,8 @@ document.addEventListener('DOMContentLoaded', function () {
 	function attachFriendActionListeners() {
 		// Unfriend buttons
 		document.querySelectorAll('.btn-unfriend').forEach((btn) => {
+			if (btn.dataset.unfriendListenerAdded) return;
+			btn.dataset.unfriendListenerAdded = '1';
 			btn.addEventListener('click', function () {
 				const tweenId = this.getAttribute('data-tween-id');
 				showConfirmation(
@@ -1003,39 +1141,56 @@ document.addEventListener('DOMContentLoaded', function () {
 
 		// Block buttons
 		document.querySelectorAll('.btn-block-user').forEach((btn) => {
-			btn.addEventListener('click', function () {
+			if (btn.dataset.blockListenerAdded) return;
+			btn.dataset.blockListenerAdded = '1';
+			btn.addEventListener('click', function (e) {
+				e.stopPropagation(); // Prevent delegated handler
 				const tweenId = this.getAttribute('data-tween-id');
-				showConfirmation(
-					{
-						title: 'Block User',
-						icon: '<i class="fa-solid fa-ban"></i>',
-						message: 'Are you sure you want to block this person?',
-						confirmText: 'Block',
-					},
-					function () {
-						const form = new FormData();
-						form.append('tween_id', tweenId);
-						fetch('tween/block_user.php', {
-							method: 'POST',
-							body: form,
-						})
-							.then((r) => r.json())
-							.then((data) => {
-								if (data.success) {
-									loadFriendsData();
-									refreshContacts(true);
-								} else {
-									console.error(data.error || 'Failed to block user');
+				const form = new FormData();
+				form.append('tween_id', tweenId);
+				fetch('tween/block_user.php', {
+					method: 'POST',
+					body: form,
+				})
+					.then((r) => r.json())
+					.then((data) => {
+						if (data.success) {
+							loadFriendsData();
+							refreshContacts(true);
+							// Remove from left panel contacts list
+							const item = this.closest('.friend-item');
+							const username = item.getAttribute('data-username');
+							const contactItem = document.querySelector(`.contact-item[data-username="${username}"]`);
+							if (contactItem) contactItem.remove();
+							// Close the chat view if the blocked user is currently selected
+							if (currentTarget === username && currentTargetType === 'friend') {
+								document.querySelector('.empty-state').style.display = '';
+								document.querySelector('.chat-container').style.display = 'none';
+								document.querySelector('.message-input').style.display = 'none';
+								document.querySelector('.middle-panel').classList.add('expanded');
+								document.querySelector('.right-panel').classList.add('hidden');
+								clearSelection();
+								if (pollAbortController) {
+									pollAbortController.abort();
+									pollAbortController = null;
 								}
-							})
-							.catch((err) => console.error(err));
-					}
-				);
+								currentTarget = null;
+								currentTargetType = null;
+								lastMessageId = 0;
+								lastActiveTime = 0;
+							}
+						} else {
+							console.error(data.error || 'Failed to block user');
+						}
+					})
+					.catch((err) => console.error(err));
 			});
 		});
 
 		// Unblock buttons
 		document.querySelectorAll('.btn-unblock').forEach((btn) => {
+			if (btn.dataset.unblockListenerAdded) return;
+			btn.dataset.unblockListenerAdded = '1';
 			btn.addEventListener('click', function () {
 				const tweenId = this.getAttribute('data-tween-id');
 				const form = new FormData();
@@ -1125,6 +1280,40 @@ document.addEventListener('DOMContentLoaded', function () {
 		});
 	}
 
+	// Delegated handler for blocking from left panel (friend list) - uses existing confirmation modal
+	document.body.addEventListener('click', function (e) {
+		const btn = e.target.closest('.btn-block-user');
+		if (!btn) return;
+		// Use the existing showConfirmation modal
+		const tweenId = btn.getAttribute('data-tween-id');
+		showConfirmation(
+			{
+				title: 'Block User',
+				icon: '<i class="fa-solid fa-ban"></i>',
+				message: 'Are you sure you want to block this person?',
+				confirmText: 'Block',
+			},
+			function () {
+				const form = new FormData();
+				form.append('tween_id', tweenId);
+				fetch('tween/block_user.php', {
+					method: 'POST',
+					body: form,
+				})
+					.then((r) => r.json())
+					.then((data) => {
+						if (data.success) {
+							loadFriendsData();
+							refreshContacts(true);
+						} else {
+							console.error(data.error || 'Failed to block user');
+						}
+					})
+					.catch((err) => console.error(err));
+			}
+		);
+	});
+
 	// Load notification dot status on page load
 	fetch('api/fetch_friends_data.php')
 		.then((r) => r.json())
@@ -1197,7 +1386,12 @@ document.addEventListener('DOMContentLoaded', function () {
 		const confirmBtn = confirmationModal.querySelector('.btn-confirm');
 		confirmBtn.textContent = confirmText;
 		confirmBtn.onclick = function () {
-			onConfirm();
+			console.debug('confirmation confirmed for', title);
+			try {
+				onConfirm();
+			} catch (e) {
+				console.error('confirmation onConfirm error', e);
+			}
 			confirmationModal.classList.remove('show');
 		};
 		confirmationModal.classList.add('show');
@@ -1347,7 +1541,38 @@ document.addEventListener('DOMContentLoaded', function () {
 					confirmText: 'Block',
 				},
 				function () {
-					// Block logic
+					const tweenId = blockBtn.getAttribute('data-tween-id');
+					const form = new FormData();
+					form.append('tween_id', tweenId);
+					console.debug('block_user: fetch start (delegated)', tweenId);
+					fetch('tween/block_user.php', {
+						method: 'POST',
+						body: form,
+					})
+						.then((r) => r.json())
+						.then((data) => {
+							if (data.success) {
+								refreshContacts(true);
+								// Close the chat view
+								document.querySelector('.empty-state').style.display = '';
+								document.querySelector('.chat-container').style.display = 'none';
+								document.querySelector('.message-input').style.display = 'none';
+								document.querySelector('.middle-panel').classList.add('expanded');
+								document.querySelector('.right-panel').classList.add('hidden');
+								clearSelection();
+								if (pollAbortController) {
+									pollAbortController.abort();
+									pollAbortController = null;
+								}
+								currentTarget = null;
+								currentTargetType = null;
+								lastMessageId = 0;
+								lastActiveTime = 0;
+							} else {
+								console.error(data.error || 'Failed to block user');
+							}
+						})
+						.catch((err) => console.error(err));
 				}
 			);
 		});

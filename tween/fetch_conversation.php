@@ -46,6 +46,18 @@ if (isset($_GET['u'])) {
 		exit;
 	}
 
+	// Check if blocked - treat as not found
+	$blockQuery = "SELECT *
+          FROM connection c
+          WHERE ((c.sender_id = $tween_id AND c.receiver_id = $friend_id) OR (c.sender_id = $friend_id AND c.receiver_id = $tween_id))
+          AND c.type = 'blocked'
+          LIMIT 1";
+	$blockRes = mysqli_query($conn, $blockQuery);
+	if ($blockRes && mysqli_num_rows($blockRes) > 0) {
+		echo json_encode(['error' => 'Friend not found']);
+		exit;
+	}
+
 	// Verify friendship from connection table
 	$checkQuery = "SELECT *
           FROM connection c
