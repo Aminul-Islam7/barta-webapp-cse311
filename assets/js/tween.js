@@ -191,11 +191,31 @@ document.addEventListener('DOMContentLoaded', function () {
 		return text.substring(0, maxLen - 3) + '...';
 	}
 
+	// Returns a short elapsed time label for a given timestamp
+	function formatElapsedTime(datetime) {
+		if (!datetime) return '';
+		// Support Date objects or timestamp strings
+		const dt = typeof datetime === 'object' ? datetime : new Date(datetime);
+		if (isNaN(dt.getTime())) return '';
+		const seconds = Math.floor((Date.now() - dt.getTime()) / 1000);
+		if (seconds < 60) return 'now';
+		if (seconds < 3600) return Math.floor(seconds / 60) + 'm';
+		if (seconds < 86400) return Math.floor(seconds / 3600) + 'h';
+		if (seconds < 604800) return Math.floor(seconds / 86400) + 'd';
+		if (seconds < 31536000) return Math.floor(seconds / 604800) + 'w';
+		return Math.floor(seconds / 31536000) + 'y';
+	}
+
 	function updateContactPreview(targetType, target, msg, meId) {
 		if (!targetType || !target || !msg) return;
 		let previewText = msg.text_content || '';
 		if (Number(msg.sender_id) === Number(meId)) previewText = 'You: ' + previewText;
 		previewText = truncateText(previewText, 40);
+		// Append elapsed time if message includes sent_at
+		if (msg && msg.sent_at) {
+			const elapsed = formatElapsedTime(msg.sent_at);
+			if (elapsed) previewText += ' \u2022 ' + elapsed;
+		}
 		if (targetType === 'friend') {
 			const el = document.querySelector(`.contact-item[data-username="${target}"] .contact-preview`);
 			if (el) el.textContent = previewText;
@@ -316,7 +336,7 @@ document.addEventListener('DOMContentLoaded', function () {
 								sendFriendRequest(username, 'send');
 							};
 						}
-											} else {
+					} else {
 						if (addFriendBtn) {
 							addFriendBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Cancel Request';
 							addFriendBtn.disabled = false;
@@ -324,7 +344,7 @@ document.addEventListener('DOMContentLoaded', function () {
 								sendFriendRequest(username, 'cancel');
 							};
 						}
-											}
+					}
 				}
 			})
 			.catch((err) => {
@@ -368,12 +388,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				meId = data.me_id;
 				renderMessages(data.messages, data.me_id);
 				renderContact(data.contact, data.type); // set current target for sending
-				// Move the contact to top of the list to reflect most recent activity
-				if (data.type === 'friend' && data.contact && data.contact.username) {
-					moveContactToTop('friend', data.contact.username);
-				} else if (data.type === 'group' && data.contact && data.contact.id) {
-					moveContactToTop('group', data.contact.id);
-				}
+				// (No move-to-top on click) — keep ordering changes only for new message events
 				if (data.type === 'friend') {
 					currentTargetType = 'friend';
 					currentTarget = data.contact.username;
@@ -394,6 +409,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	if (bc) {
 		bc.onmessage = function (event) {
 			const payload = event.data || {};
+			console.debug && console.debug('bc.onmessage received', payload);
 			const { type, messageId, newText, message, me_id, target_type, target } = payload;
 			// Only handle events if we're viewing a conversation
 			if (!currentTargetType || !currentTarget) return;
@@ -418,25 +434,38 @@ document.addEventListener('DOMContentLoaded', function () {
 				return;
 			}
 			if (type === 'send' && message) {
-				// if the message belongs to the currently-open conversation, append
+				console.debug && console.debug('bc.onmessage send', { message, target_type, target });
+				// Check if this message is for the conversation we're currently viewing
 				if (target_type === currentTargetType && String(target) === String(currentTarget)) {
-					// avoid duplicates
+					// Viewing this conversation - append message
 					if (!document.querySelector(`.message-wrapper[data-message-id="${message.id}"]`)) {
 						appendMessage(message, me_id);
 						lastMessageId = Math.max(lastMessageId, message.id);
 					}
-					// Update contact preview as well
-					updateContactPreview(target_type, target, message, me_id);
-					// Move to top for current target conversation
-					moveContactToTop(target_type === 'friend' ? 'friend' : 'group', target);
-				} else {
-					// Not the current conversation: only update preview and reorder lists (immediate)
-					updateContactPreview(target_type, target, message, me_id);
-					moveContactToTop(target_type === 'friend' ? 'friend' : 'group', target);
 				}
-				return;
+				// Always update contact preview and move to top (whether viewing this conversation or not)
+				updateContactPreview(target_type, target, message, me_id);
+				moveContactToTop(target_type === 'friend' ? 'friend' : 'group', target);
 			}
+			return;
 		};
+	}
+
+	// Move a contact or group to the top of its list
+	function moveContactToTop(type, identifier) {
+		if (type === 'friend') {
+			const contactsList = document.querySelector('.contacts-list');
+			const item = document.querySelector(`.contact-item[data-username="${identifier}"][data-is-friend="true"]`);
+			if (contactsList && item) {
+				contactsList.insertBefore(item, contactsList.firstChild);
+			}
+		} else if (type === 'group') {
+			const groupsList = document.querySelector('.groups-list');
+			const item = document.querySelector(`.group-item[data-group-id="${identifier}"]`);
+			if (groupsList && item) {
+				groupsList.insertBefore(item, groupsList.firstChild);
+			}
+		}
 	}
 
 	// Highlight selected contact
@@ -655,7 +684,16 @@ document.addEventListener('DOMContentLoaded', function () {
 		const previewDiv = document.createElement('div');
 		previewDiv.className = 'text-muted contact-preview';
 		if (isFriend) {
-			previewDiv.textContent = 'Click to chat';
+			let p = 'Click to chat';
+			if (contact.last_message_text) {
+				p = (contact.last_message_sender_id && Number(contact.last_message_sender_id) === Number(meId) ? 'You: ' : '') + (contact.last_message_text || '');
+				p = truncateText(p, 40);
+				if (contact.last_message_at) {
+					const elapsed = formatElapsedTime(contact.last_message_at);
+					if (elapsed) p += ' \u2022 ' + elapsed;
+				}
+			}
+			previewDiv.textContent = p;
 		} else {
 			// Show bio for non-friends
 			const bio = contact.bio || 'No bio';
@@ -723,7 +761,12 @@ document.addEventListener('DOMContentLoaded', function () {
 							if (friend.last_message_sender_id && Number(friend.last_message_sender_id) === Number(meId)) {
 								text = 'You: ' + text;
 							}
-							preview.textContent = truncateText(text, 40);
+							text = truncateText(text, 40);
+							if (friend.last_message_at) {
+								const elapsed = formatElapsedTime(friend.last_message_at);
+								if (elapsed) text += ' \u2022 ' + elapsed;
+							}
+							preview.textContent = text;
 						}
 						// append in order
 						contactsList.appendChild(el);
@@ -751,7 +794,12 @@ document.addEventListener('DOMContentLoaded', function () {
 							if (group.last_message_sender_id && Number(group.last_message_sender_id) === Number(meId)) {
 								text = 'You: ' + text;
 							}
-							preview.textContent = truncateText(text, 40);
+							text = truncateText(text, 40);
+							if (group.last_message_at) {
+								const elapsed = formatElapsedTime(group.last_message_at);
+								if (elapsed) text += ' \u2022 ' + elapsed;
+							}
+							preview.textContent = text;
 						}
 						groupsList.appendChild(el);
 					});
@@ -1239,6 +1287,7 @@ document.addEventListener('DOMContentLoaded', function () {
 					if (sendBtn) sendBtn.disabled = false;
 					return;
 				}
+				console.debug && console.debug('sendMessage: server response', data);
 				// Append newly created message
 				appendMessage(data.message, data.me_id);
 				// Update contact preview for the conversation
@@ -1250,6 +1299,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				lastActiveTime = data.message.sent_at || lastActiveTime;
 				// Broadcast the sent message to other same-user tabs
 				if (bc) {
+					console.debug && console.debug('sendMessage: bc.postMessage payload', { type: 'send', message: data.message, me_id: data.me_id, target_type: data.target_type, target: data.target });
 					bc.postMessage({ type: 'send', message: data.message, me_id: data.me_id, target_type: data.target_type, target: data.target, source: TAB_ID });
 				}
 				// Abort current poll (it will naturally restart on its own)
