@@ -55,6 +55,27 @@ if ($friend_requests_result) {
 	}
 }
 
+// Fetch friend connections for each child
+$child_connections = [];
+
+foreach ($children as $child) {
+    $cid = $child['id']; // tween_user.id
+
+    $query = "SELECT c.type, c.added_at, tu.id AS friend_tween_id, tu.username
+        	  FROM connection c
+        	  JOIN tween_user tu ON ((c.sender_id = $cid AND tu.id = c.receiver_id)
+              OR (c.receiver_id = $cid AND tu.id = c.sender_id))
+       		  WHERE c.sender_id = $cid OR c.receiver_id = $cid";
+
+    $result = mysqli_query($conn, $query);
+
+    if ($result) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $child_connections[$cid][] = $row;
+        }
+    }
+}
+
 // Fetch flagged messages pending approval (with blocked_word highlight)
 $flagged_messages = [];
 
@@ -238,7 +259,6 @@ foreach ($children as $child) {
 						<tr>
 							<th>Child Name</th>
 							<th>Requester</th>
-							<th>Direction</th>
 							<th>Bio</th>
 							<th>Requested At</th>
 							<th>Actions</th>
@@ -427,48 +447,8 @@ foreach ($children as $child) {
 		<!-- E. List of Child's Friends -->
 		<section class="dashboard-panel">
 			<h2 class="dashboard-panel__title">👫 Tween's Friend List</h2>
-			<?php
-			$children_query = "SELECT * FROM tween_user WHERE parent_id = $parent_id";
-			$children_result = mysqli_query($conn, $children_query);
-			$children = [];
-			if ($children_result) {
-				while ($child = mysqli_fetch_assoc($children_result)) {
-					// Get all connected tweens (friends)
-					$friends = [];
-					$friend_query = "SELECT t.id, t.username, t.bio
-						FROM connection_request cr
-						JOIN tween_user t ON t.id = cr.requester_id
-						WHERE cr.receiver_id = {$child['id']} AND cr.receiver_accepted = 1
-						UNION
-						SELECT t.id, t.username, t.bio
-						FROM connection_request cr
-						JOIN tween_user t ON t.id = cr.receiver_id
-						WHERE cr.requester_id = {$child['id']} AND cr.receiver_accepted = 1)";
-					
-					$friend_result = mysqli_query($conn, $friend_query);
-					// Check blocked status of each friend		
-					if ($friend_result) {
-						while ($row = mysqli_fetch_assoc($friend_result)) {
-							// Excluding info of the child themselves in the list
-							if ($row['id'] != $child['id']) {
-								// Check if this friend is blocked
-								$block_check_query = "SELECT * FROM connection 
-													  WHERE ((sender_id = {$child['id']} AND receiver_id = {$row['id']}) OR 
-													  (sender_id = {$row['id']} AND receiver_id = {$child['id']})) AND type = 'blocked'";
-								$block_check_result = mysqli_query($conn, $block_check_query);
-								
-								$row['is_blocked'] = ($block_check_result && mysqli_num_rows($block_check_result) > 0);
-								$friends[] = $row;
-							}
-						}
-					}
-					$child['friends'] = $friends;
-					$children[] = $child;
-				}
-			}
-			?>
+
 			<?php if (empty($children)): ?>
-				<!-- Checking if children are linked -->
 				<div class="dashboard-empty">
 					<div class="dashboard-empty__icon">👫</div>
 					<p>No child linked yet.</p>
@@ -477,68 +457,47 @@ foreach ($children as $child) {
 
 			<?php foreach ($children as $child): ?>
 				<h3><?php echo htmlspecialchars($child['username']); ?>'s Friends</h3>
-				<?php if (count($child['friends']) > 0): ?>
+
+				<?php if (!empty($child_connections[$child['id']])): ?>
 					<table class="dashboard-table">
 						<thead>
 							<tr>
-								<th>Friend Name</th>
-								<th>Bio</th>
+								<th>Friend</th>
+								<th>Status</th>
 								<th>Actions</th>
 							</tr>
 						</thead>
 						<tbody>
-							<?php foreach ($child['friends'] as $friend): ?>
-								<tr>
-									<td><?php echo htmlspecialchars($friend['username']); ?></td>
-									<td><?php echo htmlspecialchars(substr($friend['bio'] ?? '', 0, 50)); ?></td>
-									<td>
-										<?php if ($friend['is_blocked']): ?>
-											<span class="badge badge--blocked">Blocked</span>
+						<?php foreach ($child_connections[$child['id']] as $conn): ?>
+							<tr>
+								<td><?php echo htmlspecialchars($conn['username']); ?></td>
+								<td><?php echo htmlspecialchars($conn['type']); ?></td>
+								<td>
+									<form method="POST" action="parent/manage_blocking_child_friend.php" style="display:inline;">
+										<input type="hidden" name="child_id" value="<?php echo $child['id']; ?>">
+										<input type="hidden" name="friend_id" value="<?php echo $conn['friend_tween_id']; ?>">
+
+										<?php if ($conn['type'] === 'blocked'): ?>
+											<button class="btn btn-primary" name="action" value="unblock">
+												✅ Unblock
+											</button>
 										<?php else: ?>
-											<span class="badge badge--active">Active</span>
+											<button class="btn btn-secondary" name="action" value="block">
+												🚫 Block
+											</button>
 										<?php endif; ?>
-									</td>
-									<td>
-										<div class="dashboard-actions">
-											<?php if ($friend['is_blocked']): ?>
-												<!-- Unblock friend -->
-												<form method="POST" action="parent/manage_blocking_child_friend.php" style="display: inline;">
-													<input type="hidden" name="action" value="unblock">
-													<input type="hidden" name="child_id" value="<?php echo $child['id']; ?>">
-													<input type="hidden" name="friend_id" value="<?php echo $friend['id']; ?>">
-													<button type="submit" class="btn btn-secondary" onclick="return confirm('Are you sure you want to unblock this friend?')">
-													✅ Unblock</button>
-												</form>
-											<?php else: ?>
-												<!-- Block friend -->
-												<form method="POST" action="parent/manage_blocking_child_friend.php" style="display: inline;">
-													<input type="hidden" name="child_id" value="<?php echo $child['id']; ?>">
-													<input type="hidden" name="friend_id" value="<?php echo $friend['id']; ?>">
-													<button type="submit" class="btn btn-secondary" onclick="return confirm('Are you sure you want to block this friend?')">
-													🚫 Block</button>
-												</form>
-											<?php endif; ?>
-											<!-- Remove friend -->
-											<form method="POST" action="parent/manage_blocking_child_friend.php" style="display: inline;">
-												<input type="hidden" name="child_id" value="<?php echo $child['id']; ?>">
-												<input type="hidden" name="friend_id" value="<?php echo $friend['id']; ?>">
-												<button type="submit" class="btn btn-secondary">❌ Remove</button>
-											</form>
-										</div>
-									</td>
-								</tr>
-							<?php endforeach; ?>
+
+										<button class="btn btn-secondary" name="action" value="remove">
+											❌ Remove
+										</button>
+									</form>
+								</td>
+							</tr>
+						<?php endforeach; ?>
 						</tbody>
 					</table>
 				<?php else: ?>
-					<div class="dashboard-empty">
-						<div class="dashboard-empty__icon">👫</div>
-						<?php if (empty($children)  || empty($child['username'])): ?>
-							<p>No child linked yet.</p>
-						<?php else: ?>
-							<p>No friends for <?php echo htmlspecialchars($child['username']); ?> yet.</p>
-						<?php endif; ?>
-					</div>
+					<p>No friends found.</p>
 				<?php endif; ?>
 			<?php endforeach; ?>
 		</section>
