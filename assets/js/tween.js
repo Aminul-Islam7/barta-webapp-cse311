@@ -148,22 +148,61 @@ document.addEventListener('DOMContentLoaded', function () {
 		const blockBtn = clone.querySelector('button[title="Block"]');
 
 		if (unfriendBtn) {
+			const uid = contact.id || contact.tween_id || contact.tweenId || '';
+			unfriendBtn.setAttribute('data-tween-id', uid);
 			unfriendBtn.addEventListener('click', function () {
 				showConfirmation(
 					{
 						title: 'Unfriend',
-						icon: '<i class="fa-solid fa-user-times"></i>',
+						icon: '<i class="fa-solid fa-user-xmark"></i>',
 						message: 'Are you sure you want to unfriend this person?',
 						confirmText: 'Unfriend',
 					},
 					function () {
-						// Unfriend logic - placeholder
+						const friendId = unfriendBtn.getAttribute('data-tween-id');
+						const form = new FormData();
+						form.append('friend_id', friendId);
+						fetch('tween/unfriend.php', {
+							method: 'POST',
+							body: form,
+						})
+							.then((r) => r.json())
+							.then((data) => {
+								if (data.success) {
+									loadFriendsData();
+									refreshContacts(true);
+									const contactItem = document.querySelector(`.contact-item[data-username="${contact.username}"]`);
+									if (contactItem) contactItem.remove();
+
+									// Close chat if it was the unfriend target
+									if (currentTarget === contact.username && currentTargetType === 'friend') {
+										document.querySelector('.empty-state').style.display = '';
+										document.querySelector('.chat-container').style.display = 'none';
+										document.querySelector('.message-input').style.display = 'none';
+										document.querySelector('.middle-panel').classList.add('expanded');
+										document.querySelector('.right-panel').classList.add('hidden');
+										clearSelection();
+										if (pollAbortController) {
+											pollAbortController.abort();
+											pollAbortController = null;
+										}
+										currentTarget = null;
+										currentTargetType = null;
+										lastMessageId = 0;
+										lastActiveTime = 0;
+									}
+								} else {
+									console.error(data.message || 'Failed to unfriend');
+								}
+							})
+							.catch((err) => console.error(err));
 					}
 				);
 			});
 		}
 
 		if (blockBtn) {
+			blockBtn.setAttribute('data-tween-id', contact.tween_id);
 			blockBtn.addEventListener('click', function () {
 				showConfirmation(
 					{
@@ -185,27 +224,28 @@ document.addEventListener('DOMContentLoaded', function () {
 							.then((data) => {
 								if (data.success) {
 									loadFriendsData();
-									loadFriendsData();
 									refreshContacts(true);
 									// Remove from left panel contacts list
 									const username = document.querySelector('.user-details small').textContent.slice(1);
 									const contactItem = document.querySelector(`.contact-item[data-username="${username}"]`);
 									if (contactItem) contactItem.remove();
-									// Close the chat view
-									document.querySelector('.empty-state').style.display = '';
-									document.querySelector('.chat-container').style.display = 'none';
-									document.querySelector('.message-input').style.display = 'none';
-									document.querySelector('.middle-panel').classList.add('expanded');
-									document.querySelector('.right-panel').classList.add('hidden');
-									clearSelection();
-									if (pollAbortController) {
-										pollAbortController.abort();
-										pollAbortController = null;
+									// If this was the currently selected friend, close the chat
+									if (currentTarget === contact.username && currentTargetType === 'friend') {
+										document.querySelector('.empty-state').style.display = '';
+										document.querySelector('.chat-container').style.display = 'none';
+										document.querySelector('.message-input').style.display = 'none';
+										document.querySelector('.middle-panel').classList.add('expanded');
+										document.querySelector('.right-panel').classList.add('hidden');
+										clearSelection();
+										if (pollAbortController) {
+											pollAbortController.abort();
+											pollAbortController = null;
+										}
+										currentTarget = null;
+										currentTargetType = null;
+										lastMessageId = 0;
+										lastActiveTime = 0;
 									}
-									currentTarget = null;
-									currentTargetType = null;
-									lastMessageId = 0;
-									lastActiveTime = 0;
 								} else {
 									console.error(data.error || 'Failed to block user');
 								}
@@ -1122,22 +1162,48 @@ document.addEventListener('DOMContentLoaded', function () {
 			btn.dataset.unfriendListenerAdded = '1';
 			btn.addEventListener('click', function () {
 				const tweenId = this.getAttribute('data-tween-id');
-				showConfirmation(
-					{
-						title: 'Unfriend',
-						icon: '<i class="fa-solid fa-user-xmark"></i>',
-						message: 'Are you sure you want to unfriend this person?',
-						confirmText: 'Unfriend',
-					},
-					function () {
-						// Unfriend logic placeholder (implement endpoint)
-						console.log('Unfriend tween:', tweenId);
-						// After success, reload friends data
-						loadFriendsData();
-					}
-				);
-			});
-		});
+				const form = new FormData();
+				form.append('friend_id', tweenId);
+				// Capture 'this' for use inside promise
+				const btn = this;
+				fetch('tween/unfriend.php', {
+					method: 'POST',
+					body: form,
+				})
+					.then((r) => r.json())
+					.then((data) => {
+						if (data.success) {
+							loadFriendsData();
+							refreshContacts(true);
+							// Remove from left panel contacts list
+							const item = btn.closest('.friend-item');
+									const username = item.getAttribute('data-username');
+									const contactItem = document.querySelector(`.contact-item[data-username="${username}"]`);
+									if (contactItem) contactItem.remove();
+									// If this was the currently selected friend, close the chat
+									if (currentTarget === username && currentTargetType === 'friend') {
+										document.querySelector('.empty-state').style.display = '';
+										document.querySelector('.chat-container').style.display = 'none';
+										document.querySelector('.message-input').style.display = 'none';
+										document.querySelector('.middle-panel').classList.add('expanded');
+										document.querySelector('.right-panel').classList.add('hidden');
+										clearSelection();
+										if (pollAbortController) {
+											pollAbortController.abort();
+											pollAbortController = null;
+										}
+										currentTarget = null;
+										currentTargetType = null;
+										lastMessageId = 0;
+										lastActiveTime = 0;
+									}
+								} else {
+									console.error(data.message || 'Failed to unfriend');
+								}
+							})
+							.catch((err) => console.error(err));
+						});
+				});
 
 		// Block buttons
 		document.querySelectorAll('.btn-block-user').forEach((btn) => {
@@ -1511,72 +1577,8 @@ document.addEventListener('DOMContentLoaded', function () {
 		}
 	});
 
-	// Unfriend and Block buttons
-	const unfriendBtn = document.querySelector('.action-buttons button[title="Unfriend"]');
-	const blockBtn = document.querySelector('.action-buttons button[title="Block"]');
+	// Unfriend and Block buttons are handled in renderContact()
 
-	if (unfriendBtn) {
-		unfriendBtn.addEventListener('click', function () {
-			showConfirmation(
-				{
-					title: 'Unfriend',
-					icon: '<i class="fa-solid fa-user-times"></i>',
-					message: 'Are you sure you want to unfriend this person?',
-					confirmText: 'Unfriend',
-				},
-				function () {
-					// Unfriend logic
-				}
-			);
-		});
-	}
-
-	if (blockBtn) {
-		blockBtn.addEventListener('click', function () {
-			showConfirmation(
-				{
-					title: 'Block User',
-					icon: '<i class="fa-solid fa-ban"></i>',
-					message: 'Are you sure you want to block this person?',
-					confirmText: 'Block',
-				},
-				function () {
-					const tweenId = blockBtn.getAttribute('data-tween-id');
-					const form = new FormData();
-					form.append('tween_id', tweenId);
-					console.debug('block_user: fetch start (delegated)', tweenId);
-					fetch('tween/block_user.php', {
-						method: 'POST',
-						body: form,
-					})
-						.then((r) => r.json())
-						.then((data) => {
-							if (data.success) {
-								refreshContacts(true);
-								// Close the chat view
-								document.querySelector('.empty-state').style.display = '';
-								document.querySelector('.chat-container').style.display = 'none';
-								document.querySelector('.message-input').style.display = 'none';
-								document.querySelector('.middle-panel').classList.add('expanded');
-								document.querySelector('.right-panel').classList.add('hidden');
-								clearSelection();
-								if (pollAbortController) {
-									pollAbortController.abort();
-									pollAbortController = null;
-								}
-								currentTarget = null;
-								currentTargetType = null;
-								lastMessageId = 0;
-								lastActiveTime = 0;
-							} else {
-								console.error(data.error || 'Failed to block user');
-							}
-						})
-						.catch((err) => console.error(err));
-				}
-			);
-		});
-	}
 
 	// Profile Button
 	const profileBtn = document.querySelector('.profile-content');
