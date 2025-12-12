@@ -1,5 +1,8 @@
 // Parent dashboard actions
-document.addEventListener('DOMContentLoaded', function() {
+
+document.addEventListener("DOMContentLoaded", () => {
+
+// CHILD MESSAGE LIMIT DETAILS
     document.querySelectorAll('.view-details-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const childId = this.dataset.childId;
@@ -14,8 +17,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(res => res.json())
                 .then(data => {
                     if (data.error) {
-                        detailsContainer.innerHTML = `<span style="color:red;">${data.error}</span>`;
-                    } else {   						
+                        detailsContainer.innerHTML =
+                            `<span style="color:red;">${data.error}</span>`;
+                    } else {
                         detailsContainer.innerHTML = `
                             <div class="child-card__stat">
                                 <span class="child-card__stat-label">Daily Limit:</span>
@@ -34,9 +38,27 @@ document.addEventListener('DOMContentLoaded', function() {
                     detailsContainer.style.display = 'block';
                 })
                 .catch(err => {
-                    detailsContainer.innerHTML = `<span style="color:red;">Error fetching data</span>`;
+                    detailsContainer.innerHTML =
+                        `<span style="color:red;">Error fetching data</span>`;
                     detailsContainer.style.display = 'block';
                 });
         });
     });
+
+//SETTINGS SIDE PANEL
+    const openBtn = document.querySelector(".p-dashboard-parent__settings-btn");
+    const panel = document.getElementById("p-dashboard-parent_settings-panel");
+    const closeBtn = document.getElementById("p-dashboard-parent__settings-close-btn");
+
+    if (openBtn && panel && closeBtn) {
+        openBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            panel.classList.add("open");
+        });
+
+        closeBtn.addEventListener("click", () => {
+            panel.classList.remove("open");
+        });
+    }
+
 });

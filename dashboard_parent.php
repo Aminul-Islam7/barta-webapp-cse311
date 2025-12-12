@@ -137,6 +137,48 @@ foreach ($children as $child) {
 				<?php echo htmlspecialchars('Welcome ' . $parent_data['full_name'] . '!' ?? 'Welcome Parent!'); ?>
 			</div>
 			<a href="parent/settings.php" class="btn btn-secondary p-dashboard-parent__settings-btn">⚙️ Settings</a>
+			<!-- Setting Panel -->
+			<div id="settingsPanel" class="p-dashboard-parent_settings-panel">
+				<div class="p-dashboard-parent_settings-header">
+					<h2>Parent Settings</h2>
+					<button id="closeSettings" class="p-dashboard-parent_settings-close-btn">✖</button>
+				</div>
+
+				<div class="p-dashboard-parent_settings-section">
+					<!-- Update Name -->
+					<h3>Update Full Name</h3>
+					<form method="POST" action="parent/update_parent_settings.php">
+						<input type="hidden" name="action" value="update_name">
+
+						<label>Full Name</label>
+						<input type="text" name="full_name"
+							value="<?php echo htmlspecialchars($parent_data['full_name']); ?>"
+							required>
+
+						<button type="submit" class="btn btn-primary">Update Name</button>
+					</form>
+				</div>
+
+				<hr>
+
+				<div class="settings-section">
+					<!-- Update Password -->
+					<h3>Change Password</h3>
+					<form method="POST" action="parent/update_parent_settings.php">
+						<input type="hidden" name="action" value="update_password">
+
+						<label>Old Password</label>
+						<input type="password" name="old_password" required>
+
+						<label>New Password</label>
+						<input type="password" name="new_password" required>
+
+						<button type="submit" class="btn btn-primary">Update Password</button>
+					</form>
+				</div>
+			</div>
+
+			<!-- Logout Button -->
 			<a href="logout.php" class="btn btn-secondary p-dashboard-parent__settings-btn">Logout</a>
 		</div>
 	</header>
@@ -379,7 +421,7 @@ foreach ($children as $child) {
 			<?php else: ?>
 				<div class="dashboard-empty">
 					<div class="dashboard-empty__icon">👶</div>
-					<p>No linked children yet. Visit Settings to link a child.</p>
+					<p>No linked children yet.</p>
 				</div>
 			<?php endif; ?>
 		</section>

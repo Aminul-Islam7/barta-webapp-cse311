@@ -1370,6 +1370,50 @@ input[type='color'] {
 	font-size: 0.9rem;
 }
 
+.p-dashboard-parent_settings-panel{
+    position: fixed;
+    top: 0;
+    left: -350px; /* hidden */
+    width: 350px;
+    height: 100%;
+    background: #ffffff;
+    padding: 20px;
+    box-shadow: 3px 0 10px rgba(0,0,0,0.2);
+    transition: 0.3s ease;
+    z-index: 2000;
+    overflow-y: auto;
+}
+
+.p-dashboard-parent_settings-panel.open {
+    left: 0;
+}
+
+.p-dashboard-parent_settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.p-dashboard-parent_settings-close-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.p-dashboard-parent_settings-section {
+    margin-top: 20px;
+}
+
+.p-dashboard-parent_settings-section input {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    margin-bottom: 12px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
 /* Main Content */
 .p-dashboard-parent__content {
 	flex: 1;
