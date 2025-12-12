@@ -1,8 +1,5 @@
-// Parent dashboard actions
-
 document.addEventListener("DOMContentLoaded", () => {
-
-// CHILD MESSAGE LIMIT DETAILS
+//CHILD MESSAGE LIMIT DETAILS
     document.querySelectorAll('.view-details-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const childId = this.dataset.childId;
@@ -47,8 +44,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 //SETTINGS SIDE PANEL
     const openBtn = document.querySelector(".p-dashboard-parent__settings-btn");
-    const panel = document.getElementById("p-dashboard-parent_settings-panel");
-    const closeBtn = document.getElementById("p-dashboard-parent__settings-close-btn");
+    const panel = document.getElementById("settingsPanel");
+    const closeBtn = document.getElementById("closeSettings");
 
     if (openBtn && panel && closeBtn) {
         openBtn.addEventListener("click", (e) => {
