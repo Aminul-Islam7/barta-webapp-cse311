@@ -11,7 +11,9 @@ $tween_id = $_SESSION['tween_id'];
 require "../db.php";
 
 // Check if active
-$query = "SELECT is_active, parent_id FROM tween_user WHERE user_id = $user_id";
+$query = "SELECT is_active, parent_id
+          FROM tween_user
+          WHERE user_id = $user_id";
 $result = mysqli_query($conn, $query);
 $row = mysqli_fetch_assoc($result);
 if ($row['is_active'] == 1 && $row['parent_id']) {
@@ -20,7 +22,9 @@ if ($row['is_active'] == 1 && $row['parent_id']) {
 }
 
 // Get full_name
-$query = "SELECT full_name FROM bartauser WHERE id = $user_id";
+$query = "SELECT full_name
+          FROM bartauser
+          WHERE id = $user_id";
 $result = mysqli_query($conn, $query);
 $user = mysqli_fetch_assoc($result);
 $full_name = $user['full_name'];
@@ -32,7 +36,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['parent_email'])) {
 		$error = 'Invalid email address';
 	} else {
 		// Check if parent exists and get parent_id
-		$query = "SELECT pu.id FROM parent_user pu JOIN bartauser bu ON pu.user_id = bu.id WHERE bu.email = '$parent_email'";
+		$query = "SELECT pu.id
+		          FROM parent_user pu
+		          JOIN bartauser bu ON pu.user_id = bu.id
+		          WHERE bu.email = '$parent_email'";
 		$result = mysqli_query($conn, $query);
 		if (mysqli_num_rows($result) == 0) {
 			$error = 'Parent email not found. Please ensure your parent has registered.';
@@ -40,13 +47,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['parent_email'])) {
 			$parent_row = mysqli_fetch_assoc($result);
 			$parent_id = $parent_row['id'];
 			// Check if request already exists
-			$query = "SELECT status FROM tween_link_request WHERE tween_id = $tween_id AND parent_id = $parent_id";
+			$query = "SELECT status
+			          FROM tween_link_request
+			          WHERE tween_id = $tween_id AND parent_id = $parent_id";
 			$result_check = mysqli_query($conn, $query);
 			if (mysqli_num_rows($result_check) > 0) {
 				$error = 'A link request to this parent already exists. Please wait for their approval.';
 			} else {
 				// Insert request
-				$query = "INSERT INTO tween_link_request (tween_id, parent_id, status) VALUES ($tween_id, $parent_id, 'pending')";
+				$query = "INSERT INTO tween_link_request (tween_id, parent_id, status)
+				          VALUES ($tween_id, $parent_id, 'pending')";
 				if (mysqli_query($conn, $query)) {
 					$success = 'Link request sent successfully!';
 				} else {
@@ -61,7 +71,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['parent_email'])) {
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['cancel_parent_id'])) {
 	$cancel_parent_id = (int)$_POST['cancel_parent_id'];
 	if ($cancel_parent_id > 0) {
-		$query = "DELETE FROM tween_link_request WHERE tween_id = $tween_id AND parent_id = $cancel_parent_id";
+		$query = "DELETE FROM tween_link_request
+		          WHERE tween_id = $tween_id AND parent_id = $cancel_parent_id";
 		$res = mysqli_query($conn, $query);
 		if ($res && mysqli_affected_rows($conn) > 0) {
 			$success = 'Request canceled.';
@@ -74,7 +85,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['cancel_parent_id'])) {
 }
 
 // Fetch existing requests
-$query = "SELECT r.tween_id, r.parent_id AS request_parent_id, r.sent_at, bu.full_name as parent_name, bu.email as parent_email, bu.id AS parent_bartauser_id, r.status FROM tween_link_request r JOIN parent_user pu ON r.parent_id = pu.id JOIN bartauser bu ON pu.user_id = bu.id WHERE r.tween_id = $tween_id ORDER BY r.sent_at DESC";
+$query = "SELECT r.tween_id, r.parent_id AS request_parent_id, r.sent_at, bu.full_name as parent_name, bu.email as parent_email, bu.id AS parent_bartauser_id, r.status
+          FROM tween_link_request r
+          JOIN parent_user pu ON r.parent_id = pu.id
+          JOIN bartauser bu ON pu.user_id = bu.id
+          WHERE r.tween_id = $tween_id
+          ORDER BY r.sent_at DESC";
 $result = mysqli_query($conn, $query);
 $requests = [];
 while ($row = mysqli_fetch_assoc($result)) {

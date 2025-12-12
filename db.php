@@ -1,11 +1,11 @@
 
 <?php
 $host = "localhost";
-$user = "root";
-$pass = "";
-$db   = "barta_db";
+$db_user = "root";
+$db_pass = "";
+$db_name   = "barta_db";
 
-$conn = new mysqli($host, $user, $pass, $db);
+$conn = new mysqli($host, $db_user, $db_pass, $db_name);
 
 if ($conn->connect_error) {
 	die("Connection failed: " . $conn->connect_error);
