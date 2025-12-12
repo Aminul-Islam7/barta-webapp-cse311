@@ -146,16 +146,14 @@ foreach ($children as $child) {
 
 				<div class="p-dashboard-parent_settings-section">
 					<!-- Update Name -->
-					<h3>Update Full Name</h3>
-					<form method="POST" action="parent/update_parent_settings.php">
-						<input type="hidden" name="action" value="update_name">
-
-						<label>Full Name</label>
+					<h3>Change Full Name</h3>
+					<form method="POST" action="parent/settings.php">
+						<input type="hidden" name="action" value="change_name">
 						<input type="text" name="full_name"
 							value="<?php echo htmlspecialchars($parent_data['full_name']); ?>"
 							required>
 
-						<button type="submit" class="btn btn-primary">Update Name</button>
+						<button type="submit" style="gap: 0.5rem;" class="btn btn-primary">Change Name</button>
 					</form>
 				</div>
 
@@ -164,8 +162,8 @@ foreach ($children as $child) {
 				<div class="settings-section">
 					<!-- Update Password -->
 					<h3>Change Password</h3>
-					<form method="POST" action="parent/update_parent_settings.php">
-						<input type="hidden" name="action" value="update_password">
+					<form method="POST" action="parent/settings.php">
+						<input type="hidden" name="action" value="change_password">
 
 						<label>Old Password</label>
 						<input type="password" name="old_password" required>
@@ -173,7 +171,7 @@ foreach ($children as $child) {
 						<label>New Password</label>
 						<input type="password" name="new_password" required>
 
-						<button type="submit" class="btn btn-primary">Update Password</button>
+						<button type="submit" style="gap: 0.5rem;" class="btn btn-primary">Change Password</button>
 					</form>
 				</div>
 			</div>

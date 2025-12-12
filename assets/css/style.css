@@ -1789,27 +1789,28 @@ input[type='color'] {
 	color: var(--brand-600);
 }
 
+/* Settings Panel */
 .p-dashboard-parent__settings-btn {
-	padding: 0.5rem 1rem;
-	font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
 }
 
-.p-dashboard-parent_settings-panel{
+.p-dashboard-parent_settings-panel {
     position: fixed;
     top: 0;
-    left: -350px; /* hidden */
+    right: -350px; /* hidden */
     width: 350px;
     height: 100%;
     background: #ffffff;
-    padding: 20px;
-    box-shadow: 3px 0 10px rgba(0,0,0,0.2);
+    padding: 25px;
+    box-shadow: -3px 0 10px rgba(0,0,0,0.2);
     transition: 0.3s ease;
     z-index: 2000;
     overflow-y: auto;
 }
 
 .p-dashboard-parent_settings-panel.open {
-    left: 0;
+    right: 0;
 }
 
 .p-dashboard-parent_settings-header {
@@ -1821,21 +1822,36 @@ input[type='color'] {
 .p-dashboard-parent_settings-close-btn {
     background: none;
     border: none;
-    font-size: 20px;
+    font-size: 22px;
     cursor: pointer;
 }
 
-.p-dashboard-parent_settings-section {
-    margin-top: 20px;
+.p-dashboard-parent_settings-section,
+.settings-section {
+    margin-top: 25px;
 }
 
-.p-dashboard-parent_settings-section input {
+.p-dashboard-parent_settings-section label,
+.settings-section label {
+    margin-top: 4px;
+    display: block;
+    font-weight: 500;
+}
+
+.p-dashboard-parent_settings-section input,
+.settings-section input {
     width: 100%;
-    padding: 8px;
-    margin-top: 5px;
-    margin-bottom: 12px;
-    border-radius: 5px;
+    padding: 10px;
+    margin-top: 10px;
+    margin-bottom: 2px;
+    border-radius: 6px;
     border: 1px solid #ccc;
+}
+
+.p-dashboard-parent_settings-section button,
+.settings-section button {
+    margin-top: 10px;
+    width: 100%;
 }
 
 /* Main Content */
