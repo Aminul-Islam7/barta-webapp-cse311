@@ -15,7 +15,7 @@ $child_id = intval($_POST['child_id'] ?? 0);
 $friend_id = intval($_POST['friend_id'] ?? 0);
 
 // Basic validation
-if (!$parent_id || !$child_id || !$friend_id || !in_array($action, ['block','remove'])) {
+if (!$parent_id || !$child_id || !$friend_id || !in_array($action, ['block','unblock','remove'])) {
     header("Location: ../dashboard_parent.php");
     exit;
 }
@@ -35,7 +35,7 @@ mysqli_stmt_close($check_child);
 
 if ($action === 'block') {
     // ========== BLOCK FRIEND ==========
-    $stmt1 = mysqli_prepare($conn,"UPDATE FROM connection
+    $stmt1 = mysqli_prepare($conn,"UPDATE connection
                                    SET type = 'blocked' 
                                    WHERE (sender_id = ? AND receiver_id = ?) 
                                    OR (sender_id = ? AND receiver_id = ?)");
@@ -45,7 +45,7 @@ if ($action === 'block') {
     
 } elseif( $action === 'unblock') {
     // ========== UNBLOCK FRIEND ==========
-    $stmt2 = mysqli_prepare($conn,"UPDATE FROM connection
+    $stmt2 = mysqli_prepare($conn,"UPDATE connection
                                    SET type = 'added' 
                                    WHERE (sender_id = ? AND receiver_id = ?) 
                                    OR (sender_id = ? AND receiver_id = ?)");
