@@ -1715,20 +1715,18 @@ input[type='color'] {
 }
 
 .btn-accept:hover {
-	color: var(--success-600);
-	background: var(--success-100);
+	color: var(--success-500);
 }
 
 /* Notification Dot */
 .notification-dot {
 	position: absolute;
-	top: 8px;
-	right: 8px;
-	width: 8px;
-	height: 8px;
+	top: 12px;
+	right: 12px;
+	width: 10px;
+	height: 10px;
 	background: var(--error-500);
 	border-radius: 50%;
-	border: 2px solid var(--bg-surface);
 }
 
 .nav-btn {

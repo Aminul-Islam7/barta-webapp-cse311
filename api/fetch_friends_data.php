@@ -11,7 +11,7 @@ if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') != 'tween') {
 
 require_once __DIR__ . '/../db.php';
 
-$tween_id = isset($_SESSION['tween_id']) ? (int)$_SESSION['tween_id'] : 0;
+$tween_id = isset($_SESSION['tween_id']) ? (int) $_SESSION['tween_id'] : 0;
 if (!$tween_id) {
 	echo json_encode(['error' => 'No tween id in session']);
 	exit;
@@ -27,8 +27,10 @@ if (file_exists($gc_path)) {
 	exit;
 }
 // validate variables
-if (!isset($friends) || !is_array($friends)) $friends = [];
-if (!isset($groups) || !is_array($groups)) $groups = [];
+if (!isset($friends) || !is_array($friends))
+	$friends = [];
+if (!isset($groups) || !is_array($groups))
+	$groups = [];
 
 // Fetch blocked users
 $query = "SELECT tu.id, tu.username, bu.full_name

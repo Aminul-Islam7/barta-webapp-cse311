@@ -408,7 +408,34 @@ document.addEventListener('DOMContentLoaded', function () {
 
 					// Add friend request handler
 					if (addFriendBtn) {
-						if (data.request_pending) {
+						if (data.request_incoming) {
+							addFriendBtn.innerHTML = '<i class="fa-solid fa-check"></i> Accept Request';
+							addFriendBtn.disabled = false;
+							addFriendBtn.onclick = function () {
+								if (!data.incoming_parent_approved) {
+									alert('This request is waiting for parent approval.');
+									return;
+								}
+								const form = new FormData();
+								form.append('request_id', data.incoming_request_id);
+								fetch('tween/accept_friend.php', {
+									method: 'POST',
+									body: form,
+								})
+									.then((r) => r.json())
+									.then((resp) => {
+										if (resp.success) {
+											loadFriendsData();
+											refreshContacts(true);
+											// Reload conversation as friend
+											window.location.reload(); 
+										} else {
+											console.error(resp.error || 'Failed to accept request');
+										}
+									})
+									.catch((err) => console.error(err));
+							};
+						} else if (data.request_pending) {
 							addFriendBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Cancel Request';
 							addFriendBtn.disabled = false;
 							addFriendBtn.onclick = function () {
@@ -684,24 +711,24 @@ document.addEventListener('DOMContentLoaded', function () {
 			};
 		});
 
-		const groupItems = document.querySelectorAll('.groups .group-item');
-		groupItems.forEach((el) => {
-			el.onclick = function (e) {
-				const groupId = el.getAttribute('data-group-id');
-				if (!groupId) return;
-				// Stop previous polling
-				if (pollAbortController) {
-					pollAbortController.abort();
-					pollAbortController = null;
-				}
-				currentTargetType = 'group';
-				currentTarget = groupId;
-				const url = 'tween/fetch_conversation.php?group=' + encodeURIComponent(groupId);
-				selectItem(el);
-				history.pushState({ group: groupId }, '', '?group=' + encodeURIComponent(groupId));
-				fetchConversation(url);
-			};
-		});
+		// const groupItems = document.querySelectorAll('.groups .group-item');
+		// groupItems.forEach((el) => {
+		// 	el.onclick = function (e) {
+		// 		const groupId = el.getAttribute('data-group-id');
+		// 		if (!groupId) return;
+		// 		// Stop previous polling
+		// 		if (pollAbortController) {
+		// 			pollAbortController.abort();
+		// 			pollAbortController = null;
+		// 		}
+		// 		currentTargetType = 'group';
+		// 		currentTarget = groupId;
+		// 		const url = 'tween/fetch_conversation.php?group=' + encodeURIComponent(groupId);
+		// 		selectItem(el);
+		// 		history.pushState({ group: groupId }, '', '?group=' + encodeURIComponent(groupId));
+		// 		fetchConversation(url);
+		// 	};
+		// });
 	}
 
 	// Back/forward navigation without full page reload
@@ -998,27 +1025,27 @@ document.addEventListener('DOMContentLoaded', function () {
 		const el = document.querySelector('.contact-item[data-username="' + username + '"]');
 		if (el) selectItem(el);
 		fetchConversation('tween/fetch_conversation.php?u=' + encodeURIComponent(username));
-	} else if (params.has('group')) {
+	} /* else if (params.has('group')) {
 		const groupId = params.get('group');
 		const el = document.querySelector('.group-item[data-group-id="' + groupId + '"]');
 		if (el) selectItem(el);
 		fetchConversation('tween/fetch_conversation.php?group=' + encodeURIComponent(groupId));
-	}
+	} */
 
 	// Create Group Modal
 	const createGroupBtn = document.getElementById('create-group-btn');
 	const createGroupModal = document.getElementById('create-group-modal');
 	const cancelCreateBtn = document.getElementById('cancel-create');
 
-	if (createGroupBtn && createGroupModal && cancelCreateBtn) {
+	/* if (createGroupBtn && createGroupModal && cancelCreateBtn) {
 		createGroupBtn.addEventListener('click', function () {
 			createGroupModal.classList.add('show');
 		});
 
 		cancelCreateBtn.addEventListener('click', function () {
 			createGroupModal.classList.remove('show');
-		});
-	}
+		}); */
+	/* } */
 
 	// Confirmation Modal
 	const confirmationModal = document.getElementById('confirmation-modal');

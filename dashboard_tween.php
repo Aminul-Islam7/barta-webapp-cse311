@@ -83,7 +83,7 @@ if (isset($_GET['u'])) {
 		}
 	}
 } elseif (isset($_GET['group'])) {
-	$group_id = (int)$_GET['group'];
+	$group_id = (int) $_GET['group'];
 	$is_member = false;
 	foreach ($groups as $g) {
 		if ($g['id'] == $group_id) {
@@ -141,15 +141,17 @@ if (isset($_GET['u'])) {
 				<i class="fa-duotone fa-solid fa-user-group"></i>
 				<span class="notification-dot" id="friends-notification-dot" style="display: none;"></span>
 			</button>
-			<button class="nav-btn" id="create-group-btn" title="Create Group"><i class="fa-duotone fa-solid fa-users-medical"></i></button>
+			<!-- <button class="nav-btn" id="create-group-btn" title="Create Group"><i class="fa-duotone fa-solid fa-users-medical"></i></button> -->
 			<button class="nav-btn" title="Message Limits"><i class="fa-solid fa-gauge-high"></i></button>
-			<button class="nav-btn" id="theme-toggle" title="Toggle Theme"><i class="fa-jelly-fill fa-regular fa-moon"></i></button>
+			<button class="nav-btn" id="theme-toggle" title="Toggle Theme"><i
+					class="fa-jelly-fill fa-regular fa-moon"></i></button>
 			<button class="nav-btn" title="Settings"><i class="fa-jelly-fill fa-regular fa-gear"></i></button>
 			<button class="nav-btn" title="Help/Support"><i class="fa-jelly-duo fa-regular fa-question"></i></button>
 		</div>
 		<div class="nav-bottom">
 			<form action="logout.php" method="post">
-				<button class="nav-btn" type="submit" title="Logout"><i class="fa-jelly-fill fa-regular fa-arrow-right-from-bracket"></i></button>
+				<button class="nav-btn" type="submit" title="Logout"><i
+						class="fa-jelly-fill fa-regular fa-arrow-right-from-bracket"></i></button>
 			</form>
 		</div>
 	</div>
@@ -165,34 +167,36 @@ if (isset($_GET['u'])) {
 			</div>
 			<div class="contacts-list">
 				<?php foreach ($friends as $friend): ?>
-					<div class="contact-item <?php echo (isset($selected_friend) && $selected_friend['username'] === $friend['username']) ? 'is-selected' : ''; ?>" data-type="friend" data-username="<?php echo htmlspecialchars($friend['username']); ?>" data-is-friend="true">
+					<div class="contact-item <?php echo (isset($selected_friend) && $selected_friend['username'] === $friend['username']) ? 'is-selected' : ''; ?>"
+						data-type="friend" data-username="<?php echo htmlspecialchars($friend['username']); ?>"
+						data-is-friend="true">
 						<div class="contact-icon-circle">
 							<i class="fa-solid fa-user"></i>
 						</div>
 						<div>
 							<div><?php echo htmlspecialchars($friend['full_name']); ?></div>
 							<div class="text-muted contact-preview"><?php
-																	$preview = 'Click to chat';
-																	if (!empty($friend['last_message_text'])) {
-																		$previewText = htmlspecialchars($friend['last_message_text']);
-																		// add prefix if tween sent it
-																		if (!empty($friend['last_message_sender_id']) && $friend['last_message_sender_id'] == $tween_id) {
-																			$previewText = 'You: ' . $previewText;
-																		}
-																		// truncate safely
-																		if (mb_strlen($previewText) > 40) {
-																			$previewText = mb_substr($previewText, 0, 37) . '...';
-																		}
-																		$preview = $previewText;
-																	}
-																	echo $preview; ?></div>
+							$preview = 'Click to chat';
+							if (!empty($friend['last_message_text'])) {
+								$previewText = htmlspecialchars($friend['last_message_text']);
+								// add prefix if tween sent it
+								if (!empty($friend['last_message_sender_id']) && $friend['last_message_sender_id'] == $tween_id) {
+									$previewText = 'You: ' . $previewText;
+								}
+								// truncate safely
+								if (mb_strlen($previewText) > 40) {
+									$previewText = mb_substr($previewText, 0, 37) . '...';
+								}
+								$preview = $previewText;
+							}
+							echo $preview; ?></div>
 						</div>
 					</div>
 				<?php endforeach; ?>
 
 			</div>
 		</div>
-		<div class="groups">
+		<!-- <div class="groups">
 			<div class="groups-header">
 				<h3>Groups</h3>
 
@@ -225,7 +229,7 @@ if (isset($_GET['u'])) {
 				<?php endforeach; ?>
 
 			</div>
-		</div>
+		</div> -->
 		<div class="bottom-bar" id="profile-btn">
 			<div class="profile-content">
 				<i class="fa-solid fa-user"></i>
@@ -247,7 +251,8 @@ if (isset($_GET['u'])) {
 					<i class="fa-solid fa-<?php echo $selected_friend ? 'user' : 'users'; ?>"></i>
 				</div>
 				<span><?php echo htmlspecialchars($selected_friend['full_name'] ?? $selected_group['group_name'] ?? ''); ?></span>
-				<button class="btn btn-icon toggle-right-panel-btn" title="Details"><i class="fa-duotone fa-solid fa-chevrons-right"></i></button>
+				<button class="btn btn-icon toggle-right-panel-btn" title="Details"><i
+						class="fa-duotone fa-solid fa-chevrons-right"></i></button>
 			</div>
 			<div class="messages">
 				<?php if ($selected_friend || $selected_group): ?>
@@ -263,17 +268,24 @@ if (isset($_GET['u'])) {
 						$cutTopClass = '';
 						$cutBottomClass = '';
 						if ($isOwn) {
-							if ($prevSame) $cutTopClass = ' cut-top-right';
-							if ($nextSame) $cutBottomClass = ' cut-bottom-right';
+							if ($prevSame)
+								$cutTopClass = ' cut-top-right';
+							if ($nextSame)
+								$cutBottomClass = ' cut-bottom-right';
 						} else {
-							if ($prevSame) $cutTopClass = ' cut-top-left';
-							if ($nextSame) $cutBottomClass = ' cut-bottom-left';
+							if ($prevSame)
+								$cutTopClass = ' cut-top-left';
+							if ($nextSame)
+								$cutBottomClass = ' cut-bottom-left';
 						}
 						$messageClasses = 'message' . ($isOwn ? ' own' : '') . $cutTopClass . $cutBottomClass;
-					?>
-						<div class="message-wrapper<?php echo $isOwn ? ' own' : ''; ?><?php echo $noSenderClass; ?>" data-sender-id="<?php echo htmlspecialchars($msg['sender_id']); ?>" data-message-id="<?php echo htmlspecialchars($msg['id']); ?>">
+						?>
+						<div class="message-wrapper<?php echo $isOwn ? ' own' : ''; ?><?php echo $noSenderClass; ?>"
+							data-sender-id="<?php echo htmlspecialchars($msg['sender_id']); ?>"
+							data-message-id="<?php echo htmlspecialchars($msg['id']); ?>">
 							<?php if ($showSender): ?>
-								<div class="sender"><?php echo htmlspecialchars($isOwn ? 'Me' : ($msg['sender_name'] ?? '')); ?></div>
+								<div class="sender"><?php echo htmlspecialchars($isOwn ? 'Me' : ($msg['sender_name'] ?? '')); ?>
+								</div>
 							<?php else: ?>
 								<div class="sender" style="display:none;"></div>
 							<?php endif; ?>
@@ -287,7 +299,8 @@ if (isset($_GET['u'])) {
 			</div>
 			<div class="message-input" <?php echo (!$selected_friend && !$selected_group) ? 'style="display: none;"' : ''; ?>>
 				<textarea placeholder="Type a message..." rows="1"></textarea>
-				<button class="btn btn-primary" title="Send message"><i class="fa-jelly-fill fa-regular fa-paper-plane"></i></button>
+				<button class="btn btn-primary" title="Send message"><i
+						class="fa-jelly-fill fa-regular fa-paper-plane"></i></button>
 			</div>
 		</div>
 	</div>
@@ -304,14 +317,16 @@ if (isset($_GET['u'])) {
 					</div>
 				</div>
 				<div class="user-details">
-					<h3><?php echo htmlspecialchars($selected_friend ? $contact_info['full_name'] : $contact_info['group_name']); ?></h3>
-					<small class="text-muted"><?php echo $selected_friend ? '@' . htmlspecialchars($contact_info['username']) : 'Group'; ?></small>
+					<h3><?php echo htmlspecialchars($selected_friend ? $contact_info['full_name'] : $contact_info['group_name']); ?>
+					</h3>
+					<small
+						class="text-muted"><?php echo $selected_friend ? '@' . htmlspecialchars($contact_info['username']) : 'Group'; ?></small>
 					<?php if ($selected_friend): ?>
 						<p><?php echo htmlspecialchars(html_entity_decode($contact_info['bio'] ?? '')); ?></p>
 					<?php else: ?>
 						<p>Members: <?php echo htmlspecialchars(implode(', ', array_map(function ($m) {
-										return $m['full_name'];
-									}, $contact_info['members']))); ?></p>
+							return $m['full_name'];
+						}, $contact_info['members']))); ?></p>
 					<?php endif; ?>
 				</div>
 				<?php if ($selected_friend): ?>
@@ -351,7 +366,7 @@ if (isset($_GET['u'])) {
 			<button class="btn btn-secondary btn-block" title="Block"><i class="fa-solid fa-ban"></i> Block</button>
 		</div>
 	</div>
-	<div id="group-info-template" style="display: none;">
+	<!-- <div id="group-info-template" style="display: none;">
 		<div class="user-avatar">
 			<div class="avatar-circle"><i class="fa-solid fa-users"></i></div>
 		</div>
@@ -360,7 +375,7 @@ if (isset($_GET['u'])) {
 			<small class="text-muted">Group</small>
 			<p></p>
 		</div>
-	</div>
+	</div> -->
 	<div id="non-friend-info-template" style="display: none;">
 		<div class="user-avatar">
 			<div class="avatar-circle bg-subtle"><i class="fa-solid fa-user"></i></div>
@@ -371,7 +386,8 @@ if (isset($_GET['u'])) {
 			<p></p>
 		</div>
 		<div class="action-buttons">
-			<button class="btn btn-primary btn-add-friend" title="Friend Request"><i class="fa-solid fa-user-plus"></i> Add Friend</button>
+			<button class="btn btn-primary btn-add-friend" title="Friend Request"><i class="fa-solid fa-user-plus"></i>
+				Add Friend</button>
 			<button class="btn btn-secondary btn-block" title="Block"><i class="fa-solid fa-ban"></i>Block</button>
 		</div>
 	</div>
@@ -387,7 +403,7 @@ if (isset($_GET['u'])) {
 	</div>
 
 	<!-- Modals -->
-	<div class="modal" id="create-group-modal">
+	<!-- <div class="modal" id="create-group-modal">
 		<div class="modal-content">
 			<h3><i class="fa-duotone fa-solid fa-users-medical"></i> Create New Group</h3>
 			<div class="form">
@@ -405,7 +421,7 @@ if (isset($_GET['u'])) {
 				<button class="btn btn-primary">Create</button>
 			</div>
 		</div>
-	</div>
+	</div> -->
 	<div class="modal" id="confirmation-modal">
 		<div class="modal-content">
 			<h3>Confirm Action</h3>
@@ -420,7 +436,8 @@ if (isset($_GET['u'])) {
 		<div class="modal-content">
 			<h3><i class="fa-solid fa-pen-to-square"></i> Edit Message</h3>
 			<div class="form">
-				<textarea class="form-textarea" id="edit-message-text" rows="3" placeholder="Edit your message..."></textarea>
+				<textarea class="form-textarea" id="edit-message-text" rows="3"
+					placeholder="Edit your message..."></textarea>
 			</div>
 			<div class="modal-buttons">
 				<button class="btn btn-secondary" id="cancel-edit">Cancel</button>
@@ -432,7 +449,8 @@ if (isset($_GET['u'])) {
 		<div class="modal-content friends-modal-content">
 			<div class="modal-header">
 				<h3><i class="fa-duotone fa-solid fa-user-group"></i> Connections</h3>
-				<button class="btn-close" id="close-friends-modal" title="Close"><i class="fa-solid fa-xmark"></i></button>
+				<button class="btn-close" id="close-friends-modal" title="Close"><i
+						class="fa-solid fa-xmark"></i></button>
 			</div>
 			<div class="friends-modal-body">
 				<!-- Current Friends Section -->
