@@ -142,7 +142,8 @@ if (isset($_GET['u'])) {
 				<span class="notification-dot" id="friends-notification-dot" style="display: none;"></span>
 			</button>
 			<!-- <button class="nav-btn" id="create-group-btn" title="Create Group"><i class="fa-duotone fa-solid fa-users-medical"></i></button> -->
-			<button class="nav-btn" title="Message Limits"><i class="fa-solid fa-gauge-high"></i></button>
+			<button class="nav-btn" id="limits-btn" title="Message Limits"><i
+					class="fa-solid fa-gauge-high"></i></button>
 			<button class="nav-btn" id="theme-toggle" title="Toggle Theme"><i
 					class="fa-jelly-fill fa-regular fa-moon"></i></button>
 			<button class="nav-btn" title="Settings"><i class="fa-jelly-fill fa-regular fa-gear"></i></button>
@@ -298,6 +299,10 @@ if (isset($_GET['u'])) {
 				<?php endif; ?>
 			</div>
 			<div class="message-input" <?php echo (!$selected_friend && !$selected_group) ? 'style="display: none;"' : ''; ?>>
+				<div class="limit-reached-msg">
+					<i class="fa-duotone fa-solid fa-mobile-slash"></i> You've reached your message limit for today.
+				</div>
+				<div class="messages-left-circle" title="Messages Left Today">...</div>
 				<textarea placeholder="Type a message..." rows="1"></textarea>
 				<button class="btn btn-primary" title="Send message"><i
 						class="fa-jelly-fill fa-regular fa-paper-plane"></i></button>
@@ -393,6 +398,9 @@ if (isset($_GET['u'])) {
 	</div>
 	<div id="context-menu-template" style="display: none;">
 		<div class="context-menu">
+			<button class="context-menu-item" data-action="copy">
+				<i class="fa-solid fa-copy"></i> Copy
+			</button>
 			<button class="context-menu-item" data-action="edit">
 				<i class="fa-solid fa-pen-to-square"></i> Edit
 			</button>
@@ -474,6 +482,35 @@ if (isset($_GET['u'])) {
 						<div class="friends-list" id="blocked-users-list">
 							<!-- Populated by JS -->
 						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal" id="message-limit-modal">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h3><i class="fa-solid fa-gauge-high"></i> Message Limits</h3>
+				<button class="btn-close" id="close-limit-modal" title="Close"><i
+						class="fa-solid fa-xmark"></i></button>
+			</div>
+			<div class="modal-body limit-modal-body">
+				<div class="stats-grid">
+					<div class="stat-item">
+						<h4 id="stat-sent" class="stat-value stat-sent">0</h4>
+						<small class="text-muted">Texts Sent</small>
+					</div>
+					<div class="stat-item">
+						<h4 id="stat-received" class="stat-value stat-received">0</h4>
+						<small class="text-muted">Texts Received</small>
+					</div>
+					<div class="stat-item">
+						<h4 id="stat-limit" class="stat-value">100</h4>
+						<small class="text-muted">Daily Limit</small>
+					</div>
+					<div class="stat-item">
+						<h4 id="stat-left" class="stat-value stat-left">0</h4>
+						<small class="text-muted">Texts Left</small>
 					</div>
 				</div>
 			</div>

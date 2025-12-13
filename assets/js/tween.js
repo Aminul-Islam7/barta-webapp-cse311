@@ -40,6 +40,10 @@ document.addEventListener('DOMContentLoaded', function () {
 	let lastMessageId = 0;
 	let lastActiveTime = 0;
 	let meId = null;
+	// limit tracking
+	let currentDailyLimit = 100;
+	let currentTodayCount = 0;
+
 	// BroadcastChannel for local tab sync and a per-tab stable id
 	const TAB_ID = 'tab-' + Math.random().toString(36).substr(2, 9);
 	const bc = window.BroadcastChannel ? new BroadcastChannel('barta-messages') : null;
@@ -94,6 +98,14 @@ document.addEventListener('DOMContentLoaded', function () {
 			textDiv.textContent = msg.text_content || '';
 			const timestampDiv = messageEl.querySelector('.timestamp');
 			timestampDiv.textContent = formatTime(msg.sent_at || new Date().toISOString());
+			
+			if (msg.is_edited && Number(msg.is_edited) === 1) {
+				const indicator = document.createElement('i');
+				indicator.className = 'fa-solid fa-pen edited-indicator';
+				indicator.title = 'Edited';
+				messageEl.appendChild(indicator);
+			}
+
 			messagesEl.appendChild(wrapper);
 		}
 		// Scroll chat to bottom after rendering
@@ -308,6 +320,20 @@ document.addEventListener('DOMContentLoaded', function () {
 		if (!text) return '';
 		if (text.length <= maxLen) return text;
 		return text.substring(0, maxLen - 3) + '...';
+	}
+
+	// Helper: Mark message as edited
+	function markMessageAsEdited(wrapper) {
+		if (!wrapper) return;
+		const messageEl = wrapper.querySelector('.message');
+		if (!messageEl || messageEl.querySelector('.edited-indicator')) return;
+		
+		const indicator = document.createElement('i');
+		indicator.className = 'fa-solid fa-pen edited-indicator';
+		indicator.title = 'Edited';
+		
+		// CSS absolute positioning handles placement now, so just append
+		messageEl.appendChild(indicator);
 	}
 
 	// Returns a short elapsed time label for a given timestamp
@@ -601,6 +627,14 @@ document.addEventListener('DOMContentLoaded', function () {
 				// Set last message ID for polling
 				lastMessageId = data.messages.length > 0 ? Math.max(...data.messages.map((m) => m.id)) : 0;
 				lastActiveTime = data.last_active_time || 0;
+				
+				// Update limit info
+				if (typeof data.daily_limit !== 'undefined') {
+					currentDailyLimit = parseInt(data.daily_limit);
+					currentTodayCount = parseInt(data.today_count);
+					updateLimitUI();
+				}
+
 				// Start polling for new messages
 				startPolling();
 			})
@@ -623,6 +657,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				if (wrapper) {
 					const textEl = wrapper.querySelector('.text');
 					if (textEl) textEl.textContent = newText;
+					markMessageAsEdited(wrapper);
 				}
 				return;
 			}
@@ -928,16 +963,43 @@ document.addEventListener('DOMContentLoaded', function () {
 		});
 	}
 
-	// Refresh contacts periodically to update previews and ordering
-	let contactsRefreshInterval = null;
+	// Refresh contacts with long polling
+	let contactsLastActiveTime = '';
+	let contactsPollController = null;
+
 	function refreshContacts(force = false) {
 		// Don't refresh if search is active
 		if (isSearchActive && !force) return;
 
-		fetch('api/fetch_contacts.php')
+		// If forcing a refresh (e.g. after action), abort any pending poll to restart immediately
+		if (force && contactsPollController) {
+			contactsPollController.abort();
+		}
+		// If just looping and a request is already active, don't double up (unless forcing)
+		// Actually, if we are calling recursively, we shouldn't worry, but safeguard:
+		if (!force && contactsPollController && !contactsPollController.signal.aborted) {
+			// This might happen if called externally while waiting. 
+			// We can either abort existing or ignore new. 
+			// If we ignore new, we rely on existing to finish.
+			return; 
+		}
+
+		contactsPollController = new AbortController();
+		const signal = contactsPollController.signal;
+
+		// If force, we send no timestamp to bypass server wait
+		const timeParam = force ? '' : contactsLastActiveTime;
+
+		fetch('api/fetch_contacts.php?last_active_time=' + encodeURIComponent(timeParam), { signal })
 			.then((r) => r.json())
 			.then((data) => {
-				if (data.error) return;
+				if (data.error) throw new Error(data.error);
+				
+				// Update high-water mark
+				if (data.last_active_time) {
+					contactsLastActiveTime = data.last_active_time;
+				}
+
 				// update previews and reorder lists according to server-sorted order
 				const contactsList = document.querySelector('.contacts-list');
 				if (contactsList && Array.isArray(data.friends)) {
@@ -1010,13 +1072,21 @@ document.addEventListener('DOMContentLoaded', function () {
 						if (newSel) newSel.classList.add('is-selected');
 					}
 				}
+
+				// Schedule next poll
+				contactsPollController = null;
+				refreshContacts();
 			})
-			.catch(() => {});
+			.catch((err) => {
+				contactsPollController = null;
+				if (err.name === 'AbortError') return;
+				// Retry after delay on error
+				setTimeout(refreshContacts, 5000);
+			});
 	}
 
-	// refresh initially then every 7s
+	// start polling
 	refreshContacts();
-	contactsRefreshInterval = setInterval(refreshContacts, 7000);
 
 	// If URL already has u= or group=, load that conversation
 	const params = new URLSearchParams(window.location.search);
@@ -1417,6 +1487,43 @@ document.addEventListener('DOMContentLoaded', function () {
 		})
 		.catch(() => {});
 
+	// Message Limits Modal
+	const limitsBtn = document.getElementById('limits-btn');
+	const limitsModal = document.getElementById('message-limit-modal');
+	const closeLimitsModalBtn = document.getElementById('close-limit-modal');
+
+	if (limitsBtn && limitsModal) {
+		limitsBtn.addEventListener('click', function() {
+			limitsModal.classList.add('show');
+			fetchMessageStats();
+		});
+	}
+	if (closeLimitsModalBtn && limitsModal) {
+		closeLimitsModalBtn.addEventListener('click', function() {
+			limitsModal.classList.remove('show');
+		});
+	}
+	
+	function fetchMessageStats() {
+		fetch('api/fetch_message_stats.php')
+			.then(r => r.json())
+			.then(data => {
+				if (data.success) {
+					// Use integers
+					const sent = parseInt(data.sent_count) || 0;
+					const received = parseInt(data.received_count) || 0;
+					const limit = parseInt(data.daily_limit) || 100;
+					const left = Math.max(0, limit - sent);
+					
+					document.getElementById('stat-sent').textContent = sent;
+					document.getElementById('stat-received').textContent = received;
+					document.getElementById('stat-limit').textContent = limit;
+					document.getElementById('stat-left').textContent = left;
+				}
+			})
+			.catch(err => console.error(err));
+	}
+
 	// Edit Message Modal
 	const editMessageModal = document.getElementById('edit-message-modal');
 	const cancelEditBtn = document.getElementById('cancel-edit');
@@ -1453,6 +1560,11 @@ document.addEventListener('DOMContentLoaded', function () {
 				.then((data) => {
 					if (data && data.success) {
 						currentMessage.querySelector('.text').textContent = newText;
+						
+						// Add edited indicator locally
+						const wrapper = currentMessage.closest('.message-wrapper');
+						markMessageAsEdited(wrapper);
+
 						// Broadcast edit to other same-user tabs
 						if (bc) {
 							bc.postMessage({ type: 'edit', messageId, newText, target_type: currentTargetType, target: currentTarget, source: TAB_ID });
@@ -1527,9 +1639,19 @@ document.addEventListener('DOMContentLoaded', function () {
 	let currentMessage = null;
 
 	document.addEventListener('contextmenu', function (e) {
-		if (e.target.closest('.message.own')) {
+		const msgEl = e.target.closest('.message');
+		if (msgEl) {
 			e.preventDefault();
-			currentMessage = e.target.closest('.message.own');
+			currentMessage = msgEl;
+			const isOwn = currentMessage.classList.contains('own');
+			
+			// Show/Hide Edit & Delete buttons
+			const editBtn = contextMenu.querySelector('[data-action="edit"]');
+			const deleteBtn = contextMenu.querySelector('[data-action="delete"]');
+			
+			if (editBtn) editBtn.style.display = isOwn ? 'flex' : 'none';
+			if (deleteBtn) deleteBtn.style.display = isOwn ? 'flex' : 'none';
+
 			const wrapper = currentMessage.closest('.message-wrapper') || currentMessage.closest('[data-message-id]');
 			console.log('Context menu on message wrapper dataset=', wrapper?.dataset, 'getAttribute=', wrapper?.getAttribute?.('data-message-id'));
 			contextMenu.style.left = e.clientX + 'px';
@@ -1550,7 +1672,23 @@ document.addEventListener('DOMContentLoaded', function () {
 	contextMenu.addEventListener('click', function (e) {
 		const action = e.target.closest('.context-menu-item')?.dataset.action;
 		if (action && currentMessage) {
-			if (action === 'edit') {
+			if (action === 'copy') {
+				let textToCopy = '';
+				const selection = window.getSelection();
+				// If selection exists and is within this message, use it
+				if (selection && !selection.isCollapsed && currentMessage.contains(selection.anchorNode)) {
+					textToCopy = selection.toString();
+				} else {
+					// Otherwise copy entire text
+					textToCopy = currentMessage.querySelector('.text').textContent;
+				}
+				if (textToCopy) {
+					navigator.clipboard.writeText(textToCopy).catch((err) => {
+						console.error('Failed to copy text: ', err);
+					});
+				}
+				contextMenu.classList.remove('show');
+			} else if (action === 'edit') {
 				const currentText = currentMessage.querySelector('.text').textContent;
 				editMessageText.value = currentText;
 				editMessageModal.classList.add('show');
@@ -1707,6 +1845,7 @@ document.addEventListener('DOMContentLoaded', function () {
 						if (wrapper) {
 							const textEl = wrapper.querySelector('.text');
 							if (textEl) textEl.textContent = edit.text_content;
+							markMessageAsEdited(wrapper);
 						}
 					});
 				}
@@ -1818,6 +1957,10 @@ document.addEventListener('DOMContentLoaded', function () {
 			.then((data) => {
 				if (!data || data.error) {
 					console.error(data?.error || 'Failed to send message');
+					if (data?.error && data.error.includes('limit')) {
+						currentTodayCount = currentDailyLimit; // Force limit reached state
+						updateLimitUI();
+					}
 					if (sendBtn) sendBtn.disabled = false;
 					return;
 				}
@@ -1836,23 +1979,62 @@ document.addEventListener('DOMContentLoaded', function () {
 					console.debug && console.debug('sendMessage: bc.postMessage payload', { type: 'send', message: data.message, me_id: data.me_id, target_type: data.target_type, target: data.target });
 					bc.postMessage({ type: 'send', message: data.message, me_id: data.me_id, target_type: data.target_type, target: data.target, source: TAB_ID });
 				}
-				// Abort current poll (it will naturally restart on its own)
-				// clear textarea
-				const ta = document.querySelector('.message-input textarea');
-				if (ta) {
-					ta.value = '';
-					// keep focus
-					ta.focus();
-				}
-				if (sendBtn) sendBtn.disabled = false;
-			})
-			.catch((err) => {
-				console.error(err);
-				if (sendBtn) sendBtn.disabled = false;
-			});
-	}
+			// Abort current poll (it will naturally restart on its own)
+			// clear textarea
+			const ta = document.querySelector('.message-input textarea');
+			if (ta) {
+				ta.value = '';
+				// keep focus
+				ta.focus();
+			}
+			if (sendBtn) sendBtn.disabled = false;
+			
+			// Increment count and check limit
+			currentTodayCount++;
+			updateLimitUI();
+		})
+		.catch((err) => {
+			console.error(err);
+			if (sendBtn) sendBtn.disabled = false;
+		});
+}
 
-	// Wire send button and enter key
+function updateLimitUI() {
+	const ta = document.querySelector('.message-input textarea');
+	const limitMsg = document.querySelector('.message-input .limit-reached-msg');
+	const leftCircle = document.querySelector('.messages-left-circle');
+	const sendBtn = document.querySelector('.message-input .btn-primary');
+	
+	if (!ta) return;
+
+	// Calculate left
+	const left = Math.max(0, currentDailyLimit - currentTodayCount);
+	if (leftCircle) {
+		leftCircle.textContent = left;
+	}
+	
+	// Check if limit reached
+	if (currentTodayCount >= currentDailyLimit) {
+		// Limit reached state
+		ta.style.display = 'none';
+		if (leftCircle) leftCircle.style.display = 'none';
+		if (sendBtn) sendBtn.style.display = 'none';
+		if (limitMsg) limitMsg.style.display = 'flex';
+		ta.disabled = true;
+	} else {
+		// Normal state
+		ta.style.display = 'block';
+		if (leftCircle) leftCircle.style.display = 'flex';
+		if (sendBtn) sendBtn.style.display = 'inline-flex'; // Assuming flex for icon centering, or use null/block
+		if (limitMsg) limitMsg.style.display = 'none';
+		ta.disabled = false;
+		if (!ta.value && ta.placeholder !== "Type a message...") {
+             ta.placeholder = "Type a message...";
+        }
+	}
+}
+
+// Wire send button and enter key
 	const sendBtn = document.querySelector('.message-input button');
 	const messageTa = document.querySelector('.message-input textarea');
 	if (sendBtn && messageTa) {

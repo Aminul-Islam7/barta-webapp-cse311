@@ -9,11 +9,11 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'tween') {
 	exit;
 }
 
-$tween_id = (int)$_SESSION['tween_id'];
+$tween_id = (int) $_SESSION['tween_id'];
 
 // Only enable long polling if 'since' parameter is explicitly provided
 $is_polling = isset($_GET['since']);
-$since = $is_polling ? (int)$_GET['since'] : 0;
+$since = $is_polling ? (int) $_GET['since'] : 0;
 $last_active_time = isset($_GET['last_active_time']) ? urldecode($_GET['last_active_time']) : null;
 
 // Release session lock to prevent blocking other requests (like send_message)
@@ -39,7 +39,7 @@ if (isset($_GET['u'])) {
 		exit;
 	}
 	$friend = mysqli_fetch_assoc($result);
-	$friend_id = (int)$friend['tween_id'];
+	$friend_id = (int) $friend['tween_id'];
 	// Make sure this maps to a tween bartauser row — if not, treat as not found
 	if (!isset($friend['role']) || $friend['role'] !== 'tween') {
 		echo json_encode(['error' => 'Friend not found']);
@@ -104,7 +104,8 @@ if (isset($_GET['u'])) {
 		while ((microtime(true) - $start) < $LONG_POLL_TIMEOUT) {
 			// Check for new messages
 			$result = mysqli_query($conn, $query);
-			if ($result && mysqli_num_rows($result) > 0) break;
+			if ($result && mysqli_num_rows($result) > 0)
+				break;
 
 			// Check for edits/deletes since our last seen timestamp
 			if ($sinceTime) {
@@ -112,7 +113,8 @@ if (isset($_GET['u'])) {
 								WHERE ((m.sender_id = $tween_id AND im.receiver_id = $friend_id) OR (m.sender_id = $friend_id AND im.receiver_id = $tween_id)) 
 								AND ((m.is_deleted = 1 AND m.edited_at > '$sinceTime') OR (m.is_edited = 1 AND m.edited_at > '$sinceTime')) LIMIT 1";
 				$changeRes = mysqli_query($conn, $changeQuery);
-				if ($changeRes && mysqli_num_rows($changeRes) > 0) break;
+				if ($changeRes && mysqli_num_rows($changeRes) > 0)
+					break;
 			}
 			usleep($LONG_POLL_SLEEP_MICRO);
 		}
@@ -124,8 +126,10 @@ if (isset($_GET['u'])) {
 	$max_time = $last_active_time;
 	while ($row = mysqli_fetch_assoc($result)) {
 		$messages[] = $row;
-		if (!$max_time || $row['sent_at'] > $max_time) $max_time = $row['sent_at'];
-		if ($row['is_edited'] && $row['edited_at'] > $max_time) $max_time = $row['edited_at'];
+		if (!$max_time || $row['sent_at'] > $max_time)
+			$max_time = $row['sent_at'];
+		if ($row['is_edited'] && $row['edited_at'] > $max_time)
+			$max_time = $row['edited_at'];
 	}
 
 	// Check for deleted and edited messages (if polling)
@@ -152,8 +156,9 @@ if (isset($_GET['u'])) {
 			$delResult = mysqli_query($conn, $delQuery);
 			if ($delResult) {
 				while ($delRow = mysqli_fetch_assoc($delResult)) {
-					$deleted_ids[] = (int)$delRow['id'];
-					if ($delRow['edited_at'] > $max_time) $max_time = $delRow['edited_at'];
+					$deleted_ids[] = (int) $delRow['id'];
+					if ($delRow['edited_at'] > $max_time)
+						$max_time = $delRow['edited_at'];
 				}
 			}
 			// Edited messages
@@ -164,8 +169,9 @@ if (isset($_GET['u'])) {
 			$editResult = mysqli_query($conn, $editQuery);
 			if ($editResult) {
 				while ($editRow = mysqli_fetch_assoc($editResult)) {
-					$edited_messages[] = ['id' => (int)$editRow['id'], 'text_content' => $editRow['text_content']];
-					if ($editRow['edited_at'] > $max_time) $max_time = $editRow['edited_at'];
+					$edited_messages[] = ['id' => (int) $editRow['id'], 'text_content' => $editRow['text_content']];
+					if ($editRow['edited_at'] > $max_time)
+						$max_time = $editRow['edited_at'];
 				}
 			}
 		}
@@ -179,13 +185,28 @@ if (isset($_GET['u'])) {
 	$response['me_id'] = $tween_id;
 	$response['last_active_time'] = $max_time;
 
+	// Check daily message limit
+	$limitQuery = "SELECT daily_msg_limit FROM tween_user WHERE id = $tween_id LIMIT 1";
+	$limitRes = mysqli_query($conn, $limitQuery);
+	$limitRow = mysqli_fetch_assoc($limitRes);
+	$dailyLimit = $limitRow ? (int) $limitRow['daily_msg_limit'] : 100;
+
+	$todayCountQuery = "SELECT COUNT(*) AS c FROM message WHERE sender_id = $tween_id AND DATE(sent_at) = CURDATE()";
+	$todayCountRes = mysqli_query($conn, $todayCountQuery);
+	$todayCountRow = mysqli_fetch_assoc($todayCountRes);
+	$todayCount = $todayCountRow ? (int) $todayCountRow['c'] : 0;
+
+	$response['daily_limit'] = $dailyLimit;
+	$response['today_count'] = $todayCount;
+	$response['limit_reached'] = ($todayCount >= $dailyLimit);
+
 	echo json_encode($response);
 	exit;
 }
 
 if (isset($_GET['group'])) {
 	// Fetch by group ID and check if the group exists
-	$group_id = (int)$_GET['group'];
+	$group_id = (int) $_GET['group'];
 	$query = "SELECT ug.id, ug.group_name, ug.color
 				FROM user_group ug
 				WHERE ug.id = $group_id AND ug.is_active = 1";
@@ -235,14 +256,16 @@ if (isset($_GET['group'])) {
 		$start = microtime(true);
 		while ((microtime(true) - $start) < $LONG_POLL_TIMEOUT) {
 			$result = mysqli_query($conn, $query);
-			if ($result && mysqli_num_rows($result) > 0) break;
+			if ($result && mysqli_num_rows($result) > 0)
+				break;
 
 			if ($sinceTime) {
 				$changeQuery = "SELECT 1 FROM message m JOIN group_message gm ON m.id = gm.message_id 
 								WHERE gm.group_id = $group_id 
 								AND ((m.is_deleted = 1 AND m.edited_at > '$sinceTime') OR (m.is_edited = 1 AND m.edited_at > '$sinceTime')) LIMIT 1";
 				$changeRes = mysqli_query($conn, $changeQuery);
-				if ($changeRes && mysqli_num_rows($changeRes) > 0) break;
+				if ($changeRes && mysqli_num_rows($changeRes) > 0)
+					break;
 			}
 			usleep($LONG_POLL_SLEEP_MICRO);
 		}
@@ -254,8 +277,10 @@ if (isset($_GET['group'])) {
 	$max_time = $last_active_time;
 	while ($row = mysqli_fetch_assoc($result)) {
 		$messages[] = $row;
-		if (!$max_time || $row['sent_at'] > $max_time) $max_time = $row['sent_at'];
-		if ($row['is_edited'] && $row['edited_at'] > $max_time) $max_time = $row['edited_at'];
+		if (!$max_time || $row['sent_at'] > $max_time)
+			$max_time = $row['sent_at'];
+		if ($row['is_edited'] && $row['edited_at'] > $max_time)
+			$max_time = $row['edited_at'];
 	}
 
 	// Check for deleted and edited messages (if polling)
@@ -281,8 +306,9 @@ if (isset($_GET['group'])) {
 			$delResult = mysqli_query($conn, $delQuery);
 			if ($delResult) {
 				while ($delRow = mysqli_fetch_assoc($delResult)) {
-					$deleted_ids[] = (int)$delRow['id'];
-					if ($delRow['edited_at'] > $max_time) $max_time = $delRow['edited_at'];
+					$deleted_ids[] = (int) $delRow['id'];
+					if ($delRow['edited_at'] > $max_time)
+						$max_time = $delRow['edited_at'];
 				}
 			}
 			// Edited messages
@@ -292,8 +318,9 @@ if (isset($_GET['group'])) {
 			$editResult = mysqli_query($conn, $editQuery);
 			if ($editResult) {
 				while ($editRow = mysqli_fetch_assoc($editResult)) {
-					$edited_messages[] = ['id' => (int)$editRow['id'], 'text_content' => $editRow['text_content']];
-					if ($editRow['edited_at'] > $max_time) $max_time = $editRow['edited_at'];
+					$edited_messages[] = ['id' => (int) $editRow['id'], 'text_content' => $editRow['text_content']];
+					if ($editRow['edited_at'] > $max_time)
+						$max_time = $editRow['edited_at'];
 				}
 			}
 		}
@@ -318,6 +345,21 @@ if (isset($_GET['group'])) {
 	$response['type'] = 'group';
 	$response['me_id'] = $tween_id;
 	$response['last_active_time'] = $max_time;
+
+	// Check daily message limit
+	$limitQuery = "SELECT daily_msg_limit FROM tween_user WHERE id = $tween_id LIMIT 1";
+	$limitRes = mysqli_query($conn, $limitQuery);
+	$limitRow = mysqli_fetch_assoc($limitRes);
+	$dailyLimit = $limitRow ? (int) $limitRow['daily_msg_limit'] : 100;
+
+	$todayCountQuery = "SELECT COUNT(*) AS c FROM message WHERE sender_id = $tween_id AND DATE(sent_at) = CURDATE()";
+	$todayCountRes = mysqli_query($conn, $todayCountQuery);
+	$todayCountRow = mysqli_fetch_assoc($todayCountRes);
+	$todayCount = $todayCountRow ? (int) $todayCountRow['c'] : 0;
+
+	$response['daily_limit'] = $dailyLimit;
+	$response['today_count'] = $todayCount;
+	$response['limit_reached'] = ($todayCount >= $dailyLimit);
 
 	echo json_encode($response);
 	exit;
