@@ -1613,7 +1613,23 @@ document.addEventListener('DOMContentLoaded', function () {
 	contextMenu.addEventListener('click', function (e) {
 		const action = e.target.closest('.context-menu-item')?.dataset.action;
 		if (action && currentMessage) {
-			if (action === 'edit') {
+			if (action === 'copy') {
+				let textToCopy = '';
+				const selection = window.getSelection();
+				// If selection exists and is within this message, use it
+				if (selection && !selection.isCollapsed && currentMessage.contains(selection.anchorNode)) {
+					textToCopy = selection.toString();
+				} else {
+					// Otherwise copy entire text
+					textToCopy = currentMessage.querySelector('.text').textContent;
+				}
+				if (textToCopy) {
+					navigator.clipboard.writeText(textToCopy).catch((err) => {
+						console.error('Failed to copy text: ', err);
+					});
+				}
+				contextMenu.classList.remove('show');
+			} else if (action === 'edit') {
 				const currentText = currentMessage.querySelector('.text').textContent;
 				editMessageText.value = currentText;
 				editMessageModal.classList.add('show');

@@ -1487,7 +1487,7 @@ input[type='color'] {
 	box-shadow: var(--shadow-lg);
 	display: none;
 	z-index: 1000;
-	min-width: 150px;
+	min-width: 120px;
 	overflow: hidden;
 }
 

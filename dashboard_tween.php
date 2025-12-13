@@ -393,6 +393,9 @@ if (isset($_GET['u'])) {
 	</div>
 	<div id="context-menu-template" style="display: none;">
 		<div class="context-menu">
+			<button class="context-menu-item" data-action="copy">
+				<i class="fa-solid fa-copy"></i> Copy
+			</button>
 			<button class="context-menu-item" data-action="edit">
 				<i class="fa-solid fa-pen-to-square"></i> Edit
 			</button>
