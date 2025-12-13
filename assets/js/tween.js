@@ -1538,6 +1538,100 @@ document.addEventListener('DOMContentLoaded', function () {
 			helpModal.classList.remove('show');
 		});
 	}
+
+	// Settings Modal Logic
+	const settingsBtn = document.getElementById('settings-btn');
+	const settingsModal = document.getElementById('settings-modal');
+	const closeSettingsModalBtn = document.getElementById('close-settings-modal');
+	const profileBtn = document.querySelector('.profile-content');
+
+	function openSettingsModal() {
+		if (!settingsModal) return;
+		settingsModal.classList.add('show');
+		
+		// Fetch current data
+		fetch('api/fetch_profile.php')
+			.then(r => r.json())
+			.then(res => {
+				if (res.success) {
+					const data = res.data;
+					document.getElementById('set-name').value = data.full_name || '';
+					document.getElementById('set-username').value = data.username || '';
+					document.getElementById('set-bio').value = data.bio || '';
+					document.getElementById('set-email').value = data.email || '';
+					
+					document.getElementById('set-dob').textContent = data.birth_date || 'N/A';
+					document.getElementById('set-parent').textContent = data.parent_name || 'Not linked';
+				} else {
+					console.error(res.error);
+				}
+			})
+			.catch(err => console.error(err));
+	}
+
+	if (settingsBtn) {
+		settingsBtn.addEventListener('click', openSettingsModal);
+	}
+	
+	// Open settings from profile button as well
+	if (profileBtn) {
+		profileBtn.addEventListener('click', openSettingsModal);
+	}
+
+	if (closeSettingsModalBtn && settingsModal) {
+		closeSettingsModalBtn.addEventListener('click', function() {
+			settingsModal.classList.remove('show');
+		});
+	}
+
+	// Handle Profile Update
+	const profileForm = document.getElementById('profile-form');
+	if (profileForm) {
+		profileForm.addEventListener('submit', function(e) {
+			e.preventDefault();
+			const formData = new FormData(this);
+			
+			fetch('api/update_profile.php', {
+				method: 'POST',
+				body: formData
+			})
+			.then(r => r.json())
+			.then(res => {
+				if (res.success) {
+					alert('Profile updated successfully!');
+					// Optionally update UI elements like username in nav immediately
+					location.reload(); // Simple way to reflect changes everywhere
+				} else {
+					alert('Error: ' + res.error);
+				}
+			})
+			.catch(err => console.error(err));
+		});
+	}
+
+	// Handle Password Update
+	const passwordForm = document.getElementById('password-form');
+	if (passwordForm) {
+		passwordForm.addEventListener('submit', function(e) {
+			e.preventDefault();
+			const formData = new FormData(this);
+			
+			fetch('api/update_password.php', {
+				method: 'POST',
+				body: formData
+			})
+			.then(r => r.json())
+			.then(res => {
+				if (res.success) {
+					alert('Password updated successfully!');
+					this.reset();
+				} else {
+					alert('Error: ' + res.error);
+				}
+			})
+			.catch(err => console.error(err));
+		});
+	}
 	
 	function fetchMessageStats() {
 		fetch('api/fetch_message_stats.php')
@@ -1780,13 +1874,13 @@ document.addEventListener('DOMContentLoaded', function () {
 	// Unfriend and Block buttons are handled in renderContact()
 
 
-	// Profile Button
-	const profileBtn = document.querySelector('.profile-content');
-	if (profileBtn) {
-		profileBtn.addEventListener('click', function () {
-			// Open profile modal later
-		});
-	}
+	// Profile Button - handled above in Settings Modal logic
+	// const profileBtn = document.querySelector('.profile-content');
+	// if (profileBtn) {
+	// 	profileBtn.addEventListener('click', function () {
+	// 		// Open profile modal later
+	// 	});
+	// }
 
 	// Recalculate corner classes and sender visibility for all messages
 	function recalculateMessageUI() {

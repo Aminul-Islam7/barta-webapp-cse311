@@ -1308,10 +1308,6 @@ input[type='color'] {
 	margin-top: 0;
 }
 
-.modal-content .form-input {
-	margin-bottom: 0.5rem;
-}
-
 .modal-content .form-input[type='color'] {
 	width: 36px;
 	height: 36px;
@@ -2457,6 +2453,69 @@ input[type='color'] {
 
 .stat-left {
 	color: var(--status-away);
+}
+
+/* Settings Modal Styles */
+.settings-modal-content {
+	min-width: 650px;
+}
+
+.settings-modal-body {
+	padding: 20px;
+	max-height: 70vh;
+	overflow-y: auto;
+}
+
+.settings-section {
+	margin-bottom: 25px;
+	margin-top: 0;
+	background: var(--bg-surface);
+	padding: 15px;
+	border-radius: 12px;
+}
+
+.settings-section-title {
+	font-size: 1.1em;
+	color: var(--text-main);
+	margin-bottom: 15px;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	border-bottom: 1px solid var(--border-color);
+	padding-bottom: 10px;
+}
+
+.info-group {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 10px 0;
+}
+
+.info-group:last-child {
+	border-bottom: none;
+}
+
+.info-group label {
+	color: var(--text-muted);
+	font-weight: 500;
+}
+
+.info-value {
+	font-weight: 600;
+	color: var(--text-main);
+}
+
+.w-100 {
+	width: 100%;
+}
+
+.btn-warning {
+	background-color: var(--status-away);
+	color: #fff;
+}
+.btn-warning:hover {
+	background-color: #d97706; /* slightly darker yellow/orange */
 }
 
 .messages-left-circle {
