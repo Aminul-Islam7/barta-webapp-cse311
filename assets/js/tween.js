@@ -373,6 +373,16 @@ document.addEventListener('DOMContentLoaded', function () {
 	function updateContactPreview(targetType, target, msg, meId) {
 		if (!targetType || !target || !msg) return;
 		let previewText = msg.text_content || '';
+
+		// Mask blocked/unclean messages for receiver
+		if (parseInt(msg.is_clean) === 0 && parseInt(msg.sender_id) !== parseInt(meId)) {
+			if (msg.parent_approval === 'pending') {
+				previewText = 'Message pending approval...';
+			} else if (msg.parent_approval === 'rejected') {
+				previewText = 'Message blocked.';
+			}
+		}
+
 		if (Number(msg.sender_id) === Number(meId)) previewText = 'You: ' + previewText;
 		previewText = truncateText(previewText, 40);
 		// Append elapsed time if message includes sent_at

@@ -18,7 +18,7 @@ $friends = [];
 while ($row = mysqli_fetch_assoc($result)) {
 	// Fetch last message for this friend conversation
 	$friend_id = (int) $row['tween_id'];
-	$lastMsgQuery = "SELECT m.sender_id, m.text_content, m.sent_at
+	$lastMsgQuery = "SELECT m.sender_id, m.text_content, m.sent_at, m.is_clean, m.parent_approval
 	                 FROM message m
 	                 JOIN individual_message im ON m.id = im.message_id
 	                 WHERE ((m.sender_id = $tween_id AND im.receiver_id = $friend_id) OR (m.sender_id = $friend_id AND im.receiver_id = $tween_id))
@@ -28,7 +28,18 @@ while ($row = mysqli_fetch_assoc($result)) {
 	$lastRes = mysqli_query($conn, $lastMsgQuery);
 	if ($lastRes && mysqli_num_rows($lastRes) > 0) {
 		$lastRow = mysqli_fetch_assoc($lastRes);
-		$row['last_message_text'] = $lastRow['text_content'];
+
+		$displayText = $lastRow['text_content'];
+		// Mask blocked/unclean messages for receiver
+		if ((int) $lastRow['is_clean'] === 0 && (int) $lastRow['sender_id'] !== $tween_id) {
+			if ($lastRow['parent_approval'] === 'pending') {
+				$displayText = 'Message pending approval...';
+			} elseif ($lastRow['parent_approval'] === 'rejected') {
+				$displayText = 'Message blocked.';
+			}
+		}
+
+		$row['last_message_text'] = $displayText;
 		$row['last_message_sender_id'] = (int) $lastRow['sender_id'];
 		$row['last_message_at'] = $lastRow['sent_at'];
 	} else {
