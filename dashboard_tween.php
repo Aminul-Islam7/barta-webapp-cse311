@@ -127,7 +127,7 @@ if (isset($_GET['u'])) {
 
 <head>
 	<title>Barta Chat</title>
-	<?php include "includes/header.php"; ?>
+	<?php include "header.php"; ?>
 
 </head>
 

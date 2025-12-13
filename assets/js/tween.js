@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		if (e.state && e.state.u) {
 			fetchConversation('tween/fetch_conversation.php?u=' + encodeURIComponent(e.state.u));
 		}
-		// Group support removed
+
 	});
 	
 	// Initial URL Check

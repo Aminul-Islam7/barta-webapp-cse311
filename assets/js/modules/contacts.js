@@ -171,10 +171,7 @@ export function showNonFriendView(username) {
 			const chatHeader = document.querySelector('.chat-header');
 			if (chatHeader) {
 				const contactName = chatHeader.querySelector('span');
-				const icon = chatHeader.querySelector('i'); // bug in original? icon is nested
-				// The original code was: const icon = iconContainer.querySelector('i');
-				// In renderContact (UI) we use iconContainer.
-				// Let's fix it here for robustness
+				const icon = chatHeader.querySelector('i');
 				const iconContainer = chatHeader.querySelector('.contact-icon-circle');
 				if (contactName) contactName.textContent = data.full_name;
 				if (iconContainer) {

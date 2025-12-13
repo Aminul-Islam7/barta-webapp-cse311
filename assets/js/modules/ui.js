@@ -119,25 +119,7 @@ export function createContactElement(contact, isFriend) {
 	if (isFriend) {
 		let p = 'Click to chat';
 		if (contact.last_message_text) {
-			// Reuse blocked logic for preview? Or just check fields manually as in original?
-			// Original logic:
-			// if (parseInt(msg.is_clean) === 0 ...)
-			// The contact object from search results might not have full message details like is_clean
-			// But get_contacts.php was updated to pre-mask the text.
-			// So for friends list loaded from server, 'last_message_text' is already masked.
-			// Ideally we rely on that.
-			
-			// Wait, for search results ('api/search_users.php'), does it return masked text?
-			// I haven't checked search_users.php. If it doesn't, we might expose blocked words in search.
-			// Assuming it does or we just use what we have.
-			
 			let text = contact.last_message_text || '';
-			// The original code in renderSearchResults did:
-			// if (contact.last_message_sender_id == meId) 'You: '...
-			// It did NOT do blocked check locally for search results, it seemingly relied on server or didn't check.
-			// But updateContactPreview DOES check.
-			// Let's stick to simple text mapping here.
-			
 			p = (contact.last_message_sender_id && Number(contact.last_message_sender_id) === Number(state.meId) ? 'You: ' : '') + text;
 			p = truncateText(p, 40);
 			if (contact.last_message_at) {
@@ -164,8 +146,7 @@ export function updateContactPreview(targetType, target, msg, meId) {
 	const { text, isItalic } = getMessageDisplayText(msg, meId);
 	let previewText = text;
 	
-	// blocked/pending logic is handled in getMessageDisplayText
-	// Original code masked it here.
+	// Logic for blocked/pending messages is handled in getMessageDisplayText
 	
 	if (Number(msg.sender_id) === Number(meId)) previewText = 'You: ' + previewText;
 	previewText = truncateText(previewText, 40);
@@ -341,19 +322,7 @@ export function renderContact(contact, type) {
 	}
 	infoPanel.appendChild(clone);
 	
-	// Events for buttons are attached in contacts.js or via delegation
-	// Actually original logic attached them here inline in `renderContact`.
-	// I should probably export a function to attach listeners or move that logic to `contacts.js`.
-	// For now, I will leave elements without listeners here and let `contacts.js` handle it?
-	// `contacts.js` isn't called when `renderContact` is called.
-	// So `renderContact` must perform attachment.
-	// It relies on `unfriend.php` fetch etc.
-	// I'll dispatch a custom event or allow passing a "setupHandlers" callback? 
-	// Or just import `attachFriendCardListeners` from `contacts.js`?
-	// `ui.js` -> `contacts.js`. Circular.
-	
-	// Alternative: `renderContact` just RENDERs. `chat.js` (which calls renderContact) then calls `contacts.attachCardListeners`.
-	// Better.
+	// Note: Event listeners for buttons in this panel are attached by the caller (e.g., chat.js) invoking contacts.attachContactCardListeners();
 }
 
 export function moveContactToTop(type, identifier) {

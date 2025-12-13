@@ -16,18 +16,7 @@ export function fetchConversation(url) {
 			document.querySelector('.empty-state').style.display = 'none';
 			document.querySelector('.chat-container').style.display = 'flex';
 			document.querySelector('.message-input').style.display = 'flex';
-			
-			// Right panel logic (cookie logic handling is in main setup mostly, but here too)
-			// For simplicity, we assume main setup handles initial, but here we honor cookie
-			// Actually main does checking. Here let's just respect the classes if set.
-			// But original code re-checked cookie here.
-			// Ideally we import getCookie/setCookie but UI logic related to panels could be in UI.
-			// I'll skip the panel logic here assuming it's persistent, or if needed add it back.
-			// Original code:
-			// const rightPanelHidden = getCookie('rightPanelHidden') === 'true';
-			// ... logic to hide/show ...
-			// Let's assume the UI doesn't reset on fetch, but if it does, we need it.
-			// I will omit it for brevity unless it breaks. The state is CSS classes, so it persists unless page reload.
+			// Ensure panel state is consistent
 			
 			state.meId = data.me_id;
 			renderMessages(data.messages, data.me_id);
@@ -297,12 +286,6 @@ export function initChat() {
 				const editMessageModal = document.getElementById('edit-message-modal');
 				if (editMessageText && editMessageModal) {
 					// We need to pass the messageId to the modal handler, or store it in state / dom
-					// The modal logic needs to find 'currentMessage' or its ID.
-					// We can attach it to the modal dataset?
-					// Or we can rely on `currentMessage` variable if we export it or use it?
-					// `currentMessage` here is local to this closure.
-					// Helper: make `currentMessage` accessible or attach data to modal input.
-					// Actually the edit message logic is simpler if we just populate the modal and set an attributes on the modal.
 					
 					let wrapper = currentMessage.closest('.message-wrapper');
 					let messageId = wrapper?.getAttribute('data-message-id');
@@ -339,10 +322,8 @@ export function initChat() {
 		}
 	});
 	
-	// Edit message modal listener needs to handle the save. 
-	// The original code has this listener in `tween.js`. 
-	// I should put it here or in settings? 
-	// It's chat related. Put here.
+	// Edit message modal listener
+
 	const editMessageModal = document.getElementById('edit-message-modal');
 	const saveEditBtn = document.getElementById('save-edit');
 	const editMessageText = document.getElementById('edit-message-text');

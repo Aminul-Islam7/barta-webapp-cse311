@@ -162,12 +162,6 @@ export function initSettings() {
 	// Delegated block button handler (from body, e.g. friend list)
 	document.body.addEventListener('click', function(e) {
 		const btn = e.target.closest('.btn-block-user');
-		// The contact card attach logic handles buttons inside the sidebar. 
-		// Friends modal logic handles buttons inside friends modal.
-		// So this might be redundant or valid for dynamic elements not covered.
-		// Assuming specific handlers are attached, I'll remove the generic body listener 
-		// to avoid double firing if I attached explicit listeners.
-		// BUT `contacts.js` `attachFriendActionListeners` does attach explicit listeners.
-		// So we are good.
+		// Delegated handler if needed for dynamic content not covered by other listeners
 	});
 }

@@ -3,7 +3,7 @@
 
 <head>
 	<title>Barta - Privacy Policy</title>
-	<?php include "includes/header.php"; ?>
+	<?php include "header.php"; ?>
 </head>
 
 <body class="p-privacy">
@@ -16,7 +16,8 @@
 				<p><strong>Effective Date:</strong> December 10, 2025</p>
 
 				<h2>1. Introduction</h2>
-				<p>At Barta, we are committed to protecting the privacy of our users, especially children. This Privacy Policy explains how we collect, use, and safeguard your information.</p>
+				<p>At Barta, we are committed to protecting the privacy of our users, especially children. This Privacy
+					Policy explains how we collect, use, and safeguard your information.</p>
 
 				<h2>2. Information We Collect</h2>
 				<p>We collect:</p>
@@ -45,13 +46,15 @@
 				</ul>
 
 				<h2>5. Children's Privacy</h2>
-				<p>We adhere to COPPA. Parental consent is required for tweens. Parents can review and delete their child's data.</p>
+				<p>We adhere to COPPA. Parental consent is required for tweens. Parents can review and delete their
+					child's data.</p>
 
 				<h2>6. Data Security</h2>
 				<p>We use encryption and secure servers to protect your data. However, no method is 100% secure.</p>
 
 				<h2>7. Data Retention</h2>
-				<p>We retain data as long as your account is active or as required by law. You can request deletion at any time.</p>
+				<p>We retain data as long as your account is active or as required by law. You can request deletion at
+					any time.</p>
 
 				<h2>8. Your Rights</h2>
 				<p>You have the right to access, correct, or delete your data. Contact us to exercise these rights.</p>
