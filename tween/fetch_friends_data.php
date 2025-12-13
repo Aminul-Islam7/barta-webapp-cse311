@@ -18,7 +18,7 @@ if (!$tween_id) {
 }
 
 // Use existing contact logic so friend data matches sidebar
-$gc_path = __DIR__ . '/../tween/get_contacts.php';
+$gc_path = __DIR__ . '/get_contacts.php';
 if (file_exists($gc_path)) {
 	// include inside a local scope to reduce side effects
 	include $gc_path;

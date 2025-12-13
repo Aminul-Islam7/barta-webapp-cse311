@@ -45,7 +45,7 @@ export function initSettings() {
 	function openSettingsModal() {
 		if (!settingsModal) return;
 		settingsModal.classList.add('show');
-		fetch('api/fetch_profile.php').then(r => r.json()).then(res => {
+		fetch('tween/fetch_profile.php').then(r => r.json()).then(res => {
 			if (res.success) {
 				const data = res.data;
 				const nameInp = document.getElementById('set-name');
@@ -74,7 +74,7 @@ export function initSettings() {
 		profileForm.addEventListener('submit', function(e) {
 			e.preventDefault();
 			const formData = new FormData(this);
-			fetch('api/update_profile.php', { method: 'POST', body: formData }).then(r => r.json()).then(res => {
+			fetch('tween/update_profile.php', { method: 'POST', body: formData }).then(r => r.json()).then(res => {
 				if (res.success) {
 					alert('Profile updated!');
 					location.reload();
@@ -91,7 +91,7 @@ export function initSettings() {
 		passwordForm.addEventListener('submit', function(e) {
 			e.preventDefault();
 			const formData = new FormData(this);
-			fetch('api/update_password.php', { method: 'POST', body: formData }).then(r => r.json()).then(res => {
+			fetch('tween/update_password.php', { method: 'POST', body: formData }).then(r => r.json()).then(res => {
 				if (res.success) {
 					alert('Password updated!');
 					this.reset();
@@ -116,7 +116,7 @@ export function initSettings() {
 	if (closeLimitsModalBtn) closeLimitsModalBtn.addEventListener('click', () => limitsModal.classList.remove('show'));
 
 	function fetchMessageStats() {
-		fetch('api/fetch_message_stats.php').then(r => r.json()).then(data => {
+		fetch('tween/fetch_message_stats.php').then(r => r.json()).then(data => {
 			if (data.success) {
 				const sent = parseInt(data.sent_count) || 0;
 				const received = parseInt(data.received_count) || 0;

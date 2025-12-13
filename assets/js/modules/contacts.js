@@ -15,7 +15,7 @@ export function refreshContacts(force = false) {
 	const signal = state.contactsPollController.signal;
 	const timeParam = force ? '' : state.contactsLastActiveTime;
 
-	fetch('api/fetch_contacts.php?last_active_time=' + encodeURIComponent(timeParam), { signal })
+	fetch('tween/fetch_contacts.php?last_active_time=' + encodeURIComponent(timeParam), { signal })
 		.then((r) => r.json())
 		.then((data) => {
 			if (data.error) throw new Error(data.error);
@@ -80,7 +80,7 @@ export function performSearch(query) {
 	const placeholder = searchBox.placeholder;
 	if (hintEl) hintEl.textContent = 'Searching...';
 	searchBox.placeholder = 'Searching...';
-	fetch('api/search_users.php?q=' + encodeURIComponent(query))
+	fetch('tween/search_users.php?q=' + encodeURIComponent(query))
 		.then((r) => r.json())
 		.then((data) => {
 			if (data.error) return;
@@ -160,7 +160,7 @@ export function initContactClicks() {
 }
 
 export function showNonFriendView(username) {
-	fetch('api/get_user_info.php?username=' + encodeURIComponent(username))
+	fetch('tween/get_user_info.php?username=' + encodeURIComponent(username))
 		.then((r) => r.json())
 		.then((data) => {
 			if (data.error) return;
@@ -339,7 +339,7 @@ export function attachContactCardListeners() {
 
 // Friends Modal Logic
 export function loadFriendsData() {
-	fetch('api/fetch_friends_data.php')
+	fetch('tween/fetch_friends_data.php')
 		.then(r => r.json())
 		.then(data => {
 			if (data.error) return;

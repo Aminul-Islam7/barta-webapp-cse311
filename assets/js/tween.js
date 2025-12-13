@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	// Notification Dot Check
 	const friendsNotificationDot = document.getElementById('friends-notification-dot');
 	if (friendsNotificationDot) {
-		fetch('api/fetch_friends_data.php')
+		fetch('tween/fetch_friends_data.php')
 			.then((r) => r.json())
 			.then((data) => {
 				if (data.pending_requests && data.pending_requests.length > 0) {

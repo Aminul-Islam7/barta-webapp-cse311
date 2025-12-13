@@ -52,7 +52,7 @@ if ($last_active_time) {
 	}
 }
 
-require __DIR__ . '/../tween/get_contacts.php';
+require __DIR__ . '/get_contacts.php';
 $max_time_found = $last_active_time ? $last_active_time : '1000-01-01 00:00:00';
 
 if (isset($friends)) {
