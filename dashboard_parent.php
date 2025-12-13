@@ -1,7 +1,13 @@
 <?php
+// Prevent caching
+header("Cache-Control: no-cache, no-store, must-revalidate");
+header("Pragma: no-cache");
+header("Expires: 0");
+
 require "db.php";
 session_start();
 
+// Ensure user is logged in and is a parent
 if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'parent') {
 	header("Location: login.php");
 	exit();
@@ -19,7 +25,7 @@ $parent_data = $parent_result ? mysqli_fetch_assoc($parent_result) : [];
 
 // Fetch linked children
 $children = [];
-$children_query = "SELECT id, user_id, username, bio FROM tween_user 
+$children_query = "SELECT id, user_id, username, bio, daily_msg_limit FROM tween_user 
 WHERE parent_id = $parent_id";
 $children_result = mysqli_query($conn, $children_query);
 if ($children_result) {
@@ -84,42 +90,44 @@ $blocked_words = [];
 $bw_query = "SELECT word, tween_id FROM blocked_word WHERE tween_id IN (SELECT id FROM tween_user WHERE parent_id = $parent_id)";
 $bw_result = mysqli_query($conn, $bw_query);
 if ($bw_result) {
-	while ($bw = mysqli_fetch_assoc($bw_result)) {
-		// Store array by tween_id for easy lookup per child
-		$blocked_words[$bw['tween_id']][] = $bw['word'];
-	}
+    while ($bw = mysqli_fetch_assoc($bw_result)) {
+        // Store array by tween_id for easy lookup per child
+        $blocked_words[$bw['tween_id']][] = $bw['word'];
+    }
 }
 
 // Step 2: Fetch unclean, pending-approval messages received by one of this parent's tweens
-$flagged_query = "SELECT m.id, tu.id AS tween_id, tu.username AS child_name, m.text_content, m.sent_at,
-bu.full_name AS from_user, m.sender_id, im.receiver_id
-FROM message m
-JOIN individual_message im ON m.id = im.message_id
-JOIN tween_user tu ON im.receiver_id = tu.user_id
-JOIN bartauser bu ON m.sender_id = bu.id
-WHERE m.is_clean = 0 AND m.parent_approval = 0 AND tu.parent_id = $parent_id
-ORDER BY m.sent_at DESC";
+$flagged_query = "SELECT  m.id, tu.id AS tween_id, tu.username AS child_name, m.text_content,
+				  tu2.username AS from_user, m.sent_at
+                  FROM message m
+                  JOIN individual_message im ON m.id = im.message_id
+                  JOIN tween_user tu ON tu.id = im.receiver_id
+				  JOIN tween_user tu2 ON tu2.id = m.sender_id
+                  WHERE m.is_clean = 0 
+                  AND m.is_deleted = 0 
+                  AND m.parent_approval = 'pending'
+                  AND tu.parent_id = $parent_id
+                  ORDER BY m.sent_at DESC";
 
 $flagged_result = mysqli_query($conn, $flagged_query);
 if ($flagged_result) {
-	while ($msg = mysqli_fetch_assoc($flagged_result)) {
+    while ($msg = mysqli_fetch_assoc($flagged_result)) {
+        // Step 3: Check which blocked word triggered the flag
+        $triggered_word = '';
+        if (isset($blocked_words[$msg['tween_id']])) {
+            foreach ($blocked_words[$msg['tween_id']] as $word) {
+                // Case-insensitive search
+                if (stripos($msg['text_content'], $word) !== false) {
+                    $triggered_word = $word;
+                    break;
+                }
+            }
+        }
 
-		// Step 3: Check which blocked word triggered the flag — compare message with blocked words for this tween
-		$triggered_word = '';
-		if (isset($blocked_words[$msg['tween_id']])) {
-			foreach ($blocked_words[$msg['tween_id']] as $word) {
-				// Case-insensitive search
-				if (stripos($msg['text_content'], $word) !== false) {
-					$triggered_word = $word;
-					break; // Show first match
-				}
-			}
-		}
-
-		// Add the matched word to the message data
-		$msg['blocked_word'] = $triggered_word;
-		$flagged_messages[] = $msg;
-	}
+        // Add the matched word to the message data
+        $msg['blocked_word'] = $triggered_word;
+        $flagged_messages[] = $msg;
+    }
 }
 
 // Fetch blocked words for all children display:
@@ -135,7 +143,6 @@ foreach ($children as $child) {
 		}
 	}
 }
-
 ?>
 
 <!DOCTYPE html>
@@ -147,7 +154,6 @@ foreach ($children as $child) {
 </head>
 
 <body class="p-dashboard-parent">
-
 	<!-- Header -->
 	<header class="p-dashboard-parent__header">
 		<div class="p-dashboard-parent__header-left">
@@ -377,26 +383,7 @@ foreach ($children as $child) {
 				<div class="children-grid">
 					<?php foreach ($children as $child): ?>
 						<?php
-						// Get child stats:
-
-						// Get Sent messages
-						$sent_count = 0;
-						$sent_count_query = "SELECT COUNT(*) as count FROM message WHERE sender_id = {$child['user_id']}";
-						$sent_count_result = mysqli_query($conn, $sent_count_query);
-						if ($sent_count_result) {
-							$sent_count = mysqli_fetch_assoc($sent_count_result)['count'];
-						}
-
-						// Get Received messages						
-						$received_count = 0;
-						$received_count_query = "SELECT COUNT(*) as count FROM individual_message im
-						JOIN message m ON im.message_id = m.id WHERE im.receiver_id = {$child['user_id']}";
-						$received_count_result = mysqli_query($conn, $received_count_query);
-						if ($received_count_result) {
-							$received_count = mysqli_fetch_assoc($received_count_result)['count'];
-						}
-
-						// Get daily limit
+						// Get child stats: daily limits, sent and received message counts
 						$child_limit = $child['daily_msg_limit'] ?? 0;
 						?>
 
@@ -410,12 +397,12 @@ foreach ($children as $child) {
 
 							<div class="child-card__stat" style="margin-top: -1.5rem;">
 								<span class="child-card__stat-label">Sent Messages:</span>
-								<span class="child-card__stat-value"><?php echo $sent_count; ?></span>
+								<span class="sent-count" data-child-id="<?= $child['id'] ?>">–</span>
 							</div>
 
 							<div class="child-card__stat">
 								<span class="child-card__stat-label">Received Messages:</span>
-								<span class="child-card__stat-value"><?php echo $received_count; ?></span>
+								<span class="received-count" data-child-id="<?= $child['id'] ?>">–</span>
 							</div>
 
 							<label class="form-label" style="margin-top: 1rem;">Daily Message Limit</label>
