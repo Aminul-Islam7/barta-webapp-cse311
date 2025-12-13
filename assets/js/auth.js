@@ -26,7 +26,7 @@
 			});
 		}
 
-		// Initialize default button state (show tween)
+
 		showForm('tween');
 
 		// Wire buttons

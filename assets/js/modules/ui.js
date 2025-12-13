@@ -322,7 +322,7 @@ export function renderContact(contact, type) {
 	}
 	infoPanel.appendChild(clone);
 	
-	// Note: Event listeners for buttons in this panel are attached by the caller (e.g., chat.js) invoking contacts.attachContactCardListeners();
+
 }
 
 export function moveContactToTop(type, identifier) {

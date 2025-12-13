@@ -7,7 +7,6 @@ header("Expires: 0");
 require "db.php";
 session_start();
 
-// Ensure user is logged in and is a parent
 if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'parent') {
 	header("Location: login.php");
 	exit();
@@ -85,18 +84,16 @@ foreach ($children as $child) {
 // Fetch flagged messages pending approval (with blocked_word highlight)
 $flagged_messages = [];
 
-// Step 1: Get blocked words for all this parent's tweens
 $blocked_words = [];
 $bw_query = "SELECT word, tween_id FROM blocked_word WHERE tween_id IN (SELECT id FROM tween_user WHERE parent_id = $parent_id)";
 $bw_result = mysqli_query($conn, $bw_query);
 if ($bw_result) {
-    while ($bw = mysqli_fetch_assoc($bw_result)) {
-        // Store array by tween_id for easy lookup per child
-        $blocked_words[$bw['tween_id']][] = $bw['word'];
-    }
+	while ($bw = mysqli_fetch_assoc($bw_result)) {
+		// Store array by tween_id for easy lookup per child
+		$blocked_words[$bw['tween_id']][] = $bw['word'];
+	}
 }
 
-// Step 2: Fetch unclean, pending-approval messages received by one of this parent's tweens
 $flagged_query = "SELECT  m.id, tu.id AS tween_id, tu.username AS child_name, m.text_content,
 				  tu2.username AS from_user, m.sent_at
                   FROM message m
@@ -111,23 +108,22 @@ $flagged_query = "SELECT  m.id, tu.id AS tween_id, tu.username AS child_name, m.
 
 $flagged_result = mysqli_query($conn, $flagged_query);
 if ($flagged_result) {
-    while ($msg = mysqli_fetch_assoc($flagged_result)) {
-        // Step 3: Check which blocked word triggered the flag
-        $triggered_word = '';
-        if (isset($blocked_words[$msg['tween_id']])) {
-            foreach ($blocked_words[$msg['tween_id']] as $word) {
-                // Case-insensitive search
-                if (stripos($msg['text_content'], $word) !== false) {
-                    $triggered_word = $word;
-                    break;
-                }
-            }
-        }
+	while ($msg = mysqli_fetch_assoc($flagged_result)) {
+		$triggered_word = '';
+		if (isset($blocked_words[$msg['tween_id']])) {
+			foreach ($blocked_words[$msg['tween_id']] as $word) {
+				// Case-insensitive search
+				if (stripos($msg['text_content'], $word) !== false) {
+					$triggered_word = $word;
+					break;
+				}
+			}
+		}
 
-        // Add the matched word to the message data
-        $msg['blocked_word'] = $triggered_word;
-        $flagged_messages[] = $msg;
-    }
+		// Add the matched word to the message data
+		$msg['blocked_word'] = $triggered_word;
+		$flagged_messages[] = $msg;
+	}
 }
 
 // Fetch blocked words for all children display:
@@ -399,7 +395,8 @@ foreach ($children as $child) {
 								<div>
 									<div class="child-card__name"><?php echo htmlspecialchars($child['username']); ?></div>
 									<div class="child-card__bio" style="margin-top: 0.25rem; font-style: italic;">
-										<?php echo htmlspecialchars($child['bio'] ?? ''); ?></div>
+										<?php echo htmlspecialchars($child['bio'] ?? ''); ?>
+									</div>
 								</div>
 							</div>
 

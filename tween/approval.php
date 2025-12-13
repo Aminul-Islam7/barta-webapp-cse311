@@ -10,7 +10,6 @@ $tween_id = $_SESSION['tween_id'];
 
 require "../db.php";
 
-// Check if active
 $query = "SELECT is_active, parent_id
           FROM tween_user
           WHERE user_id = $user_id";
@@ -35,7 +34,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['parent_email'])) {
 	if (!$parent_email) {
 		$error = 'Invalid email address';
 	} else {
-		// Check if parent exists and get parent_id
 		$query = "SELECT pu.id
 		          FROM parent_user pu
 		          JOIN bartauser bu ON pu.user_id = bu.id
@@ -46,7 +44,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['parent_email'])) {
 		} else {
 			$parent_row = mysqli_fetch_assoc($result);
 			$parent_id = $parent_row['id'];
-			// Check if request already exists
 			$query = "SELECT status
 			          FROM tween_link_request
 			          WHERE tween_id = $tween_id AND parent_id = $parent_id";
@@ -54,7 +51,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['parent_email'])) {
 			if (mysqli_num_rows($result_check) > 0) {
 				$error = 'A link request to this parent already exists. Please wait for their approval.';
 			} else {
-				// Insert request
 				$query = "INSERT INTO tween_link_request (tween_id, parent_id, status)
 				          VALUES ($tween_id, $parent_id, 'pending')";
 				if (mysqli_query($conn, $query)) {

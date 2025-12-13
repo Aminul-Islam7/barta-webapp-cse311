@@ -9,7 +9,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'tween') {
     exit;
 }
 
-$tween_id = $_SESSION['tween_id']; // This is the receiver
+$tween_id = $_SESSION['tween_id'];
 $requester_id = isset($_POST['request_id']) ? (int) $_POST['request_id'] : 0;
 
 if (!$requester_id) {

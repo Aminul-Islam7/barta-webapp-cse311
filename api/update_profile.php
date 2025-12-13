@@ -26,7 +26,6 @@ if (empty($full_name) || empty($username) || empty($email)) {
     exit;
 }
 
-// Check if username is taken by another user
 $checkUser = $conn->prepare("SELECT id FROM tween_user WHERE username = ? AND id != ?");
 $checkUser->bind_param("si", $username, $tween_id);
 $checkUser->execute();
@@ -36,7 +35,6 @@ if ($checkUser->get_result()->num_rows > 0) {
 }
 $checkUser->close();
 
-// Check if email is taken by another user
 $checkEmail = $conn->prepare("SELECT id FROM bartauser WHERE email = ? AND id != ?");
 $checkEmail->bind_param("si", $email, $user_id);
 $checkEmail->execute();

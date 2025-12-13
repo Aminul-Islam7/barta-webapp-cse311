@@ -35,11 +35,10 @@ if ($target_id == $tween_id) {
 	exit;
 }
 
-// Check connection table for existing friendship or block
-$conn_query = "SELECT type FROM connection 
+$query = "SELECT c.type FROM connection c
                WHERE (sender_id = $tween_id AND receiver_id = $target_id) 
                   OR (sender_id = $target_id AND receiver_id = $tween_id)";
-$conn_result = mysqli_query($conn, $conn_query);
+$conn_result = mysqli_query($conn, $query);
 
 if (mysqli_num_rows($conn_result) > 0) {
 	$existing = mysqli_fetch_assoc($conn_result);
@@ -52,16 +51,14 @@ if (mysqli_num_rows($conn_result) > 0) {
 	}
 }
 
-// Check connection_request table for pending requests
-$req_query = "SELECT * FROM connection_request 
+$query = "SELECT requester_id, receiver_id, requester_parent_approved, receiver_parent_approved, receiver_accepted FROM connection_request 
               WHERE (requester_id = $tween_id AND receiver_id = $target_id) 
                  OR (requester_id = $target_id AND receiver_id = $tween_id)";
-$req_result = mysqli_query($conn, $req_query);
+$req_result = mysqli_query($conn, $query);
 
 if (mysqli_num_rows($req_result) > 0) {
 	$req = mysqli_fetch_assoc($req_result);
-	// If request exists and not yet accepted (receiver_accepted is 0 by default)
-	if ($req['receiver_accepted'] == 0) {
+	if ($req && $req['receiver_accepted'] == 0) {
 		// If action is cancel and current user is the requester, delete the request
 		if ($action === 'cancel' && $req['requester_id'] == $tween_id) {
 			$del_q = "DELETE FROM connection_request WHERE requester_id = $tween_id AND receiver_id = $target_id";
@@ -78,7 +75,6 @@ if (mysqli_num_rows($req_result) > 0) {
 	}
 }
 
-// If action is cancel but no pending request found from current user, return error
 if ($action === 'cancel') {
 	echo json_encode(['error' => 'No pending request to cancel']);
 	exit;

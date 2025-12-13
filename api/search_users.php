@@ -5,17 +5,16 @@ require "../db.php";
 header('Content-Type: application/json');
 
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'tween') {
-	echo json_encode(['error' => 'Unauthorized']);
-	exit;
+    echo json_encode(['error' => 'Unauthorized']);
+    exit;
 }
 
 $tween_id = $_SESSION['tween_id'];
 $query = isset($_GET['q']) ? trim($_GET['q']) : '';
 
-// If empty query, return empty results
 if (empty($query)) {
-	echo json_encode(['friends' => [], 'non_friends' => []]);
-	exit;
+    echo json_encode([]);
+    exit;
 }
 
 $search_term = mysqli_real_escape_string($conn, $query);
@@ -27,7 +26,8 @@ $blocked_query = "SELECT CASE WHEN sender_id = $tween_id THEN receiver_id ELSE s
 $blocked_result = mysqli_query($conn, $blocked_query);
 $blocked_ids = [];
 while ($row = mysqli_fetch_assoc($blocked_result)) {
-	if (!empty($row['other_id'])) $blocked_ids[] = $row['other_id'];
+    if (!empty($row['other_id']))
+        $blocked_ids[] = $row['other_id'];
 }
 $blocked_ids_str = empty($blocked_ids) ? '0' : implode(',', $blocked_ids);
 
@@ -49,13 +49,13 @@ ORDER BY bu.full_name ASC";
 $friends_result = mysqli_query($conn, $friends_query);
 $friends = [];
 while ($row = mysqli_fetch_assoc($friends_result)) {
-	$friends[] = $row;
+    $friends[] = $row;
 }
 
 // Search for non-friends (active tweens not blocked and not already friends)
 // Get list of friend IDs
 $friend_ids = array_map(function ($f) {
-	return $f['tween_id'];
+    return $f['tween_id'];
 }, $friends);
 $friend_ids[] = $tween_id; // exclude self
 $friend_ids_str = implode(',', $friend_ids);
@@ -78,10 +78,10 @@ LIMIT 20";
 $non_friends_result = mysqli_query($conn, $non_friends_query);
 $non_friends = [];
 while ($row = mysqli_fetch_assoc($non_friends_result)) {
-	$non_friends[] = $row;
+    $non_friends[] = $row;
 }
 
 echo json_encode([
-	'friends' => $friends,
-	'non_friends' => $non_friends
+    'friends' => $friends,
+    'non_friends' => $non_friends
 ]);

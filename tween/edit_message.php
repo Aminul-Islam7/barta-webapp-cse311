@@ -9,14 +9,14 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'tween') {
 	exit;
 }
 
-$tween_id = (int)$_SESSION['tween_id'];
+$tween_id = (int) $_SESSION['tween_id'];
 
 if (!isset($_POST['message_id']) || !isset($_POST['text'])) {
 	echo json_encode(['error' => 'Missing message_id or text']);
 	exit;
 }
 
-$message_id = (int)$_POST['message_id'];
+$message_id = (int) $_POST['message_id'];
 $new_text = trim($_POST['text']);
 
 if ($message_id <= 0) {
@@ -29,8 +29,7 @@ if (empty($new_text)) {
 	exit;
 }
 
-// Verify the message exists and is sent by this user
-$query = "SELECT m.sender_id FROM message m WHERE m.id = $message_id AND m.is_deleted = 0";
+$query = "SELECT sender_id FROM message WHERE id = $message_id AND is_deleted = 0 LIMIT 1";
 $result = mysqli_query($conn, $query);
 if (!$result || mysqli_num_rows($result) == 0) {
 	echo json_encode(['error' => 'Message not found', 'message_id' => $message_id]);
@@ -38,7 +37,7 @@ if (!$result || mysqli_num_rows($result) == 0) {
 }
 
 $row = mysqli_fetch_assoc($result);
-if ((int)$row['sender_id'] !== $tween_id) {
+if ((int) $row['sender_id'] !== $tween_id) {
 	echo json_encode(['error' => 'You can only edit your own messages', 'message_id' => $message_id]);
 	exit;
 }

@@ -17,11 +17,9 @@ if (!$friend_id) {
     exit;
 }
 
-// Remove the connection (unfriend)
-// We check for both directions: (me -> him) or (him -> me)
-$query = "DELETE FROM connection 
-          WHERE ((sender_id = $tween_id AND receiver_id = $friend_id) 
-             OR (sender_id = $friend_id AND receiver_id = $tween_id)) 
+$query = "DELETE FROM connection
+          WHERE ((sender_id = $tween_id AND receiver_id = $friend_id)
+             OR (sender_id = $friend_id AND receiver_id = $tween_id))
           AND type = 'added'";
 
 if (mysqli_query($conn, $query)) {

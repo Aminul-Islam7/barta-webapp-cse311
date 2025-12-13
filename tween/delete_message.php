@@ -9,21 +9,20 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'tween') {
 	exit;
 }
 
-$tween_id = (int)$_SESSION['tween_id'];
+$tween_id = (int) $_SESSION['tween_id'];
 
 if (!isset($_POST['message_id'])) {
 	echo json_encode(['error' => 'Missing message_id']);
 	exit;
 }
 
-$message_id = (int)$_POST['message_id'];
+$message_id = (int) $_POST['message_id'];
 if ($message_id <= 0) {
 	echo json_encode(['error' => 'Invalid message_id', 'message_id' => $_POST['message_id']]);
 	exit;
 }
 
-// Verify the message exists and is sent by this user
-$query = "SELECT m.sender_id FROM message m WHERE m.id = $message_id AND m.is_deleted = 0";
+$query = "SELECT sender_id FROM message WHERE id = $message_id AND is_deleted = 0 LIMIT 1";
 $result = mysqli_query($conn, $query);
 if (!$result || mysqli_num_rows($result) == 0) {
 	// Additional diagnostic: check if message exists but is deleted or otherwise
@@ -37,7 +36,7 @@ if (!$result || mysqli_num_rows($result) == 0) {
 }
 
 $row = mysqli_fetch_assoc($result);
-if ((int)$row['sender_id'] !== $tween_id) {
+if ((int) $row['sender_id'] !== $tween_id) {
 	echo json_encode(['error' => 'You can only delete your own messages', 'message_id' => $message_id]);
 	exit;
 }

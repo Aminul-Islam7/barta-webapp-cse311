@@ -45,7 +45,6 @@ if (isset($_GET['u'])) {
 		$selected_friend = mysqli_fetch_assoc($result);
 		$friend_id = $selected_friend['tween_id'];
 
-		// Check if blocked - treat as not found
 		$blockQuery = "SELECT *
 		              FROM connection c
 		              WHERE ((c.sender_id = $tween_id AND c.receiver_id = $friend_id) OR (c.sender_id = $friend_id AND c.receiver_id = $tween_id))
@@ -82,42 +81,6 @@ if (isset($_GET['u'])) {
 			}
 		}
 	}
-	// } elseif (isset($_GET['group'])) {
-// 	$group_id = (int) $_GET['group'];
-// 	$is_member = false;
-// 	foreach ($groups as $g) {
-// 		if ($g['id'] == $group_id) {
-// 			$is_member = true;
-// 			$selected_group = $g;
-// 			break;
-// 		}
-// 	}
-// 	if ($is_member) {
-// 		$query = "SELECT m.id, m.sender_id, m.text_content, m.sent_at, m.is_edited, tu.username as sender_username, bu.full_name as sender_name
-// 		          FROM message m
-// 		          JOIN group_message gm ON m.id = gm.message_id
-// 		          JOIN tween_user tu ON m.sender_id = tu.id
-// 		          JOIN bartauser bu ON tu.user_id = bu.id
-// 		          WHERE gm.group_id = $group_id AND m.is_deleted = 0
-// 		          ORDER BY m.sent_at ASC";
-// 		$result = mysqli_query($conn, $query);
-// 		$messages = [];
-// 		while ($row = mysqli_fetch_assoc($result)) {
-// 			$messages[] = $row;
-// 		}
-// 		$contact_info = $selected_group;
-// 		$query = "SELECT tu.username, bu.full_name
-// 		          FROM group_member gm
-// 		          JOIN tween_user tu ON gm.member_id = tu.id
-// 		          JOIN bartauser bu ON tu.user_id = bu.id
-// 		          WHERE gm.group_id = $group_id";
-// 		$result = mysqli_query($conn, $query);
-// 		$members = [];
-// 		while ($row = mysqli_fetch_assoc($result)) {
-// 			$members[] = $row;
-// 		}
-// 		$contact_info['members'] = $members;
-// 	}
 }
 
 ?>
@@ -141,7 +104,6 @@ if (isset($_GET['u'])) {
 				<i class="fa-duotone fa-solid fa-user-group"></i>
 				<span class="notification-dot" id="friends-notification-dot" style="display: none;"></span>
 			</button>
-			<!-- <button class="nav-btn" id="create-group-btn" title="Create Group"><i class="fa-duotone fa-solid fa-users-medical"></i></button> -->
 			<button class="nav-btn" id="limits-btn" title="Message Limits"><i
 					class="fa-solid fa-gauge-high"></i></button>
 			<div class="nav-links">
@@ -202,40 +164,7 @@ if (isset($_GET['u'])) {
 
 			</div>
 		</div>
-		<!-- <div class="groups">
-			<div class="groups-header">
-				<h3>Groups</h3>
 
-			</div>
-			<div class="groups-list">
-				<?php foreach ($groups as $group): ?>
-					<div class="group-item <?php echo (isset($selected_group) && $selected_group['id'] == $group['id']) ? 'is-selected' : ''; ?>" data-type="group" data-group-id="<?php echo htmlspecialchars($group['id']); ?>">
-						<div class="contact-icon-circle">
-							<i class="fa-solid fa-users"></i>
-						</div>
-						<div>
-							<div><?php echo htmlspecialchars($group['group_name']); ?></div>
-							<div class="text-muted contact-preview">
-								<?php
-								$preview = 'Click to chat';
-								if (!empty($group['last_message_text'])) {
-									$previewText = htmlspecialchars($group['last_message_text']);
-									if (!empty($group['last_message_sender_id']) && $group['last_message_sender_id'] == $tween_id) {
-										$previewText = 'You: ' . $previewText;
-									}
-									if (mb_strlen($previewText) > 40) {
-										$previewText = mb_substr($previewText, 0, 37) . '...';
-									}
-									$preview = $previewText;
-								}
-								echo $preview; ?>
-							</div>
-						</div>
-					</div>
-				<?php endforeach; ?>
-
-			</div>
-		</div> -->
 		<div class="bottom-bar" id="profile-btn">
 			<div class="profile-content">
 				<i class="fa-solid fa-user"></i>
@@ -376,16 +305,7 @@ if (isset($_GET['u'])) {
 			<button class="btn btn-secondary btn-block" title="Block"><i class="fa-solid fa-ban"></i> Block</button>
 		</div>
 	</div>
-	<!-- <div id="group-info-template" style="display: none;">
-		<div class="user-avatar">
-			<div class="avatar-circle"><i class="fa-solid fa-users"></i></div>
-		</div>
-		<div class="user-details">
-			<h3></h3>
-			<small class="text-muted">Group</small>
-			<p></p>
-		</div>
-	</div> -->
+
 	<div id="non-friend-info-template" style="display: none;">
 		<div class="user-avatar">
 			<div class="avatar-circle bg-subtle"><i class="fa-solid fa-user"></i></div>
@@ -416,25 +336,7 @@ if (isset($_GET['u'])) {
 	</div>
 
 	<!-- Modals -->
-	<!-- <div class="modal" id="create-group-modal">
-		<div class="modal-content">
-			<h3><i class="fa-duotone fa-solid fa-users-medical"></i> Create New Group</h3>
-			<div class="form">
-				<input type="text" class="form-input" placeholder="Group Name">
-				<div class="form-row">
-					<div class="color-picker">
-						<input type="color" id="group-color" value="#2c8c84">
-						<div class="color-circle" id="color-display"></div>
-					</div>
-					<label class="form-label">Group Theme Color</label>
-				</div>
-			</div>
-			<div class="modal-buttons">
-				<button class="btn btn-secondary" id="cancel-create">Cancel</button>
-				<button class="btn btn-primary">Create</button>
-			</div>
-		</div>
-	</div> -->
+
 	<div class="modal" id="confirmation-modal">
 		<div class="modal-content">
 			<h3>Confirm Action</h3>

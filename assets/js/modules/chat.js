@@ -16,7 +16,7 @@ export function fetchConversation(url) {
 			document.querySelector('.empty-state').style.display = 'none';
 			document.querySelector('.chat-container').style.display = 'flex';
 			document.querySelector('.message-input').style.display = 'flex';
-			// Ensure panel state is consistent
+
 			
 			state.meId = data.me_id;
 			renderMessages(data.messages, data.me_id);
@@ -285,7 +285,7 @@ export function initChat() {
 				const editMessageText = document.getElementById('edit-message-text');
 				const editMessageModal = document.getElementById('edit-message-modal');
 				if (editMessageText && editMessageModal) {
-					// We need to pass the messageId to the modal handler, or store it in state / dom
+
 					
 					let wrapper = currentMessage.closest('.message-wrapper');
 					let messageId = wrapper?.getAttribute('data-message-id');

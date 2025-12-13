@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		if (themeIcon) themeIcon.className = 'fa-jelly-fill fa-regular fa-lightbulb';
 	}
 	
-	// Initial UI setup
+	// Init UI
 	const messageInputEl = document.querySelector('.message-input');
 	const chatContainerEl = document.querySelector('.chat-container');
 	if (messageInputEl && chatContainerEl) {
@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 	});
 	
-	// Initial URL Check
+	// Check URL
 	const params = new URLSearchParams(window.location.search);
 	if (params.has('u')) {
 		const username = params.get('u');

@@ -1,10 +1,9 @@
 <?php
-// Check child's daily message limit
 session_start();
 require "../db.php";
 
 $parent_id = $_SESSION['parent_id'] ?? null;
-$child_id  = intval($_GET['child_id']);
+$child_id = intval($_GET['child_id']);
 
 if (!$parent_id || !$child_id) {
     echo json_encode(['error' => 'Invalid request']);
@@ -21,16 +20,16 @@ if (!$child) {
 }
 
 // Count messages sent today - using CURDATE() for database date
-$sent_today_result = mysqli_query($conn,"SELECT COUNT(*) AS count
+$sent_today_result = mysqli_query($conn, "SELECT COUNT(*) AS count
                                          FROM message 
                                          WHERE sender_id = {$child['id']} 
                                          AND DATE(sent_at) = CURDATE()
                                          AND is_deleted = 0");
-                                         
+
 $sent_today = mysqli_fetch_assoc($sent_today_result)['count'];
 
 // Count messages received today
-$received_today_result = mysqli_query($conn,"SELECT COUNT(*) AS count
+$received_today_result = mysqli_query($conn, "SELECT COUNT(*) AS count
                                              FROM message m
                                              JOIN individual_message im ON m.id = im.message_id
                                              WHERE im.receiver_id = {$child['id']} 
@@ -47,5 +46,5 @@ echo json_encode([
     'received_today' => $received_today,
     'remaining' => $remaining
 ]);
-exit;       
+exit;
 ?>

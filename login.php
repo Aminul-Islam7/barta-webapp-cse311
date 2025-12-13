@@ -12,7 +12,6 @@ $success = [
 	'registered' => 'Registration successful! Please log in'
 ];
 
-// If already logged in, redirect
 if (isset($_SESSION['logged_in']) && $_SESSION['logged_in']) {
 	if ($_SESSION['role'] == 'tween') {
 		header("Location: dashboard_tween.php");
@@ -23,9 +22,7 @@ if (isset($_SESSION['logged_in']) && $_SESSION['logged_in']) {
 	}
 }
 
-// Handle login POST
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-	// Tween login
 	if (isset($_POST['username'])) {
 		$username = filter_input(INPUT_POST, 'username', FILTER_SANITIZE_SPECIAL_CHARS);
 		if (!$username) {

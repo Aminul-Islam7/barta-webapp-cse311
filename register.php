@@ -71,7 +71,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['username'])) {
 
 	$bio = filter_input(INPUT_POST, 'bio', FILTER_SANITIZE_SPECIAL_CHARS) ?: '';
 
-	// Check if email already exists
 	$query = "SELECT id FROM bartauser WHERE email = '$email'";
 	$result = mysqli_query($conn, $query);
 	if (mysqli_num_rows($result) > 0) {
@@ -79,7 +78,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['username'])) {
 		exit;
 	}
 
-	// Check if username already exists
 	$query = "SELECT id FROM tween_user WHERE username = '$username'";
 	$result = mysqli_query($conn, $query);
 	if (mysqli_num_rows($result) > 0) {
@@ -91,7 +89,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['username'])) {
 	mysqli_begin_transaction($conn);
 
 	try {
-		// Insert into bartauser
 		$password_hash = password_hash($password, PASSWORD_DEFAULT);
 		$role = 'tween';
 		$query = "INSERT INTO bartauser (email, password_hash, full_name, birth_date, role) VALUES ('$email', '$password_hash', '$full_name', '$birth_date', '$role')";
@@ -102,7 +99,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['username'])) {
 
 		$user_id = mysqli_insert_id($conn);
 
-		// Insert into tween_user
 		$query = "INSERT INTO tween_user (user_id, username, parent_id, bio, is_active, daily_msg_limit) VALUES ($user_id, '$username', NULL, '$bio', 0, 100)";
 
 		if (!mysqli_query($conn, $query)) {
@@ -167,7 +163,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['personal_id_type'])) {
 		exit;
 	}
 
-	// Check if email already exists
 	$query = "SELECT id FROM bartauser WHERE email = '$email'";
 	$result = mysqli_query($conn, $query);
 	if (mysqli_num_rows($result) > 0) {
@@ -179,7 +174,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['personal_id_type'])) {
 	mysqli_begin_transaction($conn);
 
 	try {
-		// Insert into bartauser
 		$password_hash = password_hash($password, PASSWORD_DEFAULT);
 		$role = 'parent';
 		$query = "INSERT INTO bartauser (email, password_hash, full_name, birth_date, role) VALUES ('$email', '$password_hash', '$full_name', '$birth_date', '$role')";
@@ -190,7 +184,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['personal_id_type'])) {
 
 		$user_id = mysqli_insert_id($conn);
 
-		// Insert into parent_user
 		$query = "INSERT INTO parent_user (user_id, personal_id_type, personal_id_number) VALUES ($user_id, '$personal_id_type', '$personal_id_number')";
 
 		if (!mysqli_query($conn, $query)) {
@@ -287,7 +280,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['personal_id_type'])) {
 				</div>
 				<div class="p-register__info">
 					<p>By registering on this platform you agree to our <a href="terms.php">Terms & Conditions</a> and
-						<a href="privacy.php">Privacy Policy</a></p>
+						<a href="privacy.php">Privacy Policy</a>
+					</p>
 				</div>
 			</div>
 		</div>

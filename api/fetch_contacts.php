@@ -16,23 +16,14 @@ $last_active_time = isset($_GET['last_active_time']) ? urldecode($_GET['last_act
 // Allow other requests to proceed while this script waits
 session_write_close();
 
-$timeout = 25; // seconds
+$timeout = 25;
 $start_time = time();
-$sleep_interval = 500000; // 0.5 seconds in microseconds
+$sleep_interval = 500000;
 
-// If last_active_time is provided, we poll. Otherwise, return immediately (first load).
 if ($last_active_time) {
 	set_time_limit(0);
 
 	while (time() - $start_time < $timeout) {
-		// Check for any updates relevant to the user's contacts list
-		// 1. New or edited individual messages
-		// 2. New or edited group messages
-		// 3. New connections (friends)
-		// 4. New group memberships or left groups
-
-		// We use a single query with subqueries to get the overall max timestamp
-// We use a single query with subqueries to get the overall max timestamp
 		$query = "SELECT GREATEST(
 			IFNULL((
 				SELECT MAX(GREATEST(m.sent_at, IFNULL(m.edited_at, '1000-01-01 00:00:00')))
@@ -57,36 +48,22 @@ if ($last_active_time) {
 
 		usleep($sleep_interval);
 
-		// Check connection overlap 
-		// (optional: ping DB to keep connection alive if needed, but 25s is usually fine)
+
 	}
 }
 
-// Re-fetch the contact list using the existing logic
-// Note: get_contacts.php expects $tween_id to be set (we have it) 
-// and $conn to be active (we have it)
 require __DIR__ . '/../tween/get_contacts.php';
-
-// Calculate the new max_time from the fetched data to return to client
-// This ensures the client syncs validation with the data it actually receives
 $max_time_found = $last_active_time ? $last_active_time : '1000-01-01 00:00:00';
 
-// Check friends
 if (isset($friends)) {
 	foreach ($friends as &$f) {
 		$f['last_message_at'] = isset($f['last_message_at']) && $f['last_message_at'] ? $f['last_message_at'] : null;
 		if ($f['last_message_at'] && $f['last_message_at'] > $max_time_found) {
 			$max_time_found = $f['last_message_at'];
 		}
-		// Also check if we should consider connection time? 
-		// get_contacts doesn't return connection time in $friends array usually, 
-		// but the query logic above checked it. 
-		// If a new friend is added but no message, max_time_found needs to update 
-		// so we don't loop forever.
 	}
 }
 
-// Check groups
 if (isset($groups)) {
 	foreach ($groups as &$g) {
 		$g['last_message_at'] = isset($g['last_message_at']) && $g['last_message_at'] ? $g['last_message_at'] : null;
@@ -96,9 +73,6 @@ if (isset($groups)) {
 	}
 }
 
-// If we broke because of a connection/group join but no message update, 
-// we must ensure returned last_active_time is >= current_max_time from DB 
-// otherwise client will immediately poll and find 'new' data again.
 if (isset($current_max_time) && $current_max_time > $max_time_found) {
 	$max_time_found = $current_max_time;
 }

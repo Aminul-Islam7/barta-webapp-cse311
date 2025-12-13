@@ -17,14 +17,13 @@ if (!$parent_id || !$message_id || !in_array($action, ['approve', 'reject'])) {
     exit;
 }
 
-// Verify parent has permission to approve this message
-$check_query = "SELECT 1 
+$query = "SELECT tu.parent_id1
                 FROM message m
                 JOIN individual_message im ON m.id = im.message_id
                 JOIN tween_user tu ON tu.id = im.receiver_id
                 WHERE m.id = ? AND tu.parent_id = ?";
-                
-$check_stmt = mysqli_prepare($conn, $check_query);
+
+$check_stmt = mysqli_prepare($conn, $query);
 mysqli_stmt_bind_param($check_stmt, "ii", $message_id, $parent_id);
 mysqli_stmt_execute($check_stmt);
 mysqli_stmt_store_result($check_stmt);
@@ -42,8 +41,7 @@ if ($action === "approve") {
     mysqli_stmt_bind_param($stmt, "i", $message_id);
     mysqli_stmt_execute($stmt);
     mysqli_stmt_close($stmt);
-} 
-else if ($action === "reject") {
+} else if ($action === "reject") {
     $stmt = mysqli_prepare($conn, "UPDATE message SET is_clean = 0, parent_approval = 'rejected' WHERE id = ?");
     mysqli_stmt_bind_param($stmt, "i", $message_id);
     mysqli_stmt_execute($stmt);

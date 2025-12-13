@@ -10,7 +10,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'tween') {
 }
 
 $tween_id = $_SESSION['tween_id'];
-$target_id = isset($_POST['tween_id']) ? (int)$_POST['tween_id'] : 0;
+$target_id = isset($_POST['tween_id']) ? (int) $_POST['tween_id'] : 0;
 
 if (!$target_id) {
 	echo json_encode(['error' => 'Invalid target']);
@@ -22,11 +22,9 @@ if ($target_id == $tween_id) {
 	exit;
 }
 
-// Remove any existing friendship
 $query = "DELETE FROM connection WHERE ((sender_id = $tween_id AND receiver_id = $target_id) OR (sender_id = $target_id AND receiver_id = $tween_id)) AND type = 'added'";
 mysqli_query($conn, $query);
 
-// Insert block connection
 $query = "INSERT INTO connection (sender_id, receiver_id, type) VALUES ($tween_id, $target_id, 'blocked') ON DUPLICATE KEY UPDATE type = 'blocked'";
 $result = mysqli_query($conn, $query);
 
