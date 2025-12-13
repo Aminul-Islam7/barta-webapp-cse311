@@ -95,7 +95,26 @@ document.addEventListener('DOMContentLoaded', function () {
 				messageEl.classList.remove('cut-bottom-right', 'cut-bottom-left');
 			}
 			const textDiv = messageEl.querySelector('.text');
-			textDiv.textContent = msg.text_content || '';
+			let displayText = msg.text_content || '';
+			let isItalic = false;
+
+			// Blocked word logic for receiver
+			if (parseInt(msg.is_clean) === 0 && parseInt(msg.sender_id) !== parseInt(meId)) {
+				if (msg.parent_approval === 'pending') {
+					displayText = 'This message contains a blocked word and is pending approval from your parent.';
+					isItalic = true;
+				} else if (msg.parent_approval === 'rejected') {
+					displayText = 'This message was rejected by your parent.';
+					isItalic = true;
+				}
+				// If approved, show original text (which is default displayText)
+			}
+
+			messageEl.querySelector('.text').textContent = displayText;
+			if (isItalic) {
+				messageEl.querySelector('.text').style.fontStyle = 'italic';
+				messageEl.querySelector('.text').style.color = 'var(--text-muted)';
+			}
 			const timestampDiv = messageEl.querySelector('.timestamp');
 			timestampDiv.textContent = formatTime(msg.sent_at || new Date().toISOString());
 			
@@ -801,6 +820,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 	// Search functionality
 	const searchBox = document.querySelector('.search-box');
+	const searchClearBtn = document.querySelector('.search-clear-btn');
 	let searchTimeout = null;
 	let isSearchActive = false;
 	let originalFriends = []; // Cache original friends list
@@ -949,6 +969,12 @@ document.addEventListener('DOMContentLoaded', function () {
 	if (searchBox) {
 		searchBox.addEventListener('input', function (e) {
 			const query = e.target.value;
+			
+			// Toggle clear button
+			if (searchClearBtn) {
+				searchClearBtn.style.display = query.trim().length > 0 ? 'block' : 'none';
+			}
+
 			console.debug('search input detected:', query);
 			clearTimeout(searchTimeout);
 			searchTimeout = setTimeout(() => {
@@ -961,6 +987,15 @@ document.addEventListener('DOMContentLoaded', function () {
 				performSearch(e.target.value);
 			}
 		});
+		
+		if (searchClearBtn) {
+			searchClearBtn.addEventListener('click', function() {
+				searchBox.value = '';
+				this.style.display = 'none';
+				searchBox.focus();
+				performSearch(''); // Reset search
+			});
+		}
 	}
 
 	// Refresh contacts with long polling
@@ -1434,14 +1469,16 @@ document.addEventListener('DOMContentLoaded', function () {
 		});
 	}
 
-	// Close modal when clicking outside
-	if (friendsModal) {
-		friendsModal.addEventListener('click', function (e) {
-			if (e.target === friendsModal) {
-				friendsModal.classList.remove('show');
+	// Close any modal when clicking outside
+	document.querySelectorAll('.modal').forEach(modal => {
+		modal.addEventListener('click', function (e) {
+			if (e.target === modal) {
+				modal.classList.remove('show');
 			}
 		});
-	}
+	});
+
+
 
 	// Delegated handler for blocking from left panel (friend list) - uses existing confirmation modal
 	document.body.addEventListener('click', function (e) {
@@ -1501,6 +1538,116 @@ document.addEventListener('DOMContentLoaded', function () {
 	if (closeLimitsModalBtn && limitsModal) {
 		closeLimitsModalBtn.addEventListener('click', function() {
 			limitsModal.classList.remove('show');
+		});
+	}
+
+	// Help/Support Modal
+	const helpBtn = document.getElementById('help-btn');
+	const helpModal = document.getElementById('help-modal');
+	const closeHelpModalBtn = document.getElementById('close-help-modal');
+
+	if (helpBtn && helpModal) {
+		helpBtn.addEventListener('click', function() {
+			helpModal.classList.add('show');
+		});
+	}
+	if (closeHelpModalBtn && helpModal) {
+		closeHelpModalBtn.addEventListener('click', function() {
+			helpModal.classList.remove('show');
+		});
+	}
+
+	// Settings Modal Logic
+	const settingsBtn = document.getElementById('settings-btn');
+	const settingsModal = document.getElementById('settings-modal');
+	const closeSettingsModalBtn = document.getElementById('close-settings-modal');
+	const profileBtn = document.querySelector('.profile-content');
+
+	function openSettingsModal() {
+		if (!settingsModal) return;
+		settingsModal.classList.add('show');
+		
+		// Fetch current data
+		fetch('api/fetch_profile.php')
+			.then(r => r.json())
+			.then(res => {
+				if (res.success) {
+					const data = res.data;
+					document.getElementById('set-name').value = data.full_name || '';
+					document.getElementById('set-username').value = data.username || '';
+					document.getElementById('set-bio').value = data.bio || '';
+					document.getElementById('set-email').value = data.email || '';
+					
+					document.getElementById('set-dob').textContent = data.birth_date || 'N/A';
+					document.getElementById('set-parent').textContent = data.parent_name || 'Not linked';
+				} else {
+					console.error(res.error);
+				}
+			})
+			.catch(err => console.error(err));
+	}
+
+	if (settingsBtn) {
+		settingsBtn.addEventListener('click', openSettingsModal);
+	}
+	
+	// Open settings from profile button as well
+	if (profileBtn) {
+		profileBtn.addEventListener('click', openSettingsModal);
+	}
+
+	if (closeSettingsModalBtn && settingsModal) {
+		closeSettingsModalBtn.addEventListener('click', function() {
+			settingsModal.classList.remove('show');
+		});
+	}
+
+	// Handle Profile Update
+	const profileForm = document.getElementById('profile-form');
+	if (profileForm) {
+		profileForm.addEventListener('submit', function(e) {
+			e.preventDefault();
+			const formData = new FormData(this);
+			
+			fetch('api/update_profile.php', {
+				method: 'POST',
+				body: formData
+			})
+			.then(r => r.json())
+			.then(res => {
+				if (res.success) {
+					alert('Profile updated successfully!');
+					// Optionally update UI elements like username in nav immediately
+					location.reload(); // Simple way to reflect changes everywhere
+				} else {
+					alert('Error: ' + res.error);
+				}
+			})
+			.catch(err => console.error(err));
+		});
+	}
+
+	// Handle Password Update
+	const passwordForm = document.getElementById('password-form');
+	if (passwordForm) {
+		passwordForm.addEventListener('submit', function(e) {
+			e.preventDefault();
+			const formData = new FormData(this);
+			
+			fetch('api/update_password.php', {
+				method: 'POST',
+				body: formData
+			})
+			.then(r => r.json())
+			.then(res => {
+				if (res.success) {
+					alert('Password updated successfully!');
+					this.reset();
+				} else {
+					alert('Error: ' + res.error);
+				}
+			})
+			.catch(err => console.error(err));
 		});
 	}
 	
@@ -1745,13 +1892,13 @@ document.addEventListener('DOMContentLoaded', function () {
 	// Unfriend and Block buttons are handled in renderContact()
 
 
-	// Profile Button
-	const profileBtn = document.querySelector('.profile-content');
-	if (profileBtn) {
-		profileBtn.addEventListener('click', function () {
-			// Open profile modal later
-		});
-	}
+	// Profile Button - handled above in Settings Modal logic
+	// const profileBtn = document.querySelector('.profile-content');
+	// if (profileBtn) {
+	// 	profileBtn.addEventListener('click', function () {
+	// 		// Open profile modal later
+	// 	});
+	// }
 
 	// Recalculate corner classes and sender visibility for all messages
 	function recalculateMessageUI() {
@@ -1843,8 +1990,32 @@ document.addEventListener('DOMContentLoaded', function () {
 					data.edited_messages.forEach((edit) => {
 						const wrapper = document.querySelector(`.message-wrapper[data-message-id="${edit.id}"]`);
 						if (wrapper) {
+							const senderId = wrapper.getAttribute('data-sender-id');
+							let displayText = edit.text_content || '';
+							let isItalic = false;
+
+							// Blocked logic
+							if (parseInt(edit.is_clean) === 0 && parseInt(senderId) !== parseInt(data.me_id)) {
+								if (edit.parent_approval === 'pending') {
+									displayText = 'This message contains a blocked word and is pending approval from your parent.';
+									isItalic = true;
+								} else if (edit.parent_approval === 'rejected') {
+									displayText = 'This message was rejected by your parent.';
+									isItalic = true;
+								}
+							}
+
 							const textEl = wrapper.querySelector('.text');
-							if (textEl) textEl.textContent = edit.text_content;
+							if (textEl) {
+								textEl.textContent = displayText;
+								if (isItalic) {
+									textEl.style.fontStyle = 'italic';
+									textEl.style.color = 'var(--text-muted)';
+								} else {
+									textEl.style.fontStyle = '';
+									textEl.style.color = '';
+								}
+							}
 							markMessageAsEdited(wrapper);
 						}
 					});
@@ -1930,7 +2101,25 @@ document.addEventListener('DOMContentLoaded', function () {
 			}
 		}
 		const textDiv = messageEl.querySelector('.text');
-		textDiv.textContent = msg.text_content;
+		let displayText = msg.text_content || '';
+		let isItalic = false;
+
+		// Blocked word logic for receiver
+		if (parseInt(msg.is_clean) === 0 && parseInt(msg.sender_id) !== parseInt(meId)) {
+			if (msg.parent_approval === 'pending') {
+				displayText = 'This message contains a blocked word and is pending approval from your parent.';
+				isItalic = true;
+			} else if (msg.parent_approval === 'rejected') {
+				displayText = 'This message was rejected by your parent.';
+				isItalic = true;
+			}
+		}
+
+		textDiv.textContent = displayText;
+		if (isItalic) {
+			textDiv.style.fontStyle = 'italic';
+			textDiv.style.color = 'var(--text-muted)';
+		}
 		const timestampDiv = messageEl.querySelector('.timestamp');
 		timestampDiv.textContent = formatTime(msg.sent_at);
 		messagesEl.appendChild(wrapper);

@@ -75,7 +75,7 @@ if (isset($_GET['u'])) {
 	$friend['bio'] = html_entity_decode($friend['bio']);
 
 	// Fetch messages between the tween and the friend
-	$query = "SELECT m.id, m.sender_id, m.text_content, m.sent_at, m.is_edited, m.edited_at, tu.username as sender_username, bu.full_name as sender_name
+	$query = "SELECT m.id, m.sender_id, m.text_content, m.sent_at, m.is_edited, m.edited_at, m.is_clean, m.parent_approval, tu.username as sender_username, bu.full_name as sender_name
           FROM message m
           JOIN individual_message im ON m.id = im.message_id
           JOIN tween_user tu ON m.sender_id = tu.id
@@ -162,14 +162,19 @@ if (isset($_GET['u'])) {
 				}
 			}
 			// Edited messages
-			$editQuery = "SELECT m.id, m.text_content, m.edited_at FROM message m
+			$editQuery = "SELECT m.id, m.text_content, m.edited_at, m.is_clean, m.parent_approval FROM message m
 			          JOIN individual_message im ON m.id = im.message_id
 			          WHERE ((m.sender_id = $tween_id AND im.receiver_id = $friend_id) OR (m.sender_id = $friend_id AND im.receiver_id = $tween_id))
 			          AND m.is_deleted = 0 AND m.is_edited = 1 AND m.edited_at > '$sinceTime'";
 			$editResult = mysqli_query($conn, $editQuery);
 			if ($editResult) {
 				while ($editRow = mysqli_fetch_assoc($editResult)) {
-					$edited_messages[] = ['id' => (int) $editRow['id'], 'text_content' => $editRow['text_content']];
+					$edited_messages[] = [
+						'id' => (int) $editRow['id'],
+						'text_content' => $editRow['text_content'],
+						'is_clean' => $editRow['is_clean'],
+						'parent_approval' => $editRow['parent_approval']
+					];
 					if ($editRow['edited_at'] > $max_time)
 						$max_time = $editRow['edited_at'];
 				}
@@ -229,7 +234,7 @@ if (isset($_GET['group'])) {
 	}
 
 	// Fetch group messages
-	$query = "SELECT m.id, m.sender_id, m.text_content, m.sent_at, m.is_edited, m.edited_at, tu.username as sender_username, bu.full_name as sender_name
+	$query = "SELECT m.id, m.sender_id, m.text_content, m.sent_at, m.is_edited, m.edited_at, m.is_clean, m.parent_approval, tu.username as sender_username, bu.full_name as sender_name
           FROM message m
           JOIN group_message gm ON m.id = gm.message_id
           JOIN tween_user tu ON m.sender_id = tu.id
@@ -312,13 +317,18 @@ if (isset($_GET['group'])) {
 				}
 			}
 			// Edited messages
-			$editQuery = "SELECT m.id, m.text_content, m.edited_at FROM message m
+			$editQuery = "SELECT m.id, m.text_content, m.edited_at, m.is_clean, m.parent_approval FROM message m
 			          JOIN group_message gm ON m.id = gm.message_id
 			          WHERE gm.group_id = $group_id AND m.is_deleted = 0 AND m.is_edited = 1 AND m.edited_at > '$sinceTime'";
 			$editResult = mysqli_query($conn, $editQuery);
 			if ($editResult) {
 				while ($editRow = mysqli_fetch_assoc($editResult)) {
-					$edited_messages[] = ['id' => (int) $editRow['id'], 'text_content' => $editRow['text_content']];
+					$edited_messages[] = [
+						'id' => (int) $editRow['id'],
+						'text_content' => $editRow['text_content'],
+						'is_clean' => $editRow['is_clean'],
+						'parent_approval' => $editRow['parent_approval']
+					];
 					if ($editRow['edited_at'] > $max_time)
 						$max_time = $editRow['edited_at'];
 				}

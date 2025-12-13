@@ -144,10 +144,14 @@ if (isset($_GET['u'])) {
 			<!-- <button class="nav-btn" id="create-group-btn" title="Create Group"><i class="fa-duotone fa-solid fa-users-medical"></i></button> -->
 			<button class="nav-btn" id="limits-btn" title="Message Limits"><i
 					class="fa-solid fa-gauge-high"></i></button>
-			<button class="nav-btn" id="theme-toggle" title="Toggle Theme"><i
-					class="fa-jelly-fill fa-regular fa-moon"></i></button>
-			<button class="nav-btn" title="Settings"><i class="fa-jelly-fill fa-regular fa-gear"></i></button>
-			<button class="nav-btn" title="Help/Support"><i class="fa-jelly-duo fa-regular fa-question"></i></button>
+			<div class="nav-links">
+				<button class="nav-btn" id="theme-toggle" title="Toggle Theme"><i
+						class="fa-jelly-fill fa-regular fa-moon"></i></button>
+				<button class="nav-btn" id="settings-btn" title="Settings"><i
+						class="fa-jelly-fill fa-regular fa-gear"></i></button>
+				<button class="nav-btn" id="help-btn" title="Help/Support"><i
+						class="fa-jelly-duo fa-regular fa-question"></i></button>
+			</div>
 		</div>
 		<div class="nav-bottom">
 			<form action="logout.php" method="post">
@@ -160,6 +164,7 @@ if (isset($_GET['u'])) {
 		<div class="top-bar">
 			<i class="fa-regular fa-magnifying-glass search-icon"></i>
 			<input type="text" class="search-box" placeholder="Search for friends">
+			<i class="fa-solid fa-xmark search-clear-btn" style="display: none;" title="Clear search"></i>
 			<div class="search-hint text-muted"></div>
 		</div>
 		<div class="contacts">
@@ -513,6 +518,116 @@ if (isset($_GET['u'])) {
 						<small class="text-muted">Texts Left</small>
 					</div>
 				</div>
+			</div>
+		</div>
+	</div>
+	</div>
+	<div class="modal" id="help-modal">
+		<div class="modal-content help-modal-content">
+			<div class="modal-header">
+				<h3><i class="fa-solid fa-circle-question"></i> Help & Support</h3>
+				<button class="btn-close" id="close-help-modal" title="Close"><i class="fa-solid fa-xmark"></i></button>
+			</div>
+			<div class="modal-body help-modal-body">
+				<div class="help-section">
+					<h4 class="help-section-title"><i class="fa-solid fa-clipboard-question"></i> Frequently Asked
+						Questions</h4>
+					<div class="faq-list">
+						<div class="faq-item">
+							<div class="faq-question">How do I find new friends?</div>
+							<div class="faq-answer">Use the search bar at the top left to find friends by their
+								username.</div>
+						</div>
+						<div class="faq-item">
+							<div class="faq-question">What if someone bothers me?</div>
+							<div class="faq-answer">You can block them by clicking the "Block" button on their profile,
+								or talk to your parent.</div>
+						</div>
+						<div class="faq-item">
+							<div class="faq-question">Can I customize my profile?</div>
+							<div class="faq-answer">Yes! Click the Settings icon to update your bio and other info.
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="help-section" style="margin-top: 20px;">
+					<h4 class="help-section-title"><i class="fa-solid fa-shield-cat"></i> Safety Tips</h4>
+					<ul class="tips-list">
+						<li><i class="fa-solid fa-check"></i> <strong>Keep it private:</strong> Never share your
+							password or home address.</li>
+						<li><i class="fa-solid fa-check"></i> <strong>Be kind:</strong> Treat others how you want to be
+							treated.</li>
+						<li><i class="fa-solid fa-check"></i> <strong>Ask for help:</strong> If something feels wrong,
+							tell a parent or guardian.</li>
+					</ul>
+				</div>
+
+				<div class="help-section help-contact-section">
+					<h4 class="help-section-title"><i class="fa-solid fa-headset"></i> Still need help?</h4>
+					<p>If you have any other questions, please ask a parent or guardian to contact us at:</p>
+					<a href="mailto:support@barta.com" class="support-email">support@barta.com</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal" id="settings-modal">
+		<div class="modal-content settings-modal-content">
+			<div class="modal-header">
+				<h3><i class="fa-solid fa-gear"></i> Settings</h3>
+				<button class="btn-close" id="close-settings-modal" title="Close"><i
+						class="fa-solid fa-xmark"></i></button>
+			</div>
+			<div class="modal-body settings-modal-body">
+				<!-- Profile Edit Section -->
+				<form id="profile-form" class="settings-section">
+					<h4 class="settings-section-title"><i class="fa-solid fa-user-pen"></i> Edit Profile</h4>
+					<div class="mb-1">
+						<label for="set-name" class="form-label">Name</label>
+						<input type="text" id="set-name" name="full_name" class="form-input w-100" required>
+					</div>
+					<div class="mb-1">
+						<label for="set-username" class="form-label">Username</label>
+						<input type="text" id="set-username" name="username" class="form-input w-100" required>
+					</div>
+					<div class="mb-1">
+						<label for="set-bio" class="form-label">Bio</label>
+						<textarea id="set-bio" name="bio" class="form-textarea w-100" rows="2"></textarea>
+					</div>
+					<div class="mb-1">
+						<label for="set-email" class="form-label">Email Address</label>
+						<input type="email" id="set-email" name="email" class="form-input w-100" required>
+					</div>
+					<button type="submit" class="btn btn-primary w-100">Save Changes</button>
+				</form>
+
+				<!-- Read-only Info -->
+				<div class="settings-section">
+					<h4 class="settings-section-title"><i class="fa-solid fa-circle-info"></i> Account Info</h4>
+					<div class="info-group">
+						<label>Date of Birth</label>
+						<div class="info-value" id="set-dob">Loading...</div>
+					</div>
+					<div class="info-group">
+						<label>Parent's Name</label>
+						<div class="info-value" id="set-parent">Loading...</div>
+					</div>
+				</div>
+
+				<!-- Password Update -->
+				<form id="password-form" class="settings-section">
+					<h4 class="settings-section-title"><i class="fa-solid fa-lock"></i> Change Password</h4>
+					<div class="mb-1">
+						<label for="set-curr-pass" class="form-label">Current Password</label>
+						<input type="password" id="set-curr-pass" name="current_password" class="form-input w-100"
+							required>
+					</div>
+					<div class="mb-1">
+						<label for="set-new-pass" class="form-label">New Password</label>
+						<input type="password" id="set-new-pass" name="new_password" class="form-input w-100" required>
+					</div>
+					<button type="submit" class="btn btn-primary w-100">Update Password</button>
+				</form>
 			</div>
 		</div>
 	</div>

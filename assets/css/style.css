@@ -904,6 +904,13 @@ input[type='color'] {
 	max-width: 120px;
 }
 
+.search-clear-btn {
+	color: var(--text-muted);
+	cursor: pointer;
+	font-size: 1rem;
+	margin-left: 0.25rem;
+}
+
 .top-bar .search-box {
 	flex: 1;
 	border: none;
@@ -1306,10 +1313,6 @@ input[type='color'] {
 
 .modal-content .form-label {
 	margin-top: 0;
-}
-
-.modal-content .form-input {
-	margin-bottom: 0.5rem;
 }
 
 .modal-content .form-input[type='color'] {
@@ -2359,8 +2362,167 @@ input[type='color'] {
 	color: var(--secondary-color);
 }
 
+/* Help Modal Styles */
+.help-modal-content {
+	min-width: 650px; 
+}
+
+.help-modal-body {
+	padding: 10px 20px 30px;
+	max-height: 70vh;
+	overflow-y: auto;
+}
+
+.help-section-title {
+	color: var(--primary-color);
+	font-size: 1.1em;
+	margin-bottom: 15px;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	border-bottom: 1px solid var(--border-color);
+	padding-bottom: 10px;
+}
+
+.faq-list {
+	display: flex;
+	flex-direction: column;
+	gap: 15px;
+}
+
+.faq-item {
+	background: var(--bg-surface);
+	padding: 15px;
+	border-radius: 8px;
+}
+
+.faq-question {
+	font-weight: 600;
+	margin-bottom: 5px;
+	color: var(--text-main);
+}
+
+.faq-answer {
+	color: var(--text-muted);
+	font-size: 0.95em;
+	line-height: 1.5;
+}
+
+.tips-list {
+	list-style: none;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.tips-list li {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	color: var(--text-main);
+	background: var(--bg-surface);
+	padding: 10px;
+	border-radius: 8px;
+	font-size: 0.95em;
+}
+
+.tips-list li i {
+	color: var(--secondary-color); /* Green check */
+	margin-top: 3px;
+}
+
+.help-contact-section {
+	margin-top: 30px;
+	text-align: center;
+	background: var(--bg-overlay-light);
+	padding: 20px;
+	border-radius: 12px;
+}
+
+.support-email {
+	display: inline-block;
+	margin-top: 10px;
+	color: var(--primary-color);
+	font-weight: 600;
+	background: var(--bg-body);
+	padding: 8px 16px;
+	border-radius: 20px;
+	text-decoration: none;
+	border: 1px solid var(--primary-color);
+	transition: all 0.2s ease;
+}
+
+.support-email:hover {
+	background: var(--bg-subtle);
+	color: var(--primary);
+}
+
 .stat-left {
 	color: var(--status-away);
+}
+
+/* Settings Modal Styles */
+.settings-modal-content {
+	min-width: 650px;
+}
+
+.settings-modal-body {
+	padding: 20px;
+	max-height: 70vh;
+	overflow-y: auto;
+}
+
+.settings-section {
+	margin-bottom: 25px;
+	margin-top: 0;
+	background: var(--bg-surface);
+	padding: 15px;
+	border-radius: 12px;
+}
+
+.settings-section-title {
+	font-size: 1.1em;
+	color: var(--text-main);
+	margin-bottom: 15px;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	border-bottom: 1px solid var(--border-color);
+	padding-bottom: 10px;
+}
+
+.info-group {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 10px 0;
+}
+
+.info-group:last-child {
+	border-bottom: none;
+}
+
+.info-group label {
+	color: var(--text-muted);
+	font-weight: 500;
+}
+
+.info-value {
+	font-weight: 600;
+	color: var(--text-main);
+}
+
+.w-100 {
+	width: 100%;
+}
+
+.btn-warning {
+	background-color: var(--status-away);
+	color: #fff;
+}
+.btn-warning:hover {
+	background-color: #d97706; /* slightly darker yellow/orange */
 }
 
 .messages-left-circle {
