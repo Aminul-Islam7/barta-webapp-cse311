@@ -94,6 +94,14 @@ document.addEventListener('DOMContentLoaded', function () {
 			textDiv.textContent = msg.text_content || '';
 			const timestampDiv = messageEl.querySelector('.timestamp');
 			timestampDiv.textContent = formatTime(msg.sent_at || new Date().toISOString());
+			
+			if (msg.is_edited && Number(msg.is_edited) === 1) {
+				const indicator = document.createElement('i');
+				indicator.className = 'fa-solid fa-pen edited-indicator';
+				indicator.title = 'Edited';
+				messageEl.appendChild(indicator);
+			}
+
 			messagesEl.appendChild(wrapper);
 		}
 		// Scroll chat to bottom after rendering
@@ -308,6 +316,20 @@ document.addEventListener('DOMContentLoaded', function () {
 		if (!text) return '';
 		if (text.length <= maxLen) return text;
 		return text.substring(0, maxLen - 3) + '...';
+	}
+
+	// Helper: Mark message as edited
+	function markMessageAsEdited(wrapper) {
+		if (!wrapper) return;
+		const messageEl = wrapper.querySelector('.message');
+		if (!messageEl || messageEl.querySelector('.edited-indicator')) return;
+		
+		const indicator = document.createElement('i');
+		indicator.className = 'fa-solid fa-pen edited-indicator';
+		indicator.title = 'Edited';
+		
+		// CSS absolute positioning handles placement now, so just append
+		messageEl.appendChild(indicator);
 	}
 
 	// Returns a short elapsed time label for a given timestamp
@@ -623,6 +645,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				if (wrapper) {
 					const textEl = wrapper.querySelector('.text');
 					if (textEl) textEl.textContent = newText;
+					markMessageAsEdited(wrapper);
 				}
 				return;
 			}
@@ -1488,6 +1511,11 @@ document.addEventListener('DOMContentLoaded', function () {
 				.then((data) => {
 					if (data && data.success) {
 						currentMessage.querySelector('.text').textContent = newText;
+						
+						// Add edited indicator locally
+						const wrapper = currentMessage.closest('.message-wrapper');
+						markMessageAsEdited(wrapper);
+
 						// Broadcast edit to other same-user tabs
 						if (bc) {
 							bc.postMessage({ type: 'edit', messageId, newText, target_type: currentTargetType, target: currentTarget, source: TAB_ID });
@@ -1742,6 +1770,7 @@ document.addEventListener('DOMContentLoaded', function () {
 						if (wrapper) {
 							const textEl = wrapper.querySelector('.text');
 							if (textEl) textEl.textContent = edit.text_content;
+							markMessageAsEdited(wrapper);
 						}
 					});
 				}

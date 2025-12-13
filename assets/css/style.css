@@ -2248,3 +2248,32 @@ input[type='color'] {
 		right: 1rem;
 	}
 }
+
+/* Message Edit Indicator */
+/* Message Edit Indicator */
+.edited-indicator {
+	position: absolute;
+	bottom: -18px;
+	color: var(--text-muted);
+	font-size: 0.7em;
+	opacity: 0.7;
+	cursor: help;
+	white-space: nowrap;
+}
+
+/* For own messages (right aligned), place indicator on left */
+.message.own .edited-indicator {
+	left: -16px;
+	bottom: 2px;
+}
+
+/* For others messages (left aligned), place indicator on right */
+.message:not(.own) .edited-indicator {
+	right: -16px;
+	bottom: 2px;
+}
+
+/* Ensure message container has relative pos so indicator positions correctly */
+.message {
+	position: relative;
+}
