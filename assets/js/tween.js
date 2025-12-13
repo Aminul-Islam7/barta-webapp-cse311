@@ -928,16 +928,43 @@ document.addEventListener('DOMContentLoaded', function () {
 		});
 	}
 
-	// Refresh contacts periodically to update previews and ordering
-	let contactsRefreshInterval = null;
+	// Refresh contacts with long polling
+	let contactsLastActiveTime = '';
+	let contactsPollController = null;
+
 	function refreshContacts(force = false) {
 		// Don't refresh if search is active
 		if (isSearchActive && !force) return;
 
-		fetch('api/fetch_contacts.php')
+		// If forcing a refresh (e.g. after action), abort any pending poll to restart immediately
+		if (force && contactsPollController) {
+			contactsPollController.abort();
+		}
+		// If just looping and a request is already active, don't double up (unless forcing)
+		// Actually, if we are calling recursively, we shouldn't worry, but safeguard:
+		if (!force && contactsPollController && !contactsPollController.signal.aborted) {
+			// This might happen if called externally while waiting. 
+			// We can either abort existing or ignore new. 
+			// If we ignore new, we rely on existing to finish.
+			return; 
+		}
+
+		contactsPollController = new AbortController();
+		const signal = contactsPollController.signal;
+
+		// If force, we send no timestamp to bypass server wait
+		const timeParam = force ? '' : contactsLastActiveTime;
+
+		fetch('api/fetch_contacts.php?last_active_time=' + encodeURIComponent(timeParam), { signal })
 			.then((r) => r.json())
 			.then((data) => {
-				if (data.error) return;
+				if (data.error) throw new Error(data.error);
+				
+				// Update high-water mark
+				if (data.last_active_time) {
+					contactsLastActiveTime = data.last_active_time;
+				}
+
 				// update previews and reorder lists according to server-sorted order
 				const contactsList = document.querySelector('.contacts-list');
 				if (contactsList && Array.isArray(data.friends)) {
@@ -1010,13 +1037,21 @@ document.addEventListener('DOMContentLoaded', function () {
 						if (newSel) newSel.classList.add('is-selected');
 					}
 				}
+
+				// Schedule next poll
+				contactsPollController = null;
+				refreshContacts();
 			})
-			.catch(() => {});
+			.catch((err) => {
+				contactsPollController = null;
+				if (err.name === 'AbortError') return;
+				// Retry after delay on error
+				setTimeout(refreshContacts, 5000);
+			});
 	}
 
-	// refresh initially then every 7s
+	// start polling
 	refreshContacts();
-	contactsRefreshInterval = setInterval(refreshContacts, 7000);
 
 	// If URL already has u= or group=, load that conversation
 	const params = new URLSearchParams(window.location.search);
