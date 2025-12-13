@@ -1522,6 +1522,22 @@ document.addEventListener('DOMContentLoaded', function () {
 			limitsModal.classList.remove('show');
 		});
 	}
+
+	// Help/Support Modal
+	const helpBtn = document.getElementById('help-btn');
+	const helpModal = document.getElementById('help-modal');
+	const closeHelpModalBtn = document.getElementById('close-help-modal');
+
+	if (helpBtn && helpModal) {
+		helpBtn.addEventListener('click', function() {
+			helpModal.classList.add('show');
+		});
+	}
+	if (closeHelpModalBtn && helpModal) {
+		closeHelpModalBtn.addEventListener('click', function() {
+			helpModal.classList.remove('show');
+		});
+	}
 	
 	function fetchMessageStats() {
 		fetch('api/fetch_message_stats.php')
