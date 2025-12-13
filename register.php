@@ -216,7 +216,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['personal_id_type'])) {
 
 <head>
 	<title>Barta - Register</title>
-	<?php include "includes/header.php"; ?>
+	<?php include "header.php"; ?>
 </head>
 
 <body>
@@ -286,7 +286,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['personal_id_type'])) {
 					<p class="p-register__tagline">Safe messaging for tweens</p>
 				</div>
 				<div class="p-register__info">
-					<p>By registering on this platform you agree to our <a href="terms.php">Terms & Conditions</a> and <a href="privacy.php">Privacy Policy</a></p>
+					<p>By registering on this platform you agree to our <a href="terms.php">Terms & Conditions</a> and
+						<a href="privacy.php">Privacy Policy</a></p>
 				</div>
 			</div>
 		</div>

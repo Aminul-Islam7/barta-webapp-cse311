@@ -69,7 +69,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['parent_email'])) {
 
 // Cancel sent request
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['cancel_parent_id'])) {
-	$cancel_parent_id = (int)$_POST['cancel_parent_id'];
+	$cancel_parent_id = (int) $_POST['cancel_parent_id'];
 	if ($cancel_parent_id > 0) {
 		$query = "DELETE FROM tween_link_request
 		          WHERE tween_id = $tween_id AND parent_id = $cancel_parent_id";
@@ -103,7 +103,7 @@ while ($row = mysqli_fetch_assoc($result)) {
 
 <head>
 	<title>Barta - Tween Approval</title>
-	<?php include "../includes/header.php"; ?>
+	<?php include "../header.php"; ?>
 </head>
 
 <body class="p-approval">
@@ -115,12 +115,14 @@ while ($row = mysqli_fetch_assoc($result)) {
 					<img src="../assets/img/logo.png" alt="Barta">
 				</div>
 				<h1>Hello <?php echo htmlspecialchars($full_name); ?>, welcome to Barta!</h1>
-				<p>To use this app, please link your account to your parent by entering their email address below. Your parent will need to create an account first to approve your access.</p>
+				<p>To use this app, please link your account to your parent by entering their email address below. Your
+					parent will need to create an account first to approve your access.</p>
 
 				<form class="form" action="approval.php" method="post">
 					<label class="form-label" for="parent_email">Parent Email</label>
 					<div style="display: flex; gap: 0.5rem; align-items: flex-start;">
-						<input class="form-input" type="email" name="parent_email" id="parent_email" required style="flex: 1;">
+						<input class="form-input" type="email" name="parent_email" id="parent_email" required
+							style="flex: 1;">
 						<button class="btn btn-primary" type="submit">Send Link Request</button>
 					</div>
 					<?php if (isset($error)): ?>
@@ -149,14 +151,16 @@ while ($row = mysqli_fetch_assoc($result)) {
 							<div class="table-row">
 								<div class="table-cell">
 									<div><?php echo htmlspecialchars($req['parent_name']); ?></div>
-									<small style="color: var(--text-muted);"><?php echo htmlspecialchars($req['parent_email']); ?></small>
+									<small
+										style="color: var(--text-muted);"><?php echo htmlspecialchars($req['parent_email']); ?></small>
 								</div>
 								<div class="table-cell"><?php echo date('M j, Y g:i A', strtotime($req['sent_at'])); ?></div>
 								<div class="table-cell"><?php echo htmlspecialchars(ucfirst($req['status'])); ?></div>
 								<div class="table-cell">
 									<?php if ($req['status'] == 'pending' || $req['status'] == 'denied'): ?>
 										<form action="approval.php" method="post">
-											<input type="hidden" name="cancel_parent_id" value="<?php echo isset($req['request_parent_id']) ? $req['request_parent_id'] : ''; ?>">
+											<input type="hidden" name="cancel_parent_id"
+												value="<?php echo isset($req['request_parent_id']) ? $req['request_parent_id'] : ''; ?>">
 											<button class="btn btn-secondary-error" type="submit">Cancel</button>
 										</form>
 									<?php endif; ?>

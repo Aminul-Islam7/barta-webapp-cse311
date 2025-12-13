@@ -65,21 +65,21 @@ if ($friend_requests_result) {
 $child_connections = [];
 
 foreach ($children as $child) {
-    $cid = $child['id']; // tween_user.id
+	$cid = $child['id']; // tween_user.id
 
-    $query = "SELECT c.type, c.added_at, tu.id AS friend_tween_id, tu.username
+	$query = "SELECT c.type, c.added_at, tu.id AS friend_tween_id, tu.username
         	  FROM connection c
         	  JOIN tween_user tu ON ((c.sender_id = $cid AND tu.id = c.receiver_id)
               OR (c.receiver_id = $cid AND tu.id = c.sender_id))
        		  WHERE c.sender_id = $cid OR c.receiver_id = $cid";
 
-    $result = mysqli_query($conn, $query);
+	$result = mysqli_query($conn, $query);
 
-    if ($result) {
-        while ($row = mysqli_fetch_assoc($result)) {
-            $child_connections[$cid][] = $row;
-        }
-    }
+	if ($result) {
+		while ($row = mysqli_fetch_assoc($result)) {
+			$child_connections[$cid][] = $row;
+		}
+	}
 }
 
 // Fetch flagged messages pending approval (with blocked_word highlight)
@@ -150,7 +150,7 @@ foreach ($children as $child) {
 
 <head>
 	<title>Parent Dashboard - Barta</title>
-	<?php include "includes/header.php"; ?>
+	<?php include "header.php"; ?>
 </head>
 
 <body class="p-dashboard-parent">
@@ -177,8 +177,7 @@ foreach ($children as $child) {
 					<form method="POST" action="parent/settings.php">
 						<input type="hidden" name="action" value="change_name">
 						<input type="text" name="full_name"
-							value="<?php echo htmlspecialchars($parent_data['full_name']); ?>"
-							required>
+							value="<?php echo htmlspecialchars($parent_data['full_name']); ?>" required>
 
 						<button type="submit" style="gap: 0.5rem;" class="btn btn-primary">Change Name</button>
 					</form>
@@ -235,12 +234,14 @@ foreach ($children as $child) {
 										<form method="POST" action="parent/approve_tween_link.php" style="display: inline;">
 											<input type="hidden" name="tween_id" value="<?php echo $req['tween_id']; ?>">
 											<input type="hidden" name="parent_id" value="<?php echo $req['parent_id']; ?>">
-											<button type="submit" class="btn btn-primary" name="action" value="approve">Approve</button>
+											<button type="submit" class="btn btn-primary" name="action"
+												value="approve">Approve</button>
 										</form>
 										<form method="POST" action="parent/approve_tween_link.php" style="display: inline;">
 											<input type="hidden" name="tween_id" value="<?php echo $req['tween_id']; ?>">
 											<input type="hidden" name="parent_id" value="<?php echo $req['parent_id']; ?>">
-											<button type="submit" class="btn btn-secondary" name="action" value="reject">Reject</button>
+											<button type="submit" class="btn btn-secondary" name="action"
+												value="reject">Reject</button>
 										</form>
 									</div>
 								</td>
@@ -280,14 +281,18 @@ foreach ($children as $child) {
 								<td>
 									<div class="dashboard-actions">
 										<form method="POST" action="parent/approve_friend_request.php" style="display: inline;">
-											<input type="hidden" name="requester_id" value="<?php echo $freq['requester_id']; ?>">
+											<input type="hidden" name="requester_id"
+												value="<?php echo $freq['requester_id']; ?>">
 											<input type="hidden" name="receiver_id" value="<?php echo $freq['receiver_id']; ?>">
-											<button type="submit" class="btn btn-primary" name="action" value="approve">Approve</button>
+											<button type="submit" class="btn btn-primary" name="action"
+												value="approve">Approve</button>
 										</form>
 										<form method="POST" action="parent/approve_friend_request.php" style="display: inline;">
-											<input type="hidden" name="requester_id" value="<?php echo $freq['requester_id']; ?>">
+											<input type="hidden" name="requester_id"
+												value="<?php echo $freq['requester_id']; ?>">
 											<input type="hidden" name="receiver_id" value="<?php echo $freq['receiver_id']; ?>">
-											<button type="submit" class="btn btn-secondary" name="action" value="decline">Decline</button>
+											<button type="submit" class="btn btn-secondary" name="action"
+												value="decline">Decline</button>
 										</form>
 									</div>
 								</td>
@@ -356,11 +361,13 @@ foreach ($children as $child) {
 									<div class="dashboard-actions">
 										<form method="POST" action="parent/approve_message.php" style="display: inline;">
 											<input type="hidden" name="message_id" value="<?php echo $msg['id']; ?>">
-											<button type="submit" class="btn btn-primary" name="action" value="approve">Approve</button>
+											<button type="submit" class="btn btn-primary" name="action"
+												value="approve">Approve</button>
 										</form>
 										<form method="POST" action="parent/approve_message.php" style="display: inline;">
 											<input type="hidden" name="message_id" value="<?php echo $msg['id']; ?>">
-											<button type="submit" class="btn btn-secondary" name="action" value="reject">Reject</button>
+											<button type="submit" class="btn btn-secondary" name="action"
+												value="reject">Reject</button>
 										</form>
 									</div>
 								</td>
@@ -391,7 +398,8 @@ foreach ($children as $child) {
 							<div class="child-card__header">
 								<div>
 									<div class="child-card__name"><?php echo htmlspecialchars($child['username']); ?></div>
-									<div class="child-card__bio" style="margin-top: 0.25rem; font-style: italic;"><?php echo htmlspecialchars($child['bio'] ?? ''); ?></div>
+									<div class="child-card__bio" style="margin-top: 0.25rem; font-style: italic;">
+										<?php echo htmlspecialchars($child['bio'] ?? ''); ?></div>
 								</div>
 							</div>
 
@@ -408,18 +416,21 @@ foreach ($children as $child) {
 							<label class="form-label" style="margin-top: 1rem;">Daily Message Limit</label>
 							<form method="POST" action="parent/update_daily_limit.php" style="display: flex; gap: 0.5rem;">
 								<input type="hidden" name="tween_id" value="<?php echo $child['id']; ?>">
-								<input type="number" name="daily_limit" value="<?php echo $child_limit; ?>" class="form-input child-card__limit-input" min="0">
-								<button type="submit" class="btn btn-primary" style="height: 65px; padding: 0.5rem 1rem;">Update</button>
+								<input type="number" name="daily_limit" value="<?php echo $child_limit; ?>"
+									class="form-input child-card__limit-input" min="0">
+								<button type="submit" class="btn btn-primary"
+									style="height: 65px; padding: 0.5rem 1rem;">Update</button>
 							</form>
 
 							<div class="child-card__actions">
-    							<button class="btn btn-secondary view-details-btn" data-child-id="<?php echo $child['id']; ?>">View Details</button>
+								<button class="btn btn-secondary view-details-btn"
+									data-child-id="<?php echo $child['id']; ?>">View Details</button>
 							</div>
 							<!-- Hidden container for details -->
-							<div 
-								class="child-card__extra" id="child-details-<?php echo $child['id']; ?>" style="display: none; margin-top: 0.5rem;">
+							<div class="child-card__extra" id="child-details-<?php echo $child['id']; ?>"
+								style="display: none; margin-top: 0.5rem;">
 							</div>
-							
+
 						</div>
 					<?php endforeach; ?>
 				</div>
@@ -455,32 +466,33 @@ foreach ($children as $child) {
 							</tr>
 						</thead>
 						<tbody>
-						<?php foreach ($child_connections[$child['id']] as $conn): ?>
-							<tr>
-								<td><?php echo htmlspecialchars($conn['username']); ?></td>
-								<td><?php echo htmlspecialchars($conn['type']); ?></td>
-								<td>
-									<form method="POST" action="parent/manage_blocking_child_friend.php" style="display:inline;">
-										<input type="hidden" name="child_id" value="<?php echo $child['id']; ?>">
-										<input type="hidden" name="friend_id" value="<?php echo $conn['friend_tween_id']; ?>">
+							<?php foreach ($child_connections[$child['id']] as $conn): ?>
+								<tr>
+									<td><?php echo htmlspecialchars($conn['username']); ?></td>
+									<td><?php echo htmlspecialchars($conn['type']); ?></td>
+									<td>
+										<form method="POST" action="parent/manage_blocking_child_friend.php"
+											style="display:inline;">
+											<input type="hidden" name="child_id" value="<?php echo $child['id']; ?>">
+											<input type="hidden" name="friend_id" value="<?php echo $conn['friend_tween_id']; ?>">
 
-										<?php if ($conn['type'] === 'blocked'): ?>
-											<button class="btn btn-primary" name="action" value="unblock">
-												✅ Unblock
-											</button>
-										<?php else: ?>
-											<button class="btn btn-secondary" name="action" value="block">
-												🚫 Block
-											</button>
-										<?php endif; ?>
+											<?php if ($conn['type'] === 'blocked'): ?>
+												<button class="btn btn-primary" name="action" value="unblock">
+													✅ Unblock
+												</button>
+											<?php else: ?>
+												<button class="btn btn-secondary" name="action" value="block">
+													🚫 Block
+												</button>
+											<?php endif; ?>
 
-										<button class="btn btn-secondary" name="action" value="remove">
-											❌ Remove
-										</button>
-									</form>
-								</td>
-							</tr>
-						<?php endforeach; ?>
+											<button class="btn btn-secondary" name="action" value="remove">
+												❌ Remove
+											</button>
+										</form>
+									</td>
+								</tr>
+							<?php endforeach; ?>
 						</tbody>
 					</table>
 				<?php else: ?>
@@ -497,7 +509,8 @@ foreach ($children as $child) {
 				<select name="tween_id" required class="form-select">
 					<option value="">Choose Child</option>
 					<?php foreach ($children as $child): ?>
-						<option value="<?php echo $child['id']; ?>"><?php echo htmlspecialchars($child['username']); ?></option>
+						<option value="<?php echo $child['id']; ?>"><?php echo htmlspecialchars($child['username']); ?>
+						</option>
 					<?php endforeach; ?>
 				</select>
 				<input type="text" name="word" class="form-input" placeholder="Add new blocked word" required>
@@ -508,11 +521,14 @@ foreach ($children as $child) {
 				<div class="blocked-words-list">
 					<?php foreach ($blocked_words as $word): ?>
 						<div class="blocked-word-badge">
-							<?php echo htmlspecialchars($word['tween_username']); ?>: <b><?php echo htmlspecialchars($word['word']); ?></b>
-							<form method="POST" action="parent/manage_blocked_word.php" style="display: inline; margin-left: 0.5rem;">
+							<?php echo htmlspecialchars($word['tween_username']); ?>:
+							<b><?php echo htmlspecialchars($word['word']); ?></b>
+							<form method="POST" action="parent/manage_blocked_word.php"
+								style="display: inline; margin-left: 0.5rem;">
 								<input type="hidden" name="action" value="remove">
 								<input type="hidden" name="word_id" value="<?php echo $word['word_id']; ?>">
-								<button type="submit" class="blocked-word-badge__remove" onclick="return confirm('Remove this word?');">×</button>
+								<button type="submit" class="blocked-word-badge__remove"
+									onclick="return confirm('Remove this word?');">×</button>
 							</form>
 						</div>
 					<?php endforeach; ?>

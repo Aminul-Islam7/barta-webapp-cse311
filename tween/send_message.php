@@ -65,22 +65,25 @@ if (!empty($_POST['u'])) {
 		exit;
 	}
 } elseif (!empty($_POST['group'])) {
-	$targetType = 'group';
-	$groupId = (int) $_POST['group'];
-	$q = "SELECT id FROM user_group WHERE id = $groupId AND is_active = 1 LIMIT 1";
-	$r = mysqli_query($conn, $q);
-	if (!$r || mysqli_num_rows($r) == 0) {
-		echo json_encode(['error' => 'Group not found']);
-		exit;
-	}
-	// verify membership
-	$check = "SELECT 1 FROM group_member gm WHERE gm.group_id = $groupId AND gm.member_id = $tween_id LIMIT 1";
-	$checkRes = mysqli_query($conn, $check);
-	if (!$checkRes || mysqli_num_rows($checkRes) == 0) {
-		echo json_encode(['error' => 'Not a group member']);
-		exit;
-	}
-	$targetId = $groupId;
+	// Group feature disabled
+	echo json_encode(['error' => 'Group messaging is currently disabled']);
+	exit;
+	// $targetType = 'group';
+	// $groupId = (int) $_POST['group'];
+	// $q = "SELECT id FROM user_group WHERE id = $groupId AND is_active = 1 LIMIT 1";
+	// $r = mysqli_query($conn, $q);
+	// if (!$r || mysqli_num_rows($r) == 0) {
+	// 	echo json_encode(['error' => 'Group not found']);
+	// 	exit;
+	// }
+	// // verify membership
+	// $check = "SELECT 1 FROM group_member gm WHERE gm.group_id = $groupId AND gm.member_id = $tween_id LIMIT 1";
+	// $checkRes = mysqli_query($conn, $check);
+	// if (!$checkRes || mysqli_num_rows($checkRes) == 0) {
+	// 	echo json_encode(['error' => 'Not a group member']);
+	// 	exit;
+	// }
+	// $targetId = $groupId;
 } else {
 	echo json_encode(['error' => 'Missing target']);
 	exit;
@@ -128,7 +131,9 @@ $messageId = mysqli_insert_id($conn);
 if ($targetType === 'friend') {
 	$insRel = "INSERT INTO individual_message (message_id, receiver_id) VALUES ($messageId, $targetId)";
 } else {
-	$insRel = "INSERT INTO group_message (message_id, group_id) VALUES ($messageId, $targetId)";
+	// $insRel = "INSERT INTO group_message (message_id, group_id) VALUES ($messageId, $targetId)";
+	echo json_encode(['error' => 'Group messaging disabled']);
+	exit;
 }
 if (!mysqli_query($conn, $insRel)) {
 	// Cleanup message

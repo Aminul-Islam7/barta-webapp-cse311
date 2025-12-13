@@ -96,7 +96,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <head>
 	<title>Barta - Login</title>
-	<?php include "includes/header.php"; ?>
+	<?php include "header.php"; ?>
 </head>
 
 <body>
