@@ -383,10 +383,11 @@ document.addEventListener('DOMContentLoaded', function () {
 		if (targetType === 'friend') {
 			const el = document.querySelector(`.contact-item[data-username="${target}"] .contact-preview`);
 			if (el) el.textContent = previewText;
-		} else if (targetType === 'group') {
-			const el = document.querySelector(`.group-item[data-group-id="${target}"] .contact-preview`);
-			if (el) el.textContent = previewText;
-		}
+		} 
+		// else if (targetType === 'group') {
+		// 	const el = document.querySelector(`.group-item[data-group-id="${target}"] .contact-preview`);
+		// 	if (el) el.textContent = previewText;
+		// }
 	}
 
 	function showNonFriendView(username) {
@@ -715,13 +716,14 @@ document.addEventListener('DOMContentLoaded', function () {
 			if (contactsList && item) {
 				contactsList.insertBefore(item, contactsList.firstChild);
 			}
-		} else if (type === 'group') {
-			const groupsList = document.querySelector('.groups-list');
-			const item = document.querySelector(`.group-item[data-group-id="${identifier}"]`);
-			if (groupsList && item) {
-				groupsList.insertBefore(item, groupsList.firstChild);
-			}
-		}
+		} 
+		// else if (type === 'group') {
+		// 	const groupsList = document.querySelector('.groups-list');
+		// 	const item = document.querySelector(`.group-item[data-group-id="${identifier}"]`);
+		// 	if (groupsList && item) {
+		// 		groupsList.insertBefore(item, groupsList.firstChild);
+		// 	}
+		// }
 	}
 
 	// Highlight selected contact

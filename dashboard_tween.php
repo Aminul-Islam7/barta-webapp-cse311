@@ -82,42 +82,42 @@ if (isset($_GET['u'])) {
 			}
 		}
 	}
-} elseif (isset($_GET['group'])) {
-	$group_id = (int) $_GET['group'];
-	$is_member = false;
-	foreach ($groups as $g) {
-		if ($g['id'] == $group_id) {
-			$is_member = true;
-			$selected_group = $g;
-			break;
-		}
-	}
-	if ($is_member) {
-		$query = "SELECT m.id, m.sender_id, m.text_content, m.sent_at, m.is_edited, tu.username as sender_username, bu.full_name as sender_name
-		          FROM message m
-		          JOIN group_message gm ON m.id = gm.message_id
-		          JOIN tween_user tu ON m.sender_id = tu.id
-		          JOIN bartauser bu ON tu.user_id = bu.id
-		          WHERE gm.group_id = $group_id AND m.is_deleted = 0
-		          ORDER BY m.sent_at ASC";
-		$result = mysqli_query($conn, $query);
-		$messages = [];
-		while ($row = mysqli_fetch_assoc($result)) {
-			$messages[] = $row;
-		}
-		$contact_info = $selected_group;
-		$query = "SELECT tu.username, bu.full_name
-		          FROM group_member gm
-		          JOIN tween_user tu ON gm.member_id = tu.id
-		          JOIN bartauser bu ON tu.user_id = bu.id
-		          WHERE gm.group_id = $group_id";
-		$result = mysqli_query($conn, $query);
-		$members = [];
-		while ($row = mysqli_fetch_assoc($result)) {
-			$members[] = $row;
-		}
-		$contact_info['members'] = $members;
-	}
+	// } elseif (isset($_GET['group'])) {
+// 	$group_id = (int) $_GET['group'];
+// 	$is_member = false;
+// 	foreach ($groups as $g) {
+// 		if ($g['id'] == $group_id) {
+// 			$is_member = true;
+// 			$selected_group = $g;
+// 			break;
+// 		}
+// 	}
+// 	if ($is_member) {
+// 		$query = "SELECT m.id, m.sender_id, m.text_content, m.sent_at, m.is_edited, tu.username as sender_username, bu.full_name as sender_name
+// 		          FROM message m
+// 		          JOIN group_message gm ON m.id = gm.message_id
+// 		          JOIN tween_user tu ON m.sender_id = tu.id
+// 		          JOIN bartauser bu ON tu.user_id = bu.id
+// 		          WHERE gm.group_id = $group_id AND m.is_deleted = 0
+// 		          ORDER BY m.sent_at ASC";
+// 		$result = mysqli_query($conn, $query);
+// 		$messages = [];
+// 		while ($row = mysqli_fetch_assoc($result)) {
+// 			$messages[] = $row;
+// 		}
+// 		$contact_info = $selected_group;
+// 		$query = "SELECT tu.username, bu.full_name
+// 		          FROM group_member gm
+// 		          JOIN tween_user tu ON gm.member_id = tu.id
+// 		          JOIN bartauser bu ON tu.user_id = bu.id
+// 		          WHERE gm.group_id = $group_id";
+// 		$result = mysqli_query($conn, $query);
+// 		$members = [];
+// 		while ($row = mysqli_fetch_assoc($result)) {
+// 			$members[] = $row;
+// 		}
+// 		$contact_info['members'] = $members;
+// 	}
 }
 
 ?>

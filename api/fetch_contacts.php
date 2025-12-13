@@ -32,6 +32,7 @@ if ($last_active_time) {
 		// 4. New group memberships or left groups
 
 		// We use a single query with subqueries to get the overall max timestamp
+// We use a single query with subqueries to get the overall max timestamp
 		$query = "SELECT GREATEST(
 			IFNULL((
 				SELECT MAX(GREATEST(m.sent_at, IFNULL(m.edited_at, '1000-01-01 00:00:00')))
@@ -40,21 +41,9 @@ if ($last_active_time) {
 				WHERE (m.sender_id = $tween_id OR im.receiver_id = $tween_id)
 			), '1000-01-01 00:00:00'),
 			IFNULL((
-				SELECT MAX(GREATEST(m.sent_at, IFNULL(m.edited_at, '1000-01-01 00:00:00')))
-				FROM message m
-				JOIN group_message gm ON m.id = gm.message_id
-				JOIN group_member gmem ON gm.group_id = gmem.group_id
-				WHERE gmem.member_id = $tween_id
-			), '1000-01-01 00:00:00'),
-			IFNULL((
 				SELECT MAX(added_at) 
 				FROM connection 
 				WHERE sender_id = $tween_id OR receiver_id = $tween_id
-			), '1000-01-01 00:00:00'),
-			IFNULL((
-				SELECT MAX(joined_at) 
-				FROM group_member 
-				WHERE member_id = $tween_id
 			), '1000-01-01 00:00:00')
 		) as current_max_time";
 

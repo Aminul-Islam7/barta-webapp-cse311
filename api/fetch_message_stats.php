@@ -40,17 +40,18 @@ $receivedCount = $receivedIndividualRow ? (int) $receivedIndividualRow['c'] : 0;
 // Simplifying for now to just direct messages or all visible messages?
 // The user request says "received messages". Usually implies direct. 
 // Adding group messages received:
-$receivedGroupQuery = "SELECT COUNT(*) AS c 
-                       FROM message m
-                       JOIN group_message gm ON m.id = gm.message_id
-                       JOIN group_member mem ON gm.group_id = mem.group_id
-                       WHERE mem.member_id = $tween_id
-                       AND m.sender_id != $tween_id
-                       AND DATE(m.sent_at) = CURDATE()
-                       AND m.is_deleted = 0";
-$receivedGroupRes = mysqli_query($conn, $receivedGroupQuery);
-$receivedGroupRow = mysqli_fetch_assoc($receivedGroupRes);
-$receivedCount += $receivedGroupRow ? (int) $receivedGroupRow['c'] : 0;
+// Adding group messages received: - DISABLED (tables dropped)
+// $receivedGroupQuery = "SELECT COUNT(*) AS c 
+//                        FROM message m
+//                        JOIN group_message gm ON m.id = gm.message_id
+//                        JOIN group_member mem ON gm.group_id = mem.group_id
+//                        WHERE mem.member_id = $tween_id
+//                        AND m.sender_id != $tween_id
+//                        AND DATE(m.sent_at) = CURDATE()
+//                        AND m.is_deleted = 0";
+// $receivedGroupRes = mysqli_query($conn, $receivedGroupQuery);
+// $receivedGroupRow = mysqli_fetch_assoc($receivedGroupRes);
+// $receivedCount += $receivedGroupRow ? (int) $receivedGroupRow['c'] : 0;
 
 
 $response = [
