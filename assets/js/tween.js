@@ -820,6 +820,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 	// Search functionality
 	const searchBox = document.querySelector('.search-box');
+	const searchClearBtn = document.querySelector('.search-clear-btn');
 	let searchTimeout = null;
 	let isSearchActive = false;
 	let originalFriends = []; // Cache original friends list
@@ -968,6 +969,12 @@ document.addEventListener('DOMContentLoaded', function () {
 	if (searchBox) {
 		searchBox.addEventListener('input', function (e) {
 			const query = e.target.value;
+			
+			// Toggle clear button
+			if (searchClearBtn) {
+				searchClearBtn.style.display = query.trim().length > 0 ? 'block' : 'none';
+			}
+
 			console.debug('search input detected:', query);
 			clearTimeout(searchTimeout);
 			searchTimeout = setTimeout(() => {
@@ -980,6 +987,15 @@ document.addEventListener('DOMContentLoaded', function () {
 				performSearch(e.target.value);
 			}
 		});
+		
+		if (searchClearBtn) {
+			searchClearBtn.addEventListener('click', function() {
+				searchBox.value = '';
+				this.style.display = 'none';
+				searchBox.focus();
+				performSearch(''); // Reset search
+			});
+		}
 	}
 
 	// Refresh contacts with long polling
@@ -1461,6 +1477,8 @@ document.addEventListener('DOMContentLoaded', function () {
 			}
 		});
 	});
+
+
 
 	// Delegated handler for blocking from left panel (friend list) - uses existing confirmation modal
 	document.body.addEventListener('click', function (e) {

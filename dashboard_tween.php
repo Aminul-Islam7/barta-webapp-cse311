@@ -164,6 +164,7 @@ if (isset($_GET['u'])) {
 		<div class="top-bar">
 			<i class="fa-regular fa-magnifying-glass search-icon"></i>
 			<input type="text" class="search-box" placeholder="Search for friends">
+			<i class="fa-solid fa-xmark search-clear-btn" style="display: none;" title="Clear search"></i>
 			<div class="search-hint text-muted"></div>
 		</div>
 		<div class="contacts">
