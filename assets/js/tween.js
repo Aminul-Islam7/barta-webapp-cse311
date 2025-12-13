@@ -40,6 +40,10 @@ document.addEventListener('DOMContentLoaded', function () {
 	let lastMessageId = 0;
 	let lastActiveTime = 0;
 	let meId = null;
+	// limit tracking
+	let currentDailyLimit = 100;
+	let currentTodayCount = 0;
+
 	// BroadcastChannel for local tab sync and a per-tab stable id
 	const TAB_ID = 'tab-' + Math.random().toString(36).substr(2, 9);
 	const bc = window.BroadcastChannel ? new BroadcastChannel('barta-messages') : null;
@@ -623,6 +627,14 @@ document.addEventListener('DOMContentLoaded', function () {
 				// Set last message ID for polling
 				lastMessageId = data.messages.length > 0 ? Math.max(...data.messages.map((m) => m.id)) : 0;
 				lastActiveTime = data.last_active_time || 0;
+				
+				// Update limit info
+				if (typeof data.daily_limit !== 'undefined') {
+					currentDailyLimit = parseInt(data.daily_limit);
+					currentTodayCount = parseInt(data.today_count);
+					updateLimitUI();
+				}
+
 				// Start polling for new messages
 				startPolling();
 			})
@@ -1475,6 +1487,43 @@ document.addEventListener('DOMContentLoaded', function () {
 		})
 		.catch(() => {});
 
+	// Message Limits Modal
+	const limitsBtn = document.getElementById('limits-btn');
+	const limitsModal = document.getElementById('message-limit-modal');
+	const closeLimitsModalBtn = document.getElementById('close-limit-modal');
+
+	if (limitsBtn && limitsModal) {
+		limitsBtn.addEventListener('click', function() {
+			limitsModal.classList.add('show');
+			fetchMessageStats();
+		});
+	}
+	if (closeLimitsModalBtn && limitsModal) {
+		closeLimitsModalBtn.addEventListener('click', function() {
+			limitsModal.classList.remove('show');
+		});
+	}
+	
+	function fetchMessageStats() {
+		fetch('api/fetch_message_stats.php')
+			.then(r => r.json())
+			.then(data => {
+				if (data.success) {
+					// Use integers
+					const sent = parseInt(data.sent_count) || 0;
+					const received = parseInt(data.received_count) || 0;
+					const limit = parseInt(data.daily_limit) || 100;
+					const left = Math.max(0, limit - sent);
+					
+					document.getElementById('stat-sent').textContent = sent;
+					document.getElementById('stat-received').textContent = received;
+					document.getElementById('stat-limit').textContent = limit;
+					document.getElementById('stat-left').textContent = left;
+				}
+			})
+			.catch(err => console.error(err));
+	}
+
 	// Edit Message Modal
 	const editMessageModal = document.getElementById('edit-message-modal');
 	const cancelEditBtn = document.getElementById('cancel-edit');
@@ -1590,9 +1639,19 @@ document.addEventListener('DOMContentLoaded', function () {
 	let currentMessage = null;
 
 	document.addEventListener('contextmenu', function (e) {
-		if (e.target.closest('.message.own')) {
+		const msgEl = e.target.closest('.message');
+		if (msgEl) {
 			e.preventDefault();
-			currentMessage = e.target.closest('.message.own');
+			currentMessage = msgEl;
+			const isOwn = currentMessage.classList.contains('own');
+			
+			// Show/Hide Edit & Delete buttons
+			const editBtn = contextMenu.querySelector('[data-action="edit"]');
+			const deleteBtn = contextMenu.querySelector('[data-action="delete"]');
+			
+			if (editBtn) editBtn.style.display = isOwn ? 'flex' : 'none';
+			if (deleteBtn) deleteBtn.style.display = isOwn ? 'flex' : 'none';
+
 			const wrapper = currentMessage.closest('.message-wrapper') || currentMessage.closest('[data-message-id]');
 			console.log('Context menu on message wrapper dataset=', wrapper?.dataset, 'getAttribute=', wrapper?.getAttribute?.('data-message-id'));
 			contextMenu.style.left = e.clientX + 'px';
@@ -1898,6 +1957,10 @@ document.addEventListener('DOMContentLoaded', function () {
 			.then((data) => {
 				if (!data || data.error) {
 					console.error(data?.error || 'Failed to send message');
+					if (data?.error && data.error.includes('limit')) {
+						currentTodayCount = currentDailyLimit; // Force limit reached state
+						updateLimitUI();
+					}
 					if (sendBtn) sendBtn.disabled = false;
 					return;
 				}
@@ -1916,23 +1979,62 @@ document.addEventListener('DOMContentLoaded', function () {
 					console.debug && console.debug('sendMessage: bc.postMessage payload', { type: 'send', message: data.message, me_id: data.me_id, target_type: data.target_type, target: data.target });
 					bc.postMessage({ type: 'send', message: data.message, me_id: data.me_id, target_type: data.target_type, target: data.target, source: TAB_ID });
 				}
-				// Abort current poll (it will naturally restart on its own)
-				// clear textarea
-				const ta = document.querySelector('.message-input textarea');
-				if (ta) {
-					ta.value = '';
-					// keep focus
-					ta.focus();
-				}
-				if (sendBtn) sendBtn.disabled = false;
-			})
-			.catch((err) => {
-				console.error(err);
-				if (sendBtn) sendBtn.disabled = false;
-			});
-	}
+			// Abort current poll (it will naturally restart on its own)
+			// clear textarea
+			const ta = document.querySelector('.message-input textarea');
+			if (ta) {
+				ta.value = '';
+				// keep focus
+				ta.focus();
+			}
+			if (sendBtn) sendBtn.disabled = false;
+			
+			// Increment count and check limit
+			currentTodayCount++;
+			updateLimitUI();
+		})
+		.catch((err) => {
+			console.error(err);
+			if (sendBtn) sendBtn.disabled = false;
+		});
+}
 
-	// Wire send button and enter key
+function updateLimitUI() {
+	const ta = document.querySelector('.message-input textarea');
+	const limitMsg = document.querySelector('.message-input .limit-reached-msg');
+	const leftCircle = document.querySelector('.messages-left-circle');
+	const sendBtn = document.querySelector('.message-input .btn-primary');
+	
+	if (!ta) return;
+
+	// Calculate left
+	const left = Math.max(0, currentDailyLimit - currentTodayCount);
+	if (leftCircle) {
+		leftCircle.textContent = left;
+	}
+	
+	// Check if limit reached
+	if (currentTodayCount >= currentDailyLimit) {
+		// Limit reached state
+		ta.style.display = 'none';
+		if (leftCircle) leftCircle.style.display = 'none';
+		if (sendBtn) sendBtn.style.display = 'none';
+		if (limitMsg) limitMsg.style.display = 'flex';
+		ta.disabled = true;
+	} else {
+		// Normal state
+		ta.style.display = 'block';
+		if (leftCircle) leftCircle.style.display = 'flex';
+		if (sendBtn) sendBtn.style.display = 'inline-flex'; // Assuming flex for icon centering, or use null/block
+		if (limitMsg) limitMsg.style.display = 'none';
+		ta.disabled = false;
+		if (!ta.value && ta.placeholder !== "Type a message...") {
+             ta.placeholder = "Type a message...";
+        }
+	}
+}
+
+// Wire send button and enter key
 	const sendBtn = document.querySelector('.message-input button');
 	const messageTa = document.querySelector('.message-input textarea');
 	if (sendBtn && messageTa) {
