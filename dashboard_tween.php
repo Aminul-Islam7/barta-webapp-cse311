@@ -631,7 +631,7 @@ if (isset($_GET['u'])) {
 			</div>
 		</div>
 	</div>
-	<script src="assets/js/tween.js"></script>
+	<script type="module" src="assets/js/tween.js"></script>
 </body>
 
 </html>
