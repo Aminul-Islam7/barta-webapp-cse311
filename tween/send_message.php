@@ -9,7 +9,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'tween') {
 	exit;
 }
 
-$tween_id = (int)$_SESSION['tween_id'];
+$tween_id = (int) $_SESSION['tween_id'];
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 	echo json_encode(['error' => 'Invalid request method']);
@@ -32,12 +32,12 @@ if (strlen($text) > 4096) {
 $limitQuery = "SELECT daily_msg_limit FROM tween_user WHERE id = $tween_id LIMIT 1";
 $limitRes = mysqli_query($conn, $limitQuery);
 $limitRow = mysqli_fetch_assoc($limitRes);
-$dailyLimit = $limitRow ? (int)$limitRow['daily_msg_limit'] : 100;
+$dailyLimit = $limitRow ? (int) $limitRow['daily_msg_limit'] : 100;
 
 $todayCountQuery = "SELECT COUNT(*) AS c FROM message WHERE sender_id = $tween_id AND DATE(sent_at) = CURDATE()";
 $todayCountRes = mysqli_query($conn, $todayCountQuery);
 $todayCountRow = mysqli_fetch_assoc($todayCountRes);
-$todayCount = $todayCountRow ? (int)$todayCountRow['c'] : 0;
+$todayCount = $todayCountRow ? (int) $todayCountRow['c'] : 0;
 if ($todayCount >= $dailyLimit) {
 	echo json_encode(['error' => 'Daily message limit reached']);
 	exit;
@@ -56,7 +56,7 @@ if (!empty($_POST['u'])) {
 		exit;
 	}
 	$tr = mysqli_fetch_assoc($r);
-	$targetId = (int)$tr['id'];
+	$targetId = (int) $tr['id'];
 	// verify friendship exists and is added
 	$check = "SELECT 1 FROM connection c WHERE ((c.sender_id = $tween_id AND c.receiver_id = $targetId) OR (c.sender_id = $targetId AND c.receiver_id = $tween_id)) AND c.type = 'added' LIMIT 1";
 	$checkRes = mysqli_query($conn, $check);
@@ -66,7 +66,7 @@ if (!empty($_POST['u'])) {
 	}
 } elseif (!empty($_POST['group'])) {
 	$targetType = 'group';
-	$groupId = (int)$_POST['group'];
+	$groupId = (int) $_POST['group'];
 	$q = "SELECT id FROM user_group WHERE id = $groupId AND is_active = 1 LIMIT 1";
 	$r = mysqli_query($conn, $q);
 	if (!$r || mysqli_num_rows($r) == 0) {
@@ -86,9 +86,38 @@ if (!empty($_POST['u'])) {
 	exit;
 }
 
+// Blocked Words Logic
+$isClean = 1;
+$parentApproval = 'not required';
+
+// Only check blocked words for individual messages (Logic per user requirement "receiver's parent")
+if ($targetType === 'friend') {
+	// Fetch blocked words for the receiver
+	$blockedWordsQuery = "SELECT word FROM blocked_word WHERE tween_id = $targetId";
+	$bwRes = mysqli_query($conn, $blockedWordsQuery);
+	$blockedWords = [];
+	if ($bwRes) {
+		while ($bwRow = mysqli_fetch_assoc($bwRes)) {
+			$blockedWords[] = strtolower($bwRow['word']);
+		}
+	}
+
+	if (!empty($blockedWords)) {
+		$lowerText = strtolower($text);
+		foreach ($blockedWords as $word) {
+			// Simple containment check. Could be improved with regex boundary check.
+			if (strpos($lowerText, $word) !== false) {
+				$isClean = 0;
+				$parentApproval = 'pending';
+				break;
+			}
+		}
+	}
+}
+
 // insert into message
 $escapedText = mysqli_real_escape_string($conn, $text);
-$insert = "INSERT INTO message (sender_id, text_content) VALUES ($tween_id, '$escapedText')";
+$insert = "INSERT INTO message (sender_id, text_content, is_clean, parent_approval) VALUES ($tween_id, '$escapedText', $isClean, '$parentApproval')";
 if (!mysqli_query($conn, $insert)) {
 	echo json_encode(['error' => 'Failed to insert message']);
 	exit;
@@ -109,7 +138,7 @@ if (!mysqli_query($conn, $insRel)) {
 }
 
 // Fetch the newly created message joined with sender info
-$fetchMsgQuery = "SELECT m.id, m.sender_id, m.text_content, m.sent_at, m.is_edited, tu.username as sender_username, bu.full_name as sender_name
+$fetchMsgQuery = "SELECT m.id, m.sender_id, m.text_content, m.sent_at, m.is_edited, m.is_clean, m.parent_approval, tu.username as sender_username, bu.full_name as sender_name
 FROM message m
 JOIN tween_user tu ON m.sender_id = tu.id
 JOIN bartauser bu ON tu.user_id = bu.id
