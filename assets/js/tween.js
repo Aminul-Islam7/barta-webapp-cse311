@@ -1453,14 +1453,14 @@ document.addEventListener('DOMContentLoaded', function () {
 		});
 	}
 
-	// Close modal when clicking outside
-	if (friendsModal) {
-		friendsModal.addEventListener('click', function (e) {
-			if (e.target === friendsModal) {
-				friendsModal.classList.remove('show');
+	// Close any modal when clicking outside
+	document.querySelectorAll('.modal').forEach(modal => {
+		modal.addEventListener('click', function (e) {
+			if (e.target === modal) {
+				modal.classList.remove('show');
 			}
 		});
-	}
+	});
 
 	// Delegated handler for blocking from left panel (friend list) - uses existing confirmation modal
 	document.body.addEventListener('click', function (e) {
