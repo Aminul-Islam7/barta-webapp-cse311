@@ -311,10 +311,17 @@ export function renderContact(contact, type) {
 		h3.textContent = contact.full_name;
 		small.textContent = '@' + contact.username;
 		p.textContent = contact.bio || '';
+		
+		const id = contact.id || contact.tween_id || contact.tweenId || '';
+		
 		const blockBtn = clone.querySelector('.btn-block');
 		if (blockBtn) {
-			const id = contact.id || contact.tween_id || contact.tweenId || '';
 			blockBtn.setAttribute('data-tween-id', id);
+		}
+		
+		const unfriendBtn = clone.querySelector('button[title="Unfriend"]');
+		if (unfriendBtn) {
+			unfriendBtn.setAttribute('data-tween-id', id);
 		}
 	} else {
 		h3.textContent = contact.group_name;
@@ -353,6 +360,8 @@ export function showConfirmation(options, onConfirm) {
 	const messageEl = confirmationModal.querySelector('.confirmation-message');
 	messageEl.textContent = message;
 	const confirmBtn = confirmationModal.querySelector('.btn-confirm');
+	const cancelBtn = confirmationModal.querySelector('#cancel-confirmation');
+	
 	confirmBtn.textContent = confirmText;
 	confirmBtn.onclick = function () {
 		try {
@@ -362,6 +371,13 @@ export function showConfirmation(options, onConfirm) {
 		}
 		confirmationModal.classList.remove('show');
 	};
+	
+	if (cancelBtn) {
+		cancelBtn.onclick = function () {
+			confirmationModal.classList.remove('show');
+		};
+	}
+	
 	confirmationModal.classList.add('show');
 }
 

@@ -1,15 +1,15 @@
 <?php
 // Approve/decline child's friend request
 session_start();
-require "../db.php";  
+require "../db.php";
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header("Location: ../dashboard_parent.php");
     exit;
 }
 
 $requester_id = intval($_POST['requester_id']);
-$receiver_id  = intval($_POST['receiver_id']);      
-$action       = $_POST['action']; 
+$receiver_id = intval($_POST['receiver_id']);
+$action = $_POST['action'];
 // APPROVE REQUEST
 if ($action === "approve") {
     $sql = "UPDATE connection_request 
@@ -19,7 +19,7 @@ if ($action === "approve") {
 
     mysqli_query($conn, $sql);
 
- //Check if BOTH parents approved AND receiver accepted
+    //Check if BOTH parents approved AND receiver accepted
     $check_sql = "SELECT * FROM connection_request
                   WHERE requester_id = $requester_id AND receiver_id = $receiver_id
                   AND receiver_parent_approved = 1 AND requester_parent_approved = 1
@@ -46,25 +46,15 @@ if ($action === "approve") {
             mysqli_query($conn, $insert_sql);
         }
     }
-// DECLINE REQUEST
+    // DECLINE REQUEST
 } elseif ($action === "decline") {
     $sql = "UPDATE connection_request 
             SET receiver_parent_approved = -1, requester_parent_approved = -1
             WHERE requester_id = $requester_id 
             AND receiver_id = $receiver_id";
 
-    mysqli_query($conn, $sql); 
+    mysqli_query($conn, $sql);
 }
 // Redirect back to parent dashboard
 header("Location: ../dashboard_parent.php");
 exit;
-?>
-
-
-
-
-
-
-
-
-
