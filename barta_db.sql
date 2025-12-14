@@ -38,15 +38,6 @@ CREATE TABLE `bartauser` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `bartauser`
---
-
-INSERT INTO `bartauser` (`id`, `email`, `password_hash`, `full_name`, `birth_date`, `role`, `created_at`) VALUES
-(1, 'aminulfardin7@gmail.com', '$2y$10$k0qXSjrxLOaUwYrwbxjElObMAX2xngNr6OgVBYsrlQm9aea25hwn6', 'Aminul', '2002-09-18', 'tween', '2025-12-01 12:28:02');
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `blocked_word`
 --
 
