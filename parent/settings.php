@@ -1,7 +1,7 @@
 <?php
 // Parent settings
 session_start();
-require "../includes/db.php";
+require "../db.php";
 
 if (!isset($_SESSION['parent_id'])) {
     header("Location: ../login.php");

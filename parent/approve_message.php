@@ -17,7 +17,7 @@ if (!$parent_id || !$message_id || !in_array($action, ['approve', 'reject'])) {
     exit;
 }
 
-$query = "SELECT tu.parent_id1
+$query = "SELECT tu.parent_id
                 FROM message m
                 JOIN individual_message im ON m.id = im.message_id
                 JOIN tween_user tu ON tu.id = im.receiver_id
