@@ -2,7 +2,7 @@ import { getCookie, setCookie } from './modules/utils.js';
 import { scrollToBottom } from './modules/ui.js';
 import { state } from './modules/state.js';
 import { refreshContacts, performSearch, initContactClicks } from './modules/contacts.js';
-import { fetchConversation, initChat, startPolling } from './modules/chat.js';
+import { fetchConversation, initChat, startPolling } from './modules/msg.js';
 import { initSettings } from './modules/settings.js';
 import { clearSelection, selectItem, showConfirmation } from './modules/ui.js';
 

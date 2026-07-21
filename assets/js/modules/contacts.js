@@ -1,6 +1,6 @@
 import { state } from './state.js';
 import { createContactElement, selectItem, clearSelection, showConfirmation, renderContact } from './ui.js';
-import { fetchConversation } from './chat.js';
+import { fetchConversation } from './msg.js';
 import { truncateText, formatElapsedTime } from './utils.js';
 
 export function refreshContacts(force = false) {
