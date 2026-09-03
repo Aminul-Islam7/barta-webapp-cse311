@@ -71,4 +71,41 @@ Barta divides features into two distinct interfaces to ensure safety and control
 
 ## 📸 Screenshots
 
-*(Screenshots to be added here)*
+Key screenshots of application interfaces, safety features, and parental moderation dashboard:
+
+### 🔐 Authentication & Onboarding
+
+| Tween Login | Parent Login |
+| :---: | :---: |
+| ![Tween Login](assets/screenshots/login-tween.png) | ![Parent Login](assets/screenshots/login-parent.png) |
+| **Tween Registration** | **Parent Registration** |
+| ![Tween Registration](assets/screenshots/register-tween.png) | ![Parent Registration](assets/screenshots/register-parent.png) |
+
+| Tween Account Linking (Parent Verification Request) |
+| :---: |
+| ![Parent Link Request](assets/screenshots/tween-link-request.png) |
+
+### 🐣 Tween Panel (Child Interface)
+
+| Chat Interface (Light Mode) | Chat Interface (Dark Mode & Moderation Notice) |
+| :---: | :---: |
+| ![Tween Chat Light Mode](assets/screenshots/tween-chat-light.png) | ![Tween Chat Dark Mode](assets/screenshots/tween-chat-dark.png) |
+| **Daily Message Limit Tracker** | **Message Moderation Feedback (Rejected)** |
+| ![Message Limits Tracker](assets/screenshots/message-limits-tracker.png) | ![Message Rejection Feedback](assets/screenshots/message-rejection-feedback.png) |
+
+| Help & Safety Guidance |
+| :---: |
+| ![Help and Safety Guidance](assets/screenshots/help-and-safety-guidance.png) |
+
+### 🛡️ Parent Panel (Guardian Supervision & Dashboard)
+
+| Pending Tween Link Requests | Pending Friend Requests Approval |
+| :---: | :---: |
+| ![Pending Link Requests](assets/screenshots/parent-link-requests-approval.png) | ![Pending Friend Requests](assets/screenshots/parent-friend-requests-approval.png) |
+| **Flagged Messages & Linked Children Overview** | **Friend Management & Blocked Words List** |
+| ![Flagged Messages Moderation](assets/screenshots/flagged-messages-moderation.png) | ![Friend List and Blocked Words](assets/screenshots/friend-list-and-blocked-words.png) |
+
+| Parent Profile & Security Settings |
+| :---: |
+| ![Parent Settings](assets/screenshots/parent-settings.png) |
+
